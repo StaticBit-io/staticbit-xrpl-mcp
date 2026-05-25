@@ -29,7 +29,7 @@ public sealed class LedgerTools
     [McpServerTool(Name = "xrpl_server_info")]
     [Description("Returns rippled node status: version, validated ledger range, build info, peers. Read-only.")]
     public async Task<string> ServerInfoAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         CancellationToken cancellationToken = default)
     {
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
@@ -40,7 +40,7 @@ public sealed class LedgerTools
     [McpServerTool(Name = "xrpl_server_state")]
     [Description("Machine-readable version of server_info. Returns load factors, validated/closed ledger info, state-accounting buckets, validation quorum, build version. Use this when you need numeric thresholds rather than human strings.")]
     public async Task<string> ServerStateAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         CancellationToken cancellationToken = default)
     {
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
@@ -51,7 +51,7 @@ public sealed class LedgerTools
     [McpServerTool(Name = "xrpl_server_definitions")]
     [Description("Returns the binary-format definition tables the node uses (FIELDS, LEDGER_ENTRY_TYPES, TRANSACTION_RESULTS, TRANSACTION_TYPES, TYPES) plus a content hash. Pass the previous hash to short-circuit if nothing changed (server returns empty result). Use this for feature/amendment detection on the node.")]
     public async Task<string> ServerDefinitionsAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Optional content hash from a previous call — if it matches, the server returns nothing.")] string? hash = null,
         CancellationToken cancellationToken = default)
     {
@@ -65,7 +65,7 @@ public sealed class LedgerTools
     [McpServerTool(Name = "xrpl_fee")]
     [Description("Returns current open-ledger transaction cost (drops). Use this to size Fee before submitting.")]
     public async Task<string> FeeAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         CancellationToken cancellationToken = default)
     {
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
@@ -76,8 +76,8 @@ public sealed class LedgerTools
     [McpServerTool(Name = "xrpl_ledger")]
     [Description("Returns a ledger header (and optionally its transactions) for the specified ledger.")]
     public async Task<string> LedgerAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
-        [Description("Ledger selector: 'validated' (default), 'current', 'closed', or a numeric ledger sequence.")] string? ledgerIndex = null,
+        [Description(ToolDescriptions.Network)] string network,
+        [Description(ToolDescriptions.LedgerIndex)] string? ledgerIndex = null,
         [Description("If true, include the transaction list of the ledger.")] bool transactions = false,
         [Description("If true, expand the transactions to full JSON instead of hashes only.")] bool expand = false,
         CancellationToken cancellationToken = default)
@@ -98,7 +98,7 @@ public sealed class LedgerTools
     [McpServerTool(Name = "xrpl_tx_lookup")]
     [Description("Looks up a single transaction by hash. Returns engine result, metadata and validated flag.")]
     public async Task<string> TxLookupAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("64-char hex transaction hash.")] string txHash,
         [Description("If true, return the binary blob instead of expanded JSON.")] bool binary = false,
         CancellationToken cancellationToken = default)

@@ -26,7 +26,7 @@ public sealed class PaymentChannelTools
     [McpServerTool(Name = "xrpl_payment_channel_create_prepare")]
     [Description("Prepares an UNSIGNED PaymentChannelCreate. amountDrops is XRP drops (string). settleDelaySeconds is the source-side close grace period. publicKeyHex is the secp256k1/ed25519 public key the source will sign claims with — get it from xrpl_wallet_address (publicKey).")]
     public async Task<PreparedTransaction> PaymentChannelCreatePrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Source account funding the channel.")] string account,
         [Description("Destination account that can claim from this channel.")] string destination,
         [Description("Amount of XRP in drops (string) to fund the channel.")] string amountDrops,
@@ -68,7 +68,7 @@ public sealed class PaymentChannelTools
     [McpServerTool(Name = "xrpl_payment_channel_fund_prepare")]
     [Description("Prepares an UNSIGNED PaymentChannelFund. Adds XRP to an open channel and optionally bumps its Expiration. Only the source account can fund.")]
     public async Task<PreparedTransaction> PaymentChannelFundPrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Source account (channel owner).")] string account,
         [Description("Channel ID (64-char hex).")] string channelId,
         [Description("Amount of XRP in drops to add.")] string amountDrops,
@@ -93,7 +93,7 @@ public sealed class PaymentChannelTools
     [McpServerTool(Name = "xrpl_payment_channel_claim_prepare")]
     [Description("Prepares an UNSIGNED PaymentChannelClaim. Used by either side to claim XRP and/or renew/close the channel. signatureHex + publicKeyHex are required when the destination is claiming OR when the source is redeeming a signed claim (sign offline via the signer plugin). Pass renew=true to clear the channel's Expiration; close=true to schedule closure.")]
     public async Task<PreparedTransaction> PaymentChannelClaimPrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Sender of the claim (source or destination of the channel).")] string account,
         [Description("Channel ID (64-char hex).")] string channelId,
         [Description("Cumulative XRP drops authorized by the signature.")] string? amountDrops = null,

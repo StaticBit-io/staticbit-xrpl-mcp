@@ -35,7 +35,7 @@ public sealed class TransactionTools
     [McpServerTool(Name = "xrpl_tx_submit_signed")]
     [Description("Submits a SIGNED transaction blob to the network. The blob must already be signed locally — the server NEVER signs. Optionally polls until the transaction is included in a validated ledger.")]
     public async Task<SubmitResult> SubmitSignedAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Signed transaction blob as a hex string. Produced locally by signing the tx_blob_unsigned returned by a *_prepare tool.")] string txBlobSigned,
         [Description("If true, do NOT retry or relay if the transaction fails locally (rippled fail_hard).")] bool failHard = true,
         [Description("If true, after submission poll for the transaction hash until it is in a validated ledger or LastLedgerSequence is reached.")] bool waitForValidation = false,
@@ -94,15 +94,20 @@ public sealed class TransactionTools
                     continue;
                 }
 
-                bool validated = ExtractBool(lookup, "Validated") || ExtractBool(lookup, "validated");
+                // Serialize once and walk fields off a JsonNode — avoids two extra
+                // re-serialize round-trips that the old ExtractBool/ExtractUInt did per call.
+                string lookupJson = XrplJson.Serialize(lookup);
+                JsonNode? lookupNode = JsonNode.Parse(lookupJson);
+
+                bool validated = ReadBool(lookupNode, "Validated", "validated");
                 if (!validated)
                 {
                     continue;
                 }
 
                 result.Validated = true;
-                result.LedgerIndex = ExtractUInt(lookup, "ledger_index", "LedgerIndex");
-                result.RawResponseJson = XrplJson.Serialize(lookup);
+                result.LedgerIndex = ReadUInt(lookupNode, "ledger_index", "LedgerIndex");
+                result.RawResponseJson = lookupJson;
                 break;
             }
             catch (OperationCanceledException)
@@ -179,7 +184,7 @@ public sealed class TransactionTools
     [McpServerTool(Name = "xrpl_tx_prepare_generic")]
     [Description("Escape hatch: prepares any XRPL transaction described as a JSON object (TransactionType + fields). Autofills Sequence/Fee/LastLedgerSequence and returns unsigned blob + signing data. Use for tx types not covered by dedicated *_prepare tools (Escrow, NFToken, Check, PaymentChannel, AccountSet, …).")]
     public async Task<PreparedTransaction> PrepareGenericAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Raw transaction as a JSON object, e.g. {\"TransactionType\":\"AccountSet\",\"Account\":\"r...\",\"SetFlag\":8}.")] string txJson,
         [Description("Optional one-line human summary shown to the user in the approval prompt.")] string? humanSummary = null,
         CancellationToken cancellationToken = default)
@@ -211,13 +216,13 @@ public sealed class TransactionTools
         try
         {
             string json = txJson is string s ? s : XrplJson.Serialize(txJson);
-            using JsonDocument doc = JsonDocument.Parse(json);
-            JsonElement root = doc.RootElement;
+            JsonNode? root = JsonNode.Parse(json);
+            if (root is null) return string.Empty;
             foreach (string key in new[] { "hash", "Hash", "tx_hash" })
             {
-                if (root.TryGetProperty(key, out JsonElement hashElement) && hashElement.ValueKind == JsonValueKind.String)
+                if (root[key] is JsonValue v && v.TryGetValue<string>(out string? hash) && !string.IsNullOrEmpty(hash))
                 {
-                    return hashElement.GetString() ?? string.Empty;
+                    return hash;
                 }
             }
         }
@@ -229,46 +234,46 @@ public sealed class TransactionTools
         return string.Empty;
     }
 
-    private static bool ExtractBool(object source, params string[] keys)
+    /// <summary>
+    /// Walks the JsonNode once, returns the first boolean-valued match by key.
+    /// Returns false if the node is null, the key is missing, or the value isn't a bool.
+    /// </summary>
+    internal static bool ReadBool(JsonNode? node, params string[] keys)
     {
-        try
+        if (node is null) return false;
+        foreach (string key in keys)
         {
-            string json = XrplJson.Serialize(source);
-            using JsonDocument doc = JsonDocument.Parse(json);
-            foreach (string key in keys)
+            JsonNode? child = node[key];
+            if (child is JsonValue v && v.TryGetValue<bool>(out bool b))
             {
-                if (doc.RootElement.TryGetProperty(key, out JsonElement element)
-                    && (element.ValueKind == JsonValueKind.True || element.ValueKind == JsonValueKind.False))
-                {
-                    return element.GetBoolean();
-                }
+                return b;
             }
-        }
-        catch
-        {
         }
         return false;
     }
 
-    private static uint ExtractUInt(object source, params string[] keys)
+    /// <summary>
+    /// Walks the JsonNode once, returns the first uint-valued match by key.
+    /// Accepts numbers within uint range and numeric strings; otherwise returns 0.
+    /// </summary>
+    internal static uint ReadUInt(JsonNode? node, params string[] keys)
     {
-        try
+        if (node is null) return 0u;
+        foreach (string key in keys)
         {
-            string json = XrplJson.Serialize(source);
-            using JsonDocument doc = JsonDocument.Parse(json);
-            foreach (string key in keys)
+            JsonNode? child = node[key];
+            if (child is JsonValue v)
             {
-                if (doc.RootElement.TryGetProperty(key, out JsonElement element)
-                    && element.ValueKind == JsonValueKind.Number
-                    && element.TryGetUInt32(out uint parsed))
+                if (v.TryGetValue<uint>(out uint u)) return u;
+                if (v.TryGetValue<long>(out long l) && l >= 0L && l <= uint.MaxValue) return (uint)l;
+                if (v.TryGetValue<string>(out string? s)
+                    && uint.TryParse(s, System.Globalization.NumberStyles.Integer,
+                        System.Globalization.CultureInfo.InvariantCulture, out uint p))
                 {
-                    return parsed;
+                    return p;
                 }
             }
         }
-        catch
-        {
-        }
-        return 0;
+        return 0u;
     }
 }

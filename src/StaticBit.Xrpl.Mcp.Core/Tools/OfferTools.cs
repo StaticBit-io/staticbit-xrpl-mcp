@@ -26,7 +26,7 @@ public sealed class OfferTools
     [McpServerTool(Name = "xrpl_offer_create_prepare")]
     [Description("Prepares an UNSIGNED OfferCreate (limit order on the XRPL DEX). Amounts use the same format as xrpl_payment_prepare (drops string for XRP, JSON {value,currency,issuer} for tokens).")]
     public async Task<PreparedTransaction> OfferCreatePrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Sender address (the offer owner).")] string account,
         [Description("TakerGets — what the OFFER GIVES UP. Drops string for XRP or JSON token object.")] string takerGets,
         [Description("TakerPays — what the OFFER WANTS. Drops string for XRP or JSON token object.")] string takerPays,
@@ -69,7 +69,7 @@ public sealed class OfferTools
     [McpServerTool(Name = "xrpl_offer_cancel_prepare")]
     [Description("Prepares an UNSIGNED OfferCancel transaction. offerSequence is the Sequence number of the OfferCreate to remove.")]
     public async Task<PreparedTransaction> OfferCancelPrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Sender address (the offer owner).")] string account,
         [Description("Sequence number of the OfferCreate transaction to cancel.")] uint offerSequence,
         CancellationToken cancellationToken = default)

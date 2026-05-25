@@ -27,14 +27,14 @@ public sealed class DexTools
     [McpServerTool(Name = "xrpl_book_offers")]
     [Description("Returns the order book (offers) for a currency pair on the XRPL DEX. Use 'XRP' currency with empty issuer for XRP.")]
     public async Task<string> BookOffersAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Currency the taker would RECEIVE. 'XRP' or 3-char/40-hex token code.")] string takerGetsCurrency,
         [Description("Issuer for the taker_gets currency. Leave empty for XRP.")] string? takerGetsIssuer,
         [Description("Currency the taker would PAY. 'XRP' or 3-char/40-hex token code.")] string takerPaysCurrency,
         [Description("Issuer for the taker_pays currency. Leave empty for XRP.")] string? takerPaysIssuer,
         [Description("Optional address used as the offer-taker's perspective (for filtering unfunded offers).")] string? taker = null,
         [Description("Page size. Server may cap this value.")] uint? limit = null,
-        [Description("Ledger selector: 'validated' (default), 'current', 'closed', or a numeric sequence.")] string? ledgerIndex = null,
+        [Description(ToolDescriptions.LedgerIndex)] string? ledgerIndex = null,
         CancellationToken cancellationToken = default)
     {
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);

@@ -42,7 +42,7 @@ public sealed class SubscriptionTools
     [McpServerTool(Name = "xrpl_subscribe")]
     [Description("Installs a subscription on the pool's shared WebSocket. WARNING: streaming events are not delivered back through MCP — prefer xrpl_account_tx_since for polling-based monitoring. streamsCsv: comma-separated subset of {ledger,transactions,transactions_proposed,validations,manifests,server,peer_status,consensus,book_changes}. accountsJson / accountsProposedJson: JSON array of r-addresses.")]
     public async Task<string> SubscribeAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Comma-separated stream names. Empty to subscribe only by account/book.")] string? streamsCsv = null,
         [Description("JSON array of r-addresses to subscribe to (validated transactions affecting them).")] string? accountsJson = null,
         [Description("JSON array of r-addresses to subscribe to (proposed + validated, unfinalized).")] string? accountsProposedJson = null,
@@ -63,7 +63,7 @@ public sealed class SubscriptionTools
     [McpServerTool(Name = "xrpl_unsubscribe")]
     [Description("Mirror of xrpl_subscribe — removes subscriptions from the pool's shared WebSocket. Same parameter shape.")]
     public async Task<string> UnsubscribeAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Comma-separated stream names to unsubscribe.")] string? streamsCsv = null,
         [Description("JSON array of r-addresses to unsubscribe.")] string? accountsJson = null,
         [Description("JSON array of r-addresses to unsubscribe from the proposed stream.")] string? accountsProposedJson = null,
@@ -84,7 +84,7 @@ public sealed class SubscriptionTools
     [McpServerTool(Name = "xrpl_account_tx_since")]
     [Description("Polling-based account monitor. Returns transactions affecting the account starting from sinceLedger (exclusive) up to current validated ledger. Pageable via 'limit' and 'marker'. The intended pattern: caller stores the highest ledger_index it saw and passes it as sinceLedger on the next poll. Works on cloud/local/HTTP — no streaming required.")]
     public async Task<string> AccountTxSinceAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Classic XRP address.")] string account,
         [Description("Inclusive lower bound: return transactions from this ledger onward. Pass 0 (default) for 'earliest available'.")] int sinceLedger = 0,
         [Description("Page size (max 200).")] int? limit = 50,

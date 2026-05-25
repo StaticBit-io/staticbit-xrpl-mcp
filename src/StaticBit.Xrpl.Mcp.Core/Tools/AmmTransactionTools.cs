@@ -31,7 +31,7 @@ public sealed class AmmTransactionTools
     [McpServerTool(Name = "xrpl_amm_deposit_prepare")]
     [Description("Prepares an UNSIGNED AMMDeposit. Provide the pool's two assets and ONE of: (a) amount only — single-asset deposit; (b) amount + amount2 — two-asset deposit; (c) lpTokenOut only — double-asset deposit by LP amount; (d) amount + lpTokenOut — single-asset deposit by LP amount.")]
     public async Task<PreparedTransaction> AmmDepositPrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Sender address (liquidity provider).")] string account,
         [Description("First pool asset — currency code ('XRP' or 3-char / 40-hex).")] string asset1Currency,
         [Description("First pool asset — issuer. Empty for XRP.")] string? asset1Issuer,
@@ -68,7 +68,7 @@ public sealed class AmmTransactionTools
     [McpServerTool(Name = "xrpl_amm_withdraw_prepare")]
     [Description("Prepares an UNSIGNED AMMWithdraw. Provide the pool's two assets and either lpTokenIn, amount(s), or set withdrawAll=true to redeem all LP tokens.")]
     public async Task<PreparedTransaction> AmmWithdrawPrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Sender address (liquidity provider).")] string account,
         [Description("First pool asset — currency code ('XRP' or 3-char / 40-hex).")] string asset1Currency,
         [Description("First pool asset — issuer. Empty for XRP.")] string? asset1Issuer,

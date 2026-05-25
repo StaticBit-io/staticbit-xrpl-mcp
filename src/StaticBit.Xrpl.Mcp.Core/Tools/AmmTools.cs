@@ -28,14 +28,14 @@ public sealed class AmmTools
     [McpServerTool(Name = "xrpl_amm_info")]
     [Description("Returns state of an AMM instance — pool assets, LP token supply, trading fee, auction slot. Identify by asset pair OR by AMM account.")]
     public async Task<string> AmmInfoAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("First asset of the pool — currency code ('XRP' or 3-char/40-hex token).")] string? asset1Currency = null,
         [Description("Issuer of the first asset. Leave empty for XRP.")] string? asset1Issuer = null,
         [Description("Second asset of the pool — currency code.")] string? asset2Currency = null,
         [Description("Issuer of the second asset. Leave empty for XRP.")] string? asset2Issuer = null,
         [Description("Optional: AMM account address. If set, asset1/asset2 are ignored.")] string? ammAccount = null,
         [Description("Optional: liquidity provider account — when set, returns LP token amount this account holds.")] string? lpAccount = null,
-        [Description("Ledger selector: 'validated' (default), 'current', 'closed', or a numeric sequence.")] string? ledgerIndex = null,
+        [Description(ToolDescriptions.LedgerIndex)] string? ledgerIndex = null,
         CancellationToken cancellationToken = default)
     {
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);

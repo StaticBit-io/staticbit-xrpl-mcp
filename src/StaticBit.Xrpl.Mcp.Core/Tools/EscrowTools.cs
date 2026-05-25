@@ -27,7 +27,7 @@ public sealed class EscrowTools
     [McpServerTool(Name = "xrpl_escrow_create_prepare")]
     [Description("Prepares an UNSIGNED EscrowCreate. amount is XRP drops (string), an issued-token JSON object, or an MPT amount (requires TokenEscrow amendment). Must specify FinishAfter or CancelAfter (or both). Condition (PREIMAGE-SHA-256, hex) makes it a conditional escrow that requires a matching Fulfillment to finish. All times are UTC; they are converted to Ripple-epoch by the SDK.")]
     public async Task<PreparedTransaction> EscrowCreatePrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Sender account (escrow funder).")] string account,
         [Description("Destination account that receives the escrowed funds on finish.")] string destination,
         [Description("Amount: drops string for XRP, JSON {value,currency,issuer} for tokens.")] string amount,
@@ -70,7 +70,7 @@ public sealed class EscrowTools
     [McpServerTool(Name = "xrpl_escrow_finish_prepare")]
     [Description("Prepares an UNSIGNED EscrowFinish. owner is the original escrow funder; offerSequence is the Sequence of the EscrowCreate transaction. For conditional escrows, provide both conditionHex and fulfillmentHex.")]
     public async Task<PreparedTransaction> EscrowFinishPrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Sender of the finish (often the destination).")] string account,
         [Description("Owner = original funder address.")] string owner,
         [Description("Sequence number of the original EscrowCreate transaction.")] uint offerSequence,
@@ -105,7 +105,7 @@ public sealed class EscrowTools
     [McpServerTool(Name = "xrpl_escrow_cancel_prepare")]
     [Description("Prepares an UNSIGNED EscrowCancel. Only valid after the escrow's CancelAfter time has passed; refunds the funds to the original owner.")]
     public async Task<PreparedTransaction> EscrowCancelPrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Sender of the cancel (typically the original owner, but anyone can cancel after CancelAfter).")] string account,
         [Description("Owner = original funder address.")] string owner,
         [Description("Sequence number of the original EscrowCreate transaction.")] uint offerSequence,

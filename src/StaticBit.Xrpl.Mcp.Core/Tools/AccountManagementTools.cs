@@ -29,7 +29,7 @@ public sealed class AccountManagementTools
     [McpServerTool(Name = "xrpl_account_set_prepare")]
     [Description("Prepares an UNSIGNED AccountSet. Use setFlag/clearFlag to toggle ONE asf flag per transaction (e.g. asfDefaultRipple=8, asfRequireAuth=2, asfRequireDest=1, asfDisallowXRP=3, asfDisableMaster=4, asfNoFreeze=6, asfGlobalFreeze=7, asfDepositAuth=9, asfAuthorizedNFTokenMinter=10, asfDisallowIncomingNFTokenOffer=12, asfDisallowIncomingCheck=13, asfDisallowIncomingPayChan=14, asfDisallowIncomingTrustline=15, asfAllowTrustLineClawback=16, asfAllowTrustLineLocking=17). Domain must be lowercase ASCII hex-encoded.")]
     public async Task<PreparedTransaction> AccountSetPrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Account whose settings are being modified.")] string account,
         [Description("Optional asf flag to ENABLE (one per transaction).")] uint? setFlag = null,
         [Description("Optional asf flag to DISABLE (one per transaction).")] uint? clearFlag = null,
@@ -73,7 +73,7 @@ public sealed class AccountManagementTools
     [McpServerTool(Name = "xrpl_set_regular_key_prepare")]
     [Description("Prepares an UNSIGNED SetRegularKey. Pass regularKey=null (or omit) to REMOVE the existing regular key pair. Must not match the master key pair for the account.")]
     public async Task<PreparedTransaction> SetRegularKeyPrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Account whose regular key is being assigned/cleared.")] string account,
         [Description("New regular key address (classic r-address). Omit to REMOVE.")] string? regularKey = null,
         CancellationToken cancellationToken = default)
@@ -96,7 +96,7 @@ public sealed class AccountManagementTools
     [McpServerTool(Name = "xrpl_deposit_preauth_prepare")]
     [Description("Prepares an UNSIGNED DepositPreauth. Pass EITHER authorize (grant) OR unauthorize (revoke); they are mutually exclusive. Only meaningful if the account has asfDepositAuth enabled.")]
     public async Task<PreparedTransaction> DepositPreauthPrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Account granting/revoking the deposit preauthorization.")] string account,
         [Description("Address to preauthorize (mutually exclusive with unauthorize).")] string? authorize = null,
         [Description("Address whose preauthorization should be revoked (mutually exclusive with authorize).")] string? unauthorize = null,
@@ -128,7 +128,7 @@ public sealed class AccountManagementTools
     [McpServerTool(Name = "xrpl_signer_list_set_prepare")]
     [Description("Prepares an UNSIGNED SignerListSet. signerQuorum=0 DELETES the signer list (must omit signerEntries). Otherwise signerEntries is a JSON array of objects: [{\"account\":\"r...\",\"weight\":1,\"walletLocator\":\"<optional 64-char hex>\"}, ...]. Quorum must be ≤ sum of weights; up to 32 entries.")]
     public async Task<PreparedTransaction> SignerListSetPrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Account that owns this signer list.")] string account,
         [Description("Required signer weight sum. 0 = DELETE the signer list.")] uint signerQuorum,
         [Description("JSON array of signer entries: [{\"account\":\"r...\",\"weight\":1,\"walletLocator\":\"<hex>\"}]. Required when signerQuorum>0; must be omitted when signerQuorum=0.")] string? signerEntriesJson = null,
@@ -155,7 +155,7 @@ public sealed class AccountManagementTools
     [McpServerTool(Name = "xrpl_account_delete_prepare")]
     [Description("Prepares an UNSIGNED AccountDelete. The account must have no owned objects (trust lines, offers, escrows, etc.) and Sequence + 256 must be ≤ current ledger sequence. Reserve fee is high — typically 2 XRP — and the residual XRP balance is sent to 'destination'.")]
     public async Task<PreparedTransaction> AccountDeletePrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Account to be deleted.")] string account,
         [Description("Funded destination that receives leftover XRP. Must NOT equal account.")] string destination,
         [Description("Optional destination tag (uint32).")] uint? destinationTag = null,

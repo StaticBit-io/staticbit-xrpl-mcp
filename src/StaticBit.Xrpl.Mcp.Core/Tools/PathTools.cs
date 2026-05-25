@@ -32,13 +32,13 @@ public sealed class PathTools
     [McpServerTool(Name = "xrpl_ripple_path_find")]
     [Description("One-shot cross-currency pathfinder. Returns the alternatives array — every entry has a 'source_amount' you can drop straight into a Payment as SendMax along with its 'paths_computed' as Paths. destinationAmount uses the same format as xrpl_payment_prepare (drops string for XRP or JSON {value,currency,issuer} for tokens). sourceCurrenciesJson optionally restricts what the source can spend: JSON array of {currency,issuer?} objects (max 18).")]
     public async Task<string> RipplePathFindAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Source account address.")] string sourceAccount,
         [Description("Destination account address.")] string destinationAccount,
         [Description("Destination amount: drops string for XRP, JSON {value,currency,issuer} for tokens. Pass value='-1' to ask 'deliver as much as possible up to sendMax'.")] string destinationAmount,
         [Description("Optional: maximum the source is willing to spend. Same format as destinationAmount. Mutually exclusive with sourceCurrenciesJson per docs.")] string? sendMax = null,
         [Description("Optional: JSON array of {currency,issuer?} the source is willing to spend (max 18).")] string? sourceCurrenciesJson = null,
-        [Description("Ledger selector: 'validated' (default), 'current', 'closed', or a numeric ledger sequence.")] string? ledgerIndex = null,
+        [Description(ToolDescriptions.LedgerIndex)] string? ledgerIndex = null,
         CancellationToken cancellationToken = default)
     {
         if (!string.IsNullOrEmpty(sendMax) && !string.IsNullOrWhiteSpace(sourceCurrenciesJson))

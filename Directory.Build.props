@@ -1,6 +1,13 @@
 <Project>
 
   <PropertyGroup>
+    <!--
+      Default TargetFramework — applied to every project that doesn't override it.
+      StaticBit.Xrpl.Mcp.Abstractions intentionally pins to netstandard2.1 so it can
+      be referenced from older hosts (e.g. an embedded Wallet build); everything else
+      runs on net10.0.
+    -->
+    <TargetFramework>net10.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
