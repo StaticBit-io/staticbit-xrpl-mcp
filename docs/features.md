@@ -131,11 +131,22 @@ Tool оставлен как plumbing для будущих server-side watchers
 
 ## 7. Дистрибуция и supply chain
 
-- [ ] **Автогенерация GitHub release notes** из commit-history между тегами плагинов.
-- [ ] **Notarization** macOS-бинарей signer (иначе Gatekeeper блокирует у юзеров).
-- [ ] **Authenticode-подпись** Windows-бинарей.
-- [ ] **SBOM (CycloneDX)** + SLSA attestation для бинарей в плагинах. Особенно важно для signer (он держит ключи).
-- [ ] **Reproducible builds** для `build-signer-binaries.sh` — чтобы юзер мог верифицировать что в плагине именно тот код, что в репо.
+Полная сводка + setup-гайд: [docs/supply-chain.md](supply-chain.md).
+
+- [x] **Автогенерация GitHub release notes** — `release-plugin.sh::group_by_conventional_commit` парсит conventional commits (feat/fix/perf/refactor/docs/test/build/ci/chore) между тегами и группирует под подзаголовки `### Features` / `### Fixes` / ... `### Other`. Старая плоская простыня заменена.
+- [x] **SBOM (CycloneDX)** — `dotnet CycloneDX` в release workflow генерит `<plugin>-v<X>.cdx.json` для `xrpl-signer` и `xrpl-local` (для `xrpl-cloud` пропускается — у него нет shipped бинарей). Аттачится к Release.
+- [x] **SLSA build provenance attestation** — `actions/attest-build-provenance@v2` через GitHub OIDC. Без секретов. Верифицируется `gh attestation verify`.
+- [x] **Per-RID tarballs + SHA-256 sidecars** — каждый `plugins/<name>/bin/<rid>/` бандлится в `<plugin>-v<X>-<rid>.tar.gz` + `.sha256` рядом.
+- [x] **Reproducible builds** — `Deterministic=true` всегда, `ContinuousIntegrationBuild=true` при `CI=true`/`GITHUB_ACTIONS=true`. Bit-identity для managed-сборок между запусками одного коммита на одной версии SDK.
+- [x] **Notarization** macOS бинарей signer — workflow готов, использует `rcodesign` (pure-Rust, на Linux runner'е без macOS-хоста). Условно skipped если `APPLE_*` секреты не настроены. Required secrets описаны в [docs/supply-chain.md](supply-chain.md).
+- [x] **Authenticode** Windows бинарей — workflow готов, использует `osslsigncode` на Linux runner'е. Условно skipped если `WINDOWS_PFX*` не настроен. Required secrets описаны в [docs/supply-chain.md](supply-chain.md).
+
+Хвосты (см. supply-chain.md):
+
+- [ ] Notary stapling для macOS — невозможно для plain Mach-O, только `.app/.dmg/.pkg`.
+- [ ] EV code-signing (HSM-токен) для Windows — требует отдельного workflow с DigiCert KeyLocker / Azure Key Vault.
+- [ ] Vulnerability scanning в CI (grype / trivy) на основе уже-генерируемого SBOM.
+- [ ] Bit-identity для single-file native бинарей — ждёт `SOURCE_DATE_EPOCH` в `dotnet publish` (.NET 11+).
 
 ---
 
