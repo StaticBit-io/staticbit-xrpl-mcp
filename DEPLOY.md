@@ -18,7 +18,7 @@ directory under `/opt/<service-name>/` with its own docker-compose.yml and `.env
   docker-compose.yml
   .env, .env.telegram-mcp
 
-/opt/StaticBitXrplMcp/       ← another MCP (this repo)
+/opt/staticbit-xrpl-mcp/       ← another MCP (this repo)
   docker-compose.yml
   .env, .env.xrpl-mcp
 ```
@@ -55,20 +55,20 @@ generic and not repeated here.
 
 ```bash
 ssh root@<HOST_IP>
-mkdir -p /opt/StaticBitXrplMcp
-cd /opt/StaticBitXrplMcp
+mkdir -p /opt/staticbit-xrpl-mcp
+cd /opt/staticbit-xrpl-mcp
 
 # Option A — public clone (anonymous)
-git clone https://github.com/StaticBit-io/StaticBitXrplMcp.git .
+git clone https://github.com/StaticBit-io/staticbit-xrpl-mcp.git .
 
 # Option B — private repo via PAT
-git clone https://<GITHUB_USER>:<PAT>@github.com/StaticBit-io/StaticBitXrplMcp.git .
+git clone https://<GITHUB_USER>:<PAT>@github.com/StaticBit-io/staticbit-xrpl-mcp.git .
 
 # Option C — no git access, push from local workstation
 # (run from your dev box, NOT on the server)
 #   tar -cz --exclude=bin --exclude=obj --exclude=.git --exclude=publish \
 #     --exclude='.env' --exclude='.env.xrpl-mcp' -f - . \
-#     | ssh root@<HOST_IP> 'mkdir -p /opt/StaticBitXrplMcp && tar -xz -C /opt/StaticBitXrplMcp'
+#     | ssh root@<HOST_IP> 'mkdir -p /opt/staticbit-xrpl-mcp && tar -xz -C /opt/staticbit-xrpl-mcp'
 ```
 
 ---
@@ -79,7 +79,7 @@ One bearer per consumer (you, a teammate, an automated routine). Each at least 3
 characters. The Label appears in audit logs so you can see who did what.
 
 ```bash
-cd /opt/StaticBitXrplMcp
+cd /opt/staticbit-xrpl-mcp
 OWNER_BEARER=$(openssl rand -base64 48 | tr -d '\n' | tr '/+' '_-')
 echo "owner: $OWNER_BEARER"
 
@@ -97,7 +97,7 @@ in their MCP config (see Step 5).
 ## Step 3 — configure the service
 
 ```bash
-cd /opt/StaticBitXrplMcp
+cd /opt/staticbit-xrpl-mcp
 cp .env.example          .env
 cp .env.xrpl-mcp.example .env.xrpl-mcp
 ```
@@ -192,7 +192,7 @@ curl -sS -o /dev/null -w "HTTP %{http_code}\n" \
 ### 5.3 — correct bearer + initialize → 200 + SSE
 
 ```bash
-BEARER=$(grep '^Server__HttpAuth__Tokens__0__Token=' /opt/StaticBitXrplMcp/.env.xrpl-mcp | cut -d= -f2-)
+BEARER=$(grep '^Server__HttpAuth__Tokens__0__Token=' /opt/staticbit-xrpl-mcp/.env.xrpl-mcp | cut -d= -f2-)
 curl -sS -X POST https://xrpl-mcp.staticbit.io/mcp \
   -H "Authorization: Bearer $BEARER" \
   -H "Content-Type: application/json" \
@@ -409,7 +409,7 @@ dependency on TelegramMCP or its bot.
 
 ```bash
 ssh root@<HOST_IP>
-cd /opt/StaticBitXrplMcp
+cd /opt/staticbit-xrpl-mcp
 
 # Replace these with your real admin bot token and chat_id:
 ADMIN_BOT='123456:YOUR_ADMIN_BOT_TOKEN'
@@ -498,20 +498,20 @@ The `AdminAlerter` background worker is not started at all when `Enabled=false`
 
 ### Logs
 ```bash
-cd /opt/StaticBitXrplMcp && docker compose logs -f xrpl-mcp
+cd /opt/staticbit-xrpl-mcp && docker compose logs -f xrpl-mcp
 docker compose logs xrpl-mcp | grep -iE 'auth (failure|success)'   # audit
 ```
 
 ### Update to latest image
 ```bash
-cd /opt/StaticBitXrplMcp
+cd /opt/staticbit-xrpl-mcp
 docker compose pull
 docker compose up -d
 ```
 
 ### Update from local source changes
 ```bash
-cd /opt/StaticBitXrplMcp
+cd /opt/staticbit-xrpl-mcp
 git pull --ff-only
 docker compose up -d --build
 ```
@@ -519,7 +519,7 @@ docker compose up -d --build
 ### Rotate a bearer token
 
 ```bash
-cd /opt/StaticBitXrplMcp
+cd /opt/staticbit-xrpl-mcp
 NEW=$(openssl rand -base64 48 | tr -d '\n' | tr '/+' '_-')
 # Replace by index (find the right index by Label):
 sed -i "s|^Server__HttpAuth__Tokens__0__Token=.*|Server__HttpAuth__Tokens__0__Token=$NEW|" .env.xrpl-mcp
@@ -533,7 +533,7 @@ a secure channel.
 ### Add a new user
 
 ```bash
-cd /opt/StaticBitXrplMcp
+cd /opt/staticbit-xrpl-mcp
 NEW=$(openssl rand -base64 48 | tr -d '\n' | tr '/+' '_-')
 cat >> .env.xrpl-mcp <<EOF
 Server__HttpAuth__Tokens__2__Token=$NEW
@@ -547,11 +547,11 @@ echo "bearer for bob: $NEW"
 ### Tear down
 
 ```bash
-cd /opt/StaticBitXrplMcp
+cd /opt/staticbit-xrpl-mcp
 docker compose down
 # Optionally:
 docker image rm ghcr.io/staticbit-io/staticbit-xrpl-mcp:latest
-rm -rf /opt/StaticBitXrplMcp
+rm -rf /opt/staticbit-xrpl-mcp
 # Then remove the DNS A-record.
 ```
 
@@ -595,7 +595,7 @@ Callers then pass `"network": "hooks_v3"`.
 | Container starts then exits with `HttpAuth:Tokens is empty` | No bearer configured | Add at least one `Tokens__0__Token` to `.env.xrpl-mcp` |
 | Container exits with `... is shorter than 32 characters` | Bearer too short | Regenerate: `openssl rand -base64 48 \| tr '/+' '_-'` |
 | TLS cert not issued | DNS not propagated / port 80 not reachable | `dig +short xrpl-mcp.staticbit.io @1.1.1.1`; `curl -I http://xrpl-mcp.staticbit.io/` |
-| `401` even with correct bearer | Token mismatch (whitespace, wrong index) | `grep Token /opt/StaticBitXrplMcp/.env.xrpl-mcp`; verify length and exact value |
+| `401` even with correct bearer | Token mismatch (whitespace, wrong index) | `grep Token /opt/staticbit-xrpl-mcp/.env.xrpl-mcp`; verify length and exact value |
 | `400 HTTPS required` | `RequireHttps=true` and no `X-Forwarded-Proto` header | Verify Traefik labels are correct and request reaches via HTTPS |
 | `404` on `/` | Expected — MCP is at `/mcp` | Use `/mcp` path |
 | `429 Too Many Requests` | Hit rate limit | Increase `Server__RateLimit__PermitsPerMinute` or wait one minute |
