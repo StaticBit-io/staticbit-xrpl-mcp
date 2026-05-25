@@ -37,6 +37,31 @@ public sealed class LedgerTools
         return XrplJson.Serialize(response);
     }
 
+    [McpServerTool(Name = "xrpl_server_state")]
+    [Description("Machine-readable version of server_info. Returns load factors, validated/closed ledger info, state-accounting buckets, validation quorum, build version. Use this when you need numeric thresholds rather than human strings.")]
+    public async Task<string> ServerStateAsync(
+        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        CancellationToken cancellationToken = default)
+    {
+        IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
+        ServerState response = await client.ServerState(new ServerStateRequest(), cancellationToken).ConfigureAwait(false);
+        return XrplJson.Serialize(response);
+    }
+
+    [McpServerTool(Name = "xrpl_server_definitions")]
+    [Description("Returns the binary-format definition tables the node uses (FIELDS, LEDGER_ENTRY_TYPES, TRANSACTION_RESULTS, TRANSACTION_TYPES, TYPES) plus a content hash. Pass the previous hash to short-circuit if nothing changed (server returns empty result). Use this for feature/amendment detection on the node.")]
+    public async Task<string> ServerDefinitionsAsync(
+        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description("Optional content hash from a previous call — if it matches, the server returns nothing.")] string? hash = null,
+        CancellationToken cancellationToken = default)
+    {
+        IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
+        ServerDefinitionsResponse response = await client
+            .ServerDefinitions(new ServerDefinitionsRequest { Hash = hash }, cancellationToken)
+            .ConfigureAwait(false);
+        return XrplJson.Serialize(response);
+    }
+
     [McpServerTool(Name = "xrpl_fee")]
     [Description("Returns current open-ledger transaction cost (drops). Use this to size Fee before submitting.")]
     public async Task<string> FeeAsync(
