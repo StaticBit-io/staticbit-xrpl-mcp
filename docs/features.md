@@ -63,19 +63,26 @@
 
 ## 2. Read API и streaming
 
-| Tool | Зачем |
-|---|---|
-| `xrpl_ripple_path_find` / `xrpl_path_find` | Без этого нельзя нормально готовить cross-currency Payment с полем `Paths` |
-| `xrpl_gateway_balances` | Issuer хочет видеть свои обязательства |
-| `xrpl_server_state`, `xrpl_server_definitions` | Health и feature-detection (узнать какие amendments активны на ноде) |
-| `xrpl_manifest` | Инспекция validator manifest |
-| `xrpl_subscribe` / `xrpl_unsubscribe` | Долгоживущий watcher на ledger/account/transaction stream |
+| Tool | Статус | Заметки |
+|---|---|---|
+| `xrpl_ripple_path_find` | ✅ | One-shot pathfinder для cross-currency Payment (HTTP/WebSocket). |
+| `xrpl_path_find_create` / `_status` / `_close` | ✅ | WebSocket-only long-running pathfinder; работает только на stdio-deployment. |
+| `xrpl_gateway_balances` | ✅ | Issuer obligations, with hotwallet exclusion. |
+| `xrpl_server_state` | ✅ | Machine-readable load factors, validation quorum, build. |
+| `xrpl_server_definitions` | ✅ | FIELDS/LEDGER_ENTRY_TYPES/TRANSACTION_TYPES + content hash. |
+| `xrpl_subscribe` / `xrpl_unsubscribe` | ⚠️ Pass-through | Подписка ставится на shared WebSocket пула; события **не возвращаются** обратно через MCP (см. ниже). |
+| `xrpl_account_tx_since` | ✅ | Polling-based alternative to subscribe: stateless, работает на cloud/local/HTTP. |
+| `xrpl_manifest` | ⏳ | В SDK нет типизированного метода — нужно делать через `GRequest<>`. Не реализовано. |
 
-### Подход к subscribe
+### Subscribe/unsubscribe — честные ограничения
 
-MCP-tool возвращает `subscriptionId`, далее события идут либо через resource-update (если MCP-клиент поддерживает), либо через отдельный `xrpl_subscription_poll`. Можно начать с простого poll-based варианта.
+MCP — request/response, **не двунаправленный канал**. Cloud-сервер держит ОДНУ WebSocket-сессию на network через `XrplClientPool`, разделяемую между всеми MCP-клиентами. `xrpl_subscribe` ставит подписку, но события приходят на ту общую WebSocket и **никак не доставляются обратно** конкретному MCP-вызову.
 
-Юзкейс: Cowork-агент "сообщи в Telegram когда придёт Payment на адрес X".
+Tool оставлен как plumbing для будущих server-side watchers / admin alerts (например, AdminAlerter мог бы их потреблять).
+
+**Для реального мониторинга** — использовать `xrpl_account_tx_since`: passing the highest `ledger_index` seen previously gives stateless, idempotent polling that works в любом deployment-режиме.
+
+- [ ] Полноценный streaming через SSE/long-poll resource-update — отложено до того момента, когда MCP-протокол / Claude Code consumer-side это поддержит.
 
 ---
 
