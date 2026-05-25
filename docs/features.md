@@ -152,10 +152,10 @@ Tool оставлен как plumbing для будущих server-side watchers
 
 ## 8. Документация и SDK-парность
 
-- [ ] `INSTALL.md` — раздел troubleshooting per-OS (Linux SELinux/AppArmor для signer, macOS Gatekeeper, Windows SmartScreen).
-- [ ] **OpenAPI / JSON-schema** для всех MCP-tool'ов — генерировать из `[McpServerTool]` reflection-проходом, выкладывать в репо для third-party агентов.
-- [ ] Пример Cowork-агента: "monitor my balance and Telegram me on incoming Payment".
-- [ ] Глоссарий XRPL-терминов в `docs/` (drops, reserve, NoRipple, DefaultRipple, ledger states).
+- [x] `INSTALL.md` §13 Troubleshooting — добавлены 3 подсекции: macOS Gatekeeper (`xattr -dr com.apple.quarantine`, `spctl --add`), Windows SmartScreen/Defender (`Unblock-File`, `Add-MpPreference -ExclusionPath`), Linux SELinux/AppArmor (`ausearch`, `chcon`/`semanage`, `DOTNET_BUNDLE_EXTRACT_BASE_DIR`).
+- [x] **JSON-schema каталог tools** — новый mini-проект [`tools/SchemaGen/`](../tools/SchemaGen/) делает reflection-проход по `[McpServerToolType]`+`[McpServerTool]` в Core и Signer сборках, эмитит [`docs/tools-schema.json`](tools-schema.json) в MCP `tools/list` формате (name + description + JSON-Schema inputSchema, отсортировано по name). 74 tools покрыто. Регенерация: `dotnet run --project tools/SchemaGen -- docs/tools-schema.json`.
+- [x] Пример Cowork-агента — [`docs/examples/monitor-balance-telegram.md`](examples/monitor-balance-telegram.md): polling watcher на `xrpl_account_tx_since` + форматирование через `xrpl_tx_explain` + отправка в Telegram. Готовый prompt, обоснование почему polling а не subscribe, варианты расширения и verification-чеклист.
+- [x] Глоссарий XRPL-терминов — [`docs/glossary.md`](glossary.md): drops, reserve (base+owner), Sequence, LastLedgerSequence, Ripple epoch, ledger states, trust lines (NoRipple/DefaultRipple/Freeze), engine results (tec/tef/tem/ter/tes), DEX, AMM, Regular Key, Signer List, DepositAuth, Clawback, Escrow, Payment Channel, Check, NFT.
 
 ---
 
@@ -163,7 +163,7 @@ Tool оставлен как plumbing для будущих server-side watchers
 
 Не утверждено — обсуждается:
 
-1. **NFT + Escrow + AccountSet typed wrappers** (§1.1, §1.2, §1.3) — закрывает 80% реальных юзкейсов и убирает зависимость от хрупкого `tx_prepare_generic`.
-2. **`xrpl_tx_explain`** (§3) — критично для UX подписания, независимо от остального.
-3. **Тесты на Server** (§5) — пустой проект на CI это явный долг.
-4. **`xrpl_ripple_path_find`** (§2) — без него cross-currency payments через агента фактически не работают.
+1. **§4 Signer** — HD-кошельки (BIP-44), audit log, hardware-wallet integration, per-wallet passphrase, OS-биометрика для разблокировки. Единственный полностью нетронутый раздел.
+2. **§5 хвосты** — OpenTelemetry/metrics + connection-pool health + integration tests.
+3. **§1 / §2 хвосты** — signer-list helper, escrow read-helper, AccountDelete pre-flight, `xrpl_manifest`, XLS-70 credential-based DepositPreauth.
+4. **§7 хвосты** — vulnerability scanning (grype/trivy на основе уже-генерируемого SBOM).
