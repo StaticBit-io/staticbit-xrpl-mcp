@@ -109,14 +109,14 @@ Tool оставлен как plumbing для будущих server-side watchers
 
 ## 5. Server-инфраструктура
 
-- [ ] **Тесты Server**: `tests/StaticBit.Xrpl.Mcp.Server.Tests/` пустой — добавить покрытие `BearerAuthMiddleware`, rate-limit, `/healthz`/`/readyz`, `AdminAlerter`.
-- [ ] **OpenTelemetry / metrics**: счётчики MCP-вызовов по tool, latency, network errors к XRPL, размер connection pool. Prometheus-endpoint на `/metrics`.
-- [ ] **Structured request logging** с redaction (адреса в логи можно, секреты — никогда).
-- [ ] **CORS** для будущего HTTP-клиента из браузера.
-- [ ] **Connection pool health**: `XrplClientPool` — TTL соединений, ping/pong, авто-реконнект при разрыве WS.
-- [ ] **Graceful shutdown** для long-poll `wait_for_validation` — сейчас `catch {}` в poll-loop проглатывает в т.ч. cancellation до `ThrowIfCancellationRequested`.
-- [ ] **Rate-limit per token, не только per-IP**: сейчас partition по IP, для cloud имеет смысл лимитировать по bearer-token label.
-- [ ] **Integration-тесты** против rippled testnet/devnet — отдельная категория `[TestCategory("Integration")]`, в CI запускать по schedule, не на каждый PR.
+- [x] **Тесты Server**: 47 unit-тестов — BearerAuthMiddleware (health bypass, 404 для scanners, HTTPS-enforcement, X-Forwarded-Proto, empty tokens, missing/wrong/valid bearer, label assignment, X-Forwarded-For first hop); AdminAlerter (disabled, event-disabled, dedup window + после окна, разные tags не схлопываются, rate cap + reset после минуты + 0=отключено, queue capacity DropOldest); RequestLoggingMiddleware (disabled, health-skip, query-string opt-in/opt-out, label, status code, logs-on-exception); ServerOptions defaults; ResolveRateLimitPartitionKey (ip/token/both/unknown, case insensitive).
+- [x] **Structured request logging** с redaction — `RequestLoggingMiddleware` логирует Method, Path, Status, Duration, IP, label. Bodies НЕ логируются (могут содержать r-addresses/amounts). Query string opt-in через `RequestLogging.IncludeQueryString`.
+- [x] **CORS** — `ServerOptions.Cors` (`Enabled`, `AllowedOrigins[]`, `AllowedHeaders[]`, `AllowedMethods[]`, `AllowCredentials`). Поддерживает wildcard `["*"]` для AllowedOrigins. Подключается ДО bearer-auth чтобы OPTIONS preflights не требовали токен.
+- [x] **Graceful shutdown** для long-poll `wait_for_validation` — суженный catch в `TransactionTools.SubmitSignedAsync` (только `Exception` без `OperationCanceledException`). Cancellation теперь пробрасывается немедленно.
+- [x] **Rate-limit per token** — `RateLimitOptions.PartitionBy={ip|token|both}` (default `ip` для совместимости). При `token`/`both` partition key включает bearer label. AdminAlert при превышении теперь включает и label, и ip.
+- [ ] **OpenTelemetry / metrics**: счётчики MCP-вызовов по tool, latency, network errors к XRPL, размер connection pool. Prometheus-endpoint на `/metrics`. — отложено.
+- [ ] **Connection pool health**: `XrplClientPool` — TTL соединений, ping/pong, авто-реконнект при разрыве WS. — отложено.
+- [ ] **Integration-тесты** против rippled testnet/devnet — отдельная категория `[TestCategory("Integration")]`, в CI запускать по schedule, не на каждый PR. — отложено.
 
 ---
 
