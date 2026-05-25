@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>StaticBit.Xrpl.Mcp.Core</RootNamespace>
     <AssemblyName>StaticBit.Xrpl.Mcp.Core</AssemblyName>
     <Description>Core library with XRPL MCP tools: pool, services, prepare/submit flow.</Description>

@@ -31,7 +31,7 @@ public sealed class AmmManagementTools
     [McpServerTool(Name = "xrpl_amm_create_prepare")]
     [Description("Prepares an UNSIGNED AMMCreate. Both amounts must be supplied (this defines the initial pool composition). tradingFeeBasisPoints is in 1/10 bps (0..1000 = 0%..1%). Caller pays the full amounts when this lands.")]
     public async Task<PreparedTransaction> AmmCreatePrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Sender account that funds the AMM and becomes initial LP.")] string account,
         [Description("First asset amount. Drops string for XRP or JSON {value,currency,issuer}.")] string amount,
         [Description("Second asset amount. Same format as 'amount'.")] string amount2,
@@ -64,7 +64,7 @@ public sealed class AmmManagementTools
     [McpServerTool(Name = "xrpl_amm_vote_prepare")]
     [Description("Prepares an UNSIGNED AMMVote — LP votes on the desired trading fee of the pool. Vote weight is proportional to held LP tokens. tradingFeeBasisPoints in 1/10 bps (0..1000).")]
     public async Task<PreparedTransaction> AmmVotePrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Voter (must hold LP tokens of this pool).")] string account,
         [Description("First pool asset currency code ('XRP' or 3-char/40-hex).")] string asset1Currency,
         [Description("First pool asset issuer (empty for XRP).")] string? asset1Issuer,
@@ -99,7 +99,7 @@ public sealed class AmmManagementTools
     [McpServerTool(Name = "xrpl_amm_bid_prepare")]
     [Description("Prepares an UNSIGNED AMMBid for the AMM auction slot (discounted trading fee for a period). bidMin/bidMax are LP-token amounts as JSON {value,currency,issuer} where issuer = AMM account. authAccountsJson is an optional JSON array of up to 4 r-addresses: [\"r...\",\"r...\"].")]
     public async Task<PreparedTransaction> AmmBidPrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Bidder account (must hold LP tokens of this pool).")] string account,
         [Description("First pool asset currency code.")] string asset1Currency,
         [Description("First pool asset issuer (empty for XRP).")] string? asset1Issuer,
@@ -133,7 +133,7 @@ public sealed class AmmManagementTools
     [McpServerTool(Name = "xrpl_amm_delete_prepare")]
     [Description("Prepares an UNSIGNED AMMDelete to fully delete an empty AMM (after AMMWithdraw left residual trust lines). May need to be run multiple times to fully clean up.")]
     public async Task<PreparedTransaction> AmmDeletePrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Sender account.")] string account,
         [Description("First pool asset currency code.")] string asset1Currency,
         [Description("First pool asset issuer (empty for XRP).")] string? asset1Issuer,

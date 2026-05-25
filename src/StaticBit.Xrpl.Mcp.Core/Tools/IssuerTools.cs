@@ -27,7 +27,7 @@ public sealed class IssuerTools
     [McpServerTool(Name = "xrpl_clawback_prepare")]
     [Description("Prepares an UNSIGNED Clawback. The issuer claws back its own tokens from a holder. amount.issuer must be the HOLDER (the account to claw FROM), NOT the issuer (the sender). amount = JSON {value,currency,issuer}. value=0 is rejected; if value > holder's balance, the entire balance is clawed. Requires asfAllowTrustLineClawback enabled on the issuer (set BEFORE issuing any tokens).")]
     public async Task<PreparedTransaction> ClawbackPrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Sender = issuer (the account that originally issued these tokens).")] string account,
         [Description("Amount JSON: {value,currency,issuer} where 'issuer' is the HOLDER to claw FROM.")] string amount,
         [Description("Optional Holder (r-address). Required only when clawing back MPT tokens; must be omitted for trust-line tokens.")] string? holder = null,
@@ -61,7 +61,7 @@ public sealed class IssuerTools
     [McpServerTool(Name = "xrpl_trustline_freeze_prepare")]
     [Description("Prepares an UNSIGNED TrustSet that freezes or unfreezes a specific trust line — wrapper over TrustSet with tfSetFreeze/tfClearFreeze (or tfSetDeepFreeze/tfClearDeepFreeze when deep=true). Only meaningful when sender is the token issuer. limitValue defaults to '0' (do not change the trust limit) — pass a positive value only if you also want to adjust the limit.")]
     public async Task<PreparedTransaction> TrustlineFreezePrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Sender (issuer) freezing the trust line.")] string account,
         [Description("Token currency code (3-char or 40-hex).")] string currency,
         [Description("Counterparty (holder) address — the side being frozen.")] string holder,

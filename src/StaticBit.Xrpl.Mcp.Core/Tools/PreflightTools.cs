@@ -31,7 +31,7 @@ public sealed class PreflightTools
     [McpServerTool(Name = "xrpl_tx_preflight")]
     [Description("Read-only pre-flight check. Inspects the sender (account_info + server_state) and, for Payment, the destination, to surface common gotchas BEFORE signing/submitting: insufficient balance, insufficient reserve after Amount+Fee, RequireDestinationTag without DestinationTag, DepositAuth without preauth, DisallowIncomingXRP. Pass the prepared transaction as txJson (from a *_prepare tool). Returns a JSON report — { feasible, balanceXrp, reserveXrp, freeXrp, requiredXrp, sourceFlags, destinationFlags, warnings[] }. NOT a guarantee — does not check path liquidity or AMM state.")]
     public async Task<string> PreflightAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Transaction JSON string (e.g. the TxJson field from a *_prepare result).")] string txJson,
         CancellationToken cancellationToken = default)
     {
@@ -45,7 +45,7 @@ public sealed class PreflightTools
     [McpServerTool(Name = "xrpl_tx_simulate")]
     [Description("Dry-run a transaction without submitting. Runs xrpl_tx_preflight plus type-specific checks: for Payment, calls ripple_path_find to confirm a path exists for cross-currency / token deliveries and includes the first alternative's source_amount + paths_computed. Returns { preflight, suggestedPathfind, recommendedFee, recommendedLastLedgerSequence, warnings[] }. Useful for showing the user a realistic 'what will happen' before they approve a signature.")]
     public async Task<string> SimulateAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Transaction JSON string.")] string txJson,
         CancellationToken cancellationToken = default)
     {

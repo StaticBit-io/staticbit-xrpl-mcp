@@ -122,10 +122,10 @@ Tool оставлен как plumbing для будущих server-side watchers
 
 ## 6. Качество кода — мелкие чистки
 
-- [ ] `TransactionTools.ExtractBool` / `ExtractUInt` делают полный re-serialize объекта чтобы прочесть одно поле — заменить на `JsonNode` без промежуточной строки.
-- [ ] Конвенция имён тестов: `*TestsU.cs` суффикс `U` нестандартен — либо документировать в `CLAUDE.md`/`README`, либо привести к `*Tests.cs`.
-- [ ] `Directory.Build.props` — централизовать также `TargetFramework` (сейчас, видимо, в каждом csproj).
-- [ ] Унифицировать имена network-параметров: `'mainnet' | 'testnet' | 'devnet' | wss://...` — вынести в общую константу + единое описание `[Description]`.
+- [x] `TransactionTools.ExtractBool` / `ExtractUInt` — заменены на `ReadBool`/`ReadUInt` поверх `JsonNode`. Старая реализация re-serialize-then-parse'ила объект каждый вызов; в `SubmitSignedAsync` поллинг-цикле было 3 re-serialize на итерацию, теперь один. `TryGetTxHash` тоже переписан на `JsonNode`.
+- [x] Конвенция тестов `*TestsU.cs` + префикс `TestU_` — задокументирована в README.md секция "Конвенция тестов" с пояснением что `U`=Unit, обоснованием фильтра `--filter TestU` и резервированием `*TestsI.cs` / `TestI_*` под будущие интеграционные.
+- [x] `Directory.Build.props` — добавлен `<TargetFramework>net10.0</TargetFramework>` как default; убран из Core/Server/Signer/Core.Tests/Server.Tests/Signer.Tests csproj. `Abstractions.csproj` сохранил явный override `netstandard2.1` (это намеренно — для embed'инга в более старые хосты).
+- [x] Унифицировано описание `network` и `ledgerIndex` параметров — вынесены в `public const string` в `Services/ToolDescriptions.cs`, заменены в 20 файлах (двух вариаций фразы про ledgerIndex приведены к одной канонической).
 
 ---
 

@@ -117,6 +117,23 @@ bash build-server-binaries.sh win-x64   # одна платформа
 ./release-plugin.sh xrpl-signer patch --push
 ```
 
+### Конвенция тестов
+
+Суффикс `U` = **Unit** (test). Применяется в двух местах:
+
+- **Файлы** — `*TestsU.cs` (например `CurrencyParserTestsU.cs`).
+- **Имена тест-методов** — префикс `TestU_` (например `TestU_Parse_Empty_Throws`).
+
+Это позволяет одной командой запустить только быстрые юнит-тесты:
+
+```bash
+dotnet test --filter TestU
+```
+
+`Directory.Build.props` задаёт `TargetFramework=net10.0` по умолчанию; единственное исключение — `StaticBit.Xrpl.Mcp.Abstractions`, которая пинится на `netstandard2.1` чтобы её можно было встраивать в более старые хосты (Staticbit Wallet и т.п.).
+
+Интеграционные тесты против реального rippled testnet (когда появятся) будут жить как `*TestsI.cs` / `TestI_*` и крутиться отдельно (по расписанию в CI, не на каждый PR).
+
 ## История
 
 Этот репо объединяет то, что раньше жило в двух приватных репо:

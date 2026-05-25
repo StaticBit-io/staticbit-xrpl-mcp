@@ -27,7 +27,7 @@ public sealed class PaymentTools
     [McpServerTool(Name = "xrpl_payment_prepare")]
     [Description("Prepares an UNSIGNED Payment transaction. Returns autofilled tx JSON + unsigned blob + signing data. Caller signs locally and then calls xrpl_tx_submit_signed. Amount: numeric drops string for XRP (1 XRP = 1000000 drops), or {\"value\":\"...\",\"currency\":\"...\",\"issuer\":\"...\"} JSON for tokens.")]
     public async Task<PreparedTransaction> PaymentPrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Sender address (classic r-address). Server does NOT need its seed.")] string account,
         [Description("Destination XRP address.")] string destination,
         [Description("Amount. XRP drops as a numeric string (e.g. '10000000' = 10 XRP) OR token amount as JSON {\"value\":\"...\",\"currency\":\"...\",\"issuer\":\"...\"}.")] string amount,
@@ -58,7 +58,7 @@ public sealed class PaymentTools
     [McpServerTool(Name = "xrpl_trustset_prepare")]
     [Description("Prepares an UNSIGNED TrustSet transaction to create or modify a trust line. Set limitValue to '0' to remove a trust line (only succeeds when balance and flags are at defaults).")]
     public async Task<PreparedTransaction> TrustSetPrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Account that holds the trust line (sender).")] string account,
         [Description("Token currency code (3-char or 40-hex).")] string currency,
         [Description("Token issuer address.")] string issuer,

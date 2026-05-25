@@ -27,7 +27,7 @@ public sealed class CheckTools
     [McpServerTool(Name = "xrpl_check_create_prepare")]
     [Description("Prepares an UNSIGNED CheckCreate. sendMax = upper bound the sender allows to be debited (includes transfer fees). Same format as xrpl_payment_prepare amounts.")]
     public async Task<PreparedTransaction> CheckCreatePrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Sender (issuer of the Check).")] string account,
         [Description("Destination — the only account that can cash the Check.")] string destination,
         [Description("SendMax: max amount the Check can debit. Drops string for XRP, JSON {value,currency,issuer} for tokens.")] string sendMax,
@@ -59,7 +59,7 @@ public sealed class CheckTools
     [McpServerTool(Name = "xrpl_check_cash_prepare")]
     [Description("Prepares an UNSIGNED CheckCash. Submitted by the Check's destination. Provide EITHER amount (cash for exactly this amount) OR deliverMin (cash for at least this amount, up to the Check's sendMax). Currency must match the Check's SendMax.")]
     public async Task<PreparedTransaction> CheckCashPrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Sender — must be the Check's destination.")] string account,
         [Description("Check ledger object ID (64-char hex).")] string checkId,
         [Description("Cash for EXACTLY this amount. Drops string for XRP or JSON token object. Mutually exclusive with deliverMin.")] string? amount = null,
@@ -97,7 +97,7 @@ public sealed class CheckTools
     [McpServerTool(Name = "xrpl_check_cancel_prepare")]
     [Description("Prepares an UNSIGNED CheckCancel. Can be sent by the Check's source or destination at any time; by anyone after the Check has expired.")]
     public async Task<PreparedTransaction> CheckCancelPrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Sender of the cancel.")] string account,
         [Description("Check ledger object ID (64-char hex).")] string checkId,
         CancellationToken cancellationToken = default)

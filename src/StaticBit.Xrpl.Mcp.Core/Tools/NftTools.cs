@@ -32,7 +32,7 @@ public sealed class NftTools
     [McpServerTool(Name = "xrpl_nft_mint_prepare")]
     [Description("Prepares an UNSIGNED NFTokenMint. uriHex must be hex-encoded (use uriPlain if you have a plain-string URI and want auto-encoding). Flags are a sum of: tfBurnable=1, tfOnlyXRP=2, tfTrustLine=4, tfTransferable=8, tfMutable=16. transferFee 0..50000 (0.000%..50.000%); requires tfTransferable.")]
     public async Task<PreparedTransaction> NftMintPrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Minter account (and owner of the freshly minted NFT, unless issuer is set).")] string account,
         [Description("NFTokenTaxon (uint32). Group identifier; set 0 if you don't use it.")] uint nfTokenTaxon,
         [Description("Optional issuer account, only if account is an authorized minter on behalf of someone else (sets the Issuer field).")] string? issuer = null,
@@ -77,7 +77,7 @@ public sealed class NftTools
     [McpServerTool(Name = "xrpl_nft_burn_prepare")]
     [Description("Prepares an UNSIGNED NFTokenBurn. owner is only needed when burning a token you don't currently hold but are authorized to burn (e.g. issuer burning a tfBurnable NFT).")]
     public async Task<PreparedTransaction> NftBurnPrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Account submitting the burn (usually the current holder).")] string account,
         [Description("NFTokenID (64-char hex) of the NFT to burn.")] string nfTokenId,
         [Description("Optional current owner if different from account (issuer burning a tfBurnable NFT).")] string? owner = null,
@@ -102,7 +102,7 @@ public sealed class NftTools
     [McpServerTool(Name = "xrpl_nft_create_offer_prepare")]
     [Description("Prepares an UNSIGNED NFTokenCreateOffer. SELL offer: set isSellOffer=true and DO NOT pass owner. BUY offer: set isSellOffer=false and pass owner (the current NFT holder). amount uses same format as xrpl_payment_prepare (drops string for XRP, JSON token object otherwise).")]
     public async Task<PreparedTransaction> NftCreateOfferPrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Sender account.")] string account,
         [Description("NFTokenID (64-char hex).")] string nfTokenId,
         [Description("Price the offer GIVES (sell offer) or OFFERS (buy offer). Drops string for XRP or JSON {value,currency,issuer}.")] string amount,
@@ -147,7 +147,7 @@ public sealed class NftTools
     [McpServerTool(Name = "xrpl_nft_cancel_offer_prepare")]
     [Description("Prepares an UNSIGNED NFTokenCancelOffer. nftOfferIds is the comma-separated list of NFTokenOffer object IDs (64-char hex each) to cancel.")]
     public async Task<PreparedTransaction> NftCancelOfferPrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Sender account.")] string account,
         [Description("Comma-separated list of NFTokenOffer object IDs (each 64-char hex).")] string nftOfferIds,
         CancellationToken cancellationToken = default)
@@ -170,7 +170,7 @@ public sealed class NftTools
     [McpServerTool(Name = "xrpl_nft_accept_offer_prepare")]
     [Description("Prepares an UNSIGNED NFTokenAcceptOffer. DIRECT mode: pass either sellOfferId OR buyOfferId. BROKERED mode: pass both AND optionally a brokerFee (the broker's cut, same format as xrpl_payment_prepare).")]
     public async Task<PreparedTransaction> NftAcceptOfferPrepareAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Account accepting the offer (the broker in brokered mode).")] string account,
         [Description("Sell-offer NFTokenOffer ID (direct sell-accept, or brokered mode).")] string? sellOfferId = null,
         [Description("Buy-offer NFTokenOffer ID (direct buy-accept, or brokered mode).")] string? buyOfferId = null,
@@ -214,11 +214,11 @@ public sealed class NftTools
     [McpServerTool(Name = "xrpl_account_nfts")]
     [Description("Read-only: lists NFTs currently owned by an account. Pageable via limit/marker.")]
     public async Task<string> AccountNftsAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("Classic XRP address.")] string account,
         [Description("Page size (server-clamped). Omit for default.")] int? limit = null,
         [Description("Pagination cursor returned by the previous call.")] string? marker = null,
-        [Description("Ledger selector: 'validated' (default), 'current', 'closed', or a numeric sequence.")] string? ledgerIndex = null,
+        [Description(ToolDescriptions.LedgerIndex)] string? ledgerIndex = null,
         CancellationToken cancellationToken = default)
     {
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
@@ -237,7 +237,7 @@ public sealed class NftTools
     [McpServerTool(Name = "xrpl_nft_buy_offers")]
     [Description("Read-only: lists outstanding BUY offers for the given NFTokenID.")]
     public async Task<string> NftBuyOffersAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("NFTokenID (64-char hex).")] string nfTokenId,
         CancellationToken cancellationToken = default)
     {
@@ -251,7 +251,7 @@ public sealed class NftTools
     [McpServerTool(Name = "xrpl_nft_sell_offers")]
     [Description("Read-only: lists outstanding SELL offers for the given NFTokenID.")]
     public async Task<string> NftSellOffersAsync(
-        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description(ToolDescriptions.Network)] string network,
         [Description("NFTokenID (64-char hex).")] string nfTokenId,
         CancellationToken cancellationToken = default)
     {
