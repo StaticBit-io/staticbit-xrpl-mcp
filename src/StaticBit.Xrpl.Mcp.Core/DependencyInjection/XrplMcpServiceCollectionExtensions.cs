@@ -41,6 +41,13 @@ public static class XrplMcpServiceCollectionExtensions
         services.AddTransient<OfferTools>();
         services.AddTransient<AmmTransactionTools>();
         services.AddTransient<TransactionTools>();
+        services.AddTransient<AccountManagementTools>();
+        services.AddTransient<NftTools>();
+        services.AddTransient<EscrowTools>();
+        services.AddTransient<PaymentChannelTools>();
+        services.AddTransient<CheckTools>();
+        services.AddTransient<AmmManagementTools>();
+        services.AddTransient<IssuerTools>();
 
         return services;
     }
