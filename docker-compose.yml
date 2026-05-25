@@ -1,0 +1,45 @@
+# StaticBitXrplMcp service. Designed to run BEHIND the shared Traefik platform
+# that lives in a separate compose project (typically /opt/traefik/).
+#
+# Prerequisites on the host:
+#   1. `docker network create mcp-net`  (once per host, shared by all MCPs)
+#   2. Traefik platform up:  cd /opt/traefik && docker compose up -d
+#   3. DNS A-record for $XRPL_MCP_HOST points to this server
+#   4. Per-service secrets in .env.xrpl-mcp (bearer tokens, optional XRPL URLs)
+#   5. .env in this directory with XRPL_MCP_HOST set
+#
+# Then:
+#   cp .env.example          .env
+#   cp .env.xrpl-mcp.example .env.xrpl-mcp
+#   # edit both
+#   docker compose up -d --build      # builds locally
+#   # — or —
+#   docker compose pull && docker compose up -d   # uses the ghcr.io image
+
+services:
+  xrpl-mcp:
+    image: ${XRPL_MCP_IMAGE:-ghcr.io/staticbit-io/staticbit-xrpl-mcp:latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: xrpl-mcp
+    restart: unless-stopped
+    env_file:
+      - ./.env.xrpl-mcp
+    networks:
+      - mcp-net
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=mcp-net
+      - traefik.http.routers.xrpl-mcp.rule=Host(`${XRPL_MCP_HOST:?XRPL_MCP_HOST is required}`)
+      - traefik.http.routers.xrpl-mcp.entrypoints=websecure
+      - traefik.http.routers.xrpl-mcp.tls=true
+      - traefik.http.routers.xrpl-mcp.tls.certresolver=le
+      - traefik.http.services.xrpl-mcp.loadbalancer.server.port=5500
+      - traefik.http.services.xrpl-mcp.loadbalancer.healthcheck.path=/healthz
+      - traefik.http.services.xrpl-mcp.loadbalancer.healthcheck.interval=30s
+
+networks:
+  mcp-net:
+    name: mcp-net
+    external: true

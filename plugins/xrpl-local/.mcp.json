@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "xrpl-local": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/bin/server.js"],
+      "env": {
+        "StaticBitXrplMcp__DefaultNetwork": "${XRPL_LOCAL_DEFAULT_NETWORK}",
+        "StaticBitXrplMcp__Networks__mainnet": "${XRPL_LOCAL_MAINNET_URL}",
+        "StaticBitXrplMcp__Networks__testnet": "${XRPL_LOCAL_TESTNET_URL}",
+        "StaticBitXrplMcp__Networks__devnet": "${XRPL_LOCAL_DEVNET_URL}",
+        "StaticBitXrplMcp__RequestTimeoutSeconds": "${XRPL_LOCAL_REQUEST_TIMEOUT}"
+      }
+    }
+  }
+}

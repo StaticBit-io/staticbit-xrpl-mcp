@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>StaticBit.Xrpl.Mcp.Core</RootNamespace>
+    <AssemblyName>StaticBit.Xrpl.Mcp.Core</AssemblyName>
+    <Description>Core library with XRPL MCP tools: pool, services, prepare/submit flow.</Description>
+    <PackageId>StaticBit.Xrpl.Mcp.Core</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\StaticBit.Xrpl.Mcp.Abstractions\StaticBit.Xrpl.Mcp.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.8" />
+    <PackageReference Include="ModelContextProtocol.Core" Version="1.3.0" />
+    <PackageReference Include="Xrpl" Version="10.4.0" />
+  </ItemGroup>
+
+</Project>

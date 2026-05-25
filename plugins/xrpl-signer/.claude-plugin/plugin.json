@@ -1,0 +1,19 @@
+{
+  "name": "xrpl-signer",
+  "description": "Offline stdio MCP for XRPL wallet management and transaction signing. Encrypted keystore (PBKDF2 + AES-256-GCM, per-record salt/IV). Zero network code — pure crypto. Pairs with xrpl-cloud or xrpl-local for the prepare/submit half of write flows.",
+  "version": "0.1.1",
+  "author": {
+    "name": "StaticBit",
+    "url": "https://github.com/StaticBit-io"
+  },
+  "homepage": "https://github.com/StaticBit-io/staticbit-xrpl-mcp",
+  "license": "MIT",
+  "keywords": [
+    "xrpl",
+    "ripple",
+    "signer",
+    "wallet",
+    "offline",
+    "mcp"
+  ]
+}

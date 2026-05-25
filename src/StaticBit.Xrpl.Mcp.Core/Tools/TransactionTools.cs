@@ -1,0 +1,226 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Threading;
+using System.Threading.Tasks;
+using ModelContextProtocol.Server;
+using StaticBit.Xrpl.Mcp.Abstractions;
+using StaticBit.Xrpl.Mcp.Core.Services;
+using Xrpl.BinaryCodec;
+using Xrpl.Client;
+using Xrpl.Models.Methods;
+using Xrpl.Models.Transactions;
+
+namespace StaticBit.Xrpl.Mcp.Core.Tools;
+
+/// <summary>
+/// Generic transaction MCP tools: submit a signed blob to the network, decode a blob,
+/// or prepare an arbitrary transaction described as JSON (escape hatch for tx types we have
+/// no typed wrapper for yet — Escrow, NFT, Check, PaymentChannel, …).
+/// </summary>
+[McpServerToolType]
+public sealed class TransactionTools
+{
+    private readonly XrplClientPool _pool;
+    private readonly TransactionPreparer _preparer;
+
+    public TransactionTools(XrplClientPool pool, TransactionPreparer preparer)
+    {
+        _pool = pool;
+        _preparer = preparer;
+    }
+
+    [McpServerTool(Name = "xrpl_tx_submit_signed")]
+    [Description("Submits a SIGNED transaction blob to the network. The blob must already be signed locally — the server NEVER signs. Optionally polls until the transaction is included in a validated ledger.")]
+    public async Task<SubmitResult> SubmitSignedAsync(
+        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description("Signed transaction blob as a hex string. Produced locally by signing the tx_blob_unsigned returned by a *_prepare tool.")] string txBlobSigned,
+        [Description("If true, do NOT retry or relay if the transaction fails locally (rippled fail_hard).")] bool failHard = true,
+        [Description("If true, after submission poll for the transaction hash until it is in a validated ledger or LastLedgerSequence is reached.")] bool waitForValidation = false,
+        [Description("Polling interval in seconds when wait_for_validation is true. Default 2.")] int pollIntervalSeconds = 2,
+        [Description("Max number of polls. Default 30 (≈60 seconds at default interval, longer than the LastLedgerSequence + 20 window).")] int maxPolls = 30,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(txBlobSigned))
+        {
+            throw new ArgumentException("Signed transaction blob is required.", nameof(txBlobSigned));
+        }
+
+        IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
+
+        SubmitRequest request = new SubmitRequest
+        {
+            TxBlob = txBlobSigned,
+            FailHard = failHard,
+        };
+
+        Submit response = await client
+            .GRequest<Submit, SubmitRequest>(request, cancellationToken)
+            .ConfigureAwait(false);
+
+        string txHash = TryGetTxHash(response.TxJson);
+
+        SubmitResult result = new SubmitResult
+        {
+            EngineResult = response.EngineResult ?? string.Empty,
+            EngineResultMessage = response.EngineResultMessage ?? string.Empty,
+            TxHash = txHash,
+            Validated = false,
+            LedgerIndex = 0,
+            RawResponseJson = XrplJson.Serialize(response),
+        };
+
+        if (!waitForValidation || string.IsNullOrEmpty(txHash))
+        {
+            return result;
+        }
+
+        TimeSpan interval = TimeSpan.FromSeconds(Math.Max(1, pollIntervalSeconds));
+        for (int attempt = 0; attempt < Math.Max(1, maxPolls); attempt++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await Task.Delay(interval, cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                TransactionResponse lookup = await client
+                    .Tx(new TxRequest(txHash), cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (lookup is null)
+                {
+                    continue;
+                }
+
+                bool validated = ExtractBool(lookup, "Validated") || ExtractBool(lookup, "validated");
+                if (!validated)
+                {
+                    continue;
+                }
+
+                result.Validated = true;
+                result.LedgerIndex = ExtractUInt(lookup, "ledger_index", "LedgerIndex");
+                result.RawResponseJson = XrplJson.Serialize(lookup);
+                break;
+            }
+            catch
+            {
+                // Transaction may not yet be visible — keep polling until maxPolls.
+            }
+        }
+
+        return result;
+    }
+
+    [McpServerTool(Name = "xrpl_tx_decode_blob")]
+    [Description("Decodes a binary transaction blob (signed or unsigned) into JSON for inspection. Pure local operation — no network calls.")]
+    public string DecodeBlob(
+        [Description("Hex-encoded transaction blob.")] string txBlob)
+    {
+        if (string.IsNullOrWhiteSpace(txBlob))
+        {
+            throw new ArgumentException("Transaction blob is required.", nameof(txBlob));
+        }
+
+        JsonNode? decoded = XrplBinaryCodec.Decode(txBlob);
+        return decoded is null ? "{}" : decoded.ToJsonString();
+    }
+
+    [McpServerTool(Name = "xrpl_tx_prepare_generic")]
+    [Description("Escape hatch: prepares any XRPL transaction described as a JSON object (TransactionType + fields). Autofills Sequence/Fee/LastLedgerSequence and returns unsigned blob + signing data. Use for tx types not covered by dedicated *_prepare tools (Escrow, NFToken, Check, PaymentChannel, AccountSet, …).")]
+    public async Task<PreparedTransaction> PrepareGenericAsync(
+        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description("Raw transaction as a JSON object, e.g. {\"TransactionType\":\"AccountSet\",\"Account\":\"r...\",\"SetFlag\":8}.")] string txJson,
+        [Description("Optional one-line human summary shown to the user in the approval prompt.")] string? humanSummary = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(txJson))
+        {
+            throw new ArgumentException("Transaction JSON is required.", nameof(txJson));
+        }
+
+        Dictionary<string, object> dict = JsonSerializer.Deserialize<Dictionary<string, object>>(txJson)
+            ?? throw new ArgumentException("Transaction JSON must be a JSON object.", nameof(txJson));
+
+        if (!dict.TryGetValue("TransactionType", out object? typeValue) || typeValue is null)
+        {
+            throw new ArgumentException("Transaction JSON must include TransactionType.", nameof(txJson));
+        }
+
+        string summary = humanSummary ?? $"Generic transaction of type {typeValue}.";
+
+        return await _preparer
+            .PrepareAsync(new NetworkRef(network), dict, summary, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    private static string TryGetTxHash(object? txJson)
+    {
+        if (txJson is null) return string.Empty;
+
+        try
+        {
+            string json = txJson is string s ? s : XrplJson.Serialize(txJson);
+            using JsonDocument doc = JsonDocument.Parse(json);
+            JsonElement root = doc.RootElement;
+            foreach (string key in new[] { "hash", "Hash", "tx_hash" })
+            {
+                if (root.TryGetProperty(key, out JsonElement hashElement) && hashElement.ValueKind == JsonValueKind.String)
+                {
+                    return hashElement.GetString() ?? string.Empty;
+                }
+            }
+        }
+        catch
+        {
+            // ignore — server still returns engine_result without a hash for some failures
+        }
+
+        return string.Empty;
+    }
+
+    private static bool ExtractBool(object source, params string[] keys)
+    {
+        try
+        {
+            string json = XrplJson.Serialize(source);
+            using JsonDocument doc = JsonDocument.Parse(json);
+            foreach (string key in keys)
+            {
+                if (doc.RootElement.TryGetProperty(key, out JsonElement element)
+                    && (element.ValueKind == JsonValueKind.True || element.ValueKind == JsonValueKind.False))
+                {
+                    return element.GetBoolean();
+                }
+            }
+        }
+        catch
+        {
+        }
+        return false;
+    }
+
+    private static uint ExtractUInt(object source, params string[] keys)
+    {
+        try
+        {
+            string json = XrplJson.Serialize(source);
+            using JsonDocument doc = JsonDocument.Parse(json);
+            foreach (string key in keys)
+            {
+                if (doc.RootElement.TryGetProperty(key, out JsonElement element)
+                    && element.ValueKind == JsonValueKind.Number
+                    && element.TryGetUInt32(out uint parsed))
+                {
+                    return parsed;
+                }
+            }
+        }
+        catch
+        {
+        }
+        return 0;
+    }
+}

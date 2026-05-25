@@ -1,0 +1,70 @@
+{
+  "name": "staticbit-xrpl-mcp",
+  "owner": {
+    "name": "StaticBit",
+    "url": "https://github.com/StaticBit-io"
+  },
+  "metadata": {
+    "description": "XRPL plugin marketplace — three modular plugins for XRP Ledger: HTTP cloud client, local stdio server, and offline wallet signer. Source code, binaries and manifests live atomically in this repo.",
+    "version": "0.4.0"
+  },
+  "plugins": [
+    {
+      "name": "xrpl-cloud",
+      "source": "./plugins/xrpl-cloud",
+      "description": "Lightweight HTTP MCP that proxies to the StaticBit cloud server at xrpl-mcp.staticbit.io. Read/prepare/submit XRPL transactions without running anything locally. Bearer-authed. ~10 KB.",
+      "version": "0.1.0",
+      "author": {
+        "name": "StaticBit",
+        "url": "https://github.com/StaticBit-io/staticbit-xrpl-mcp"
+      },
+      "homepage": "https://github.com/StaticBit-io/staticbit-xrpl-mcp",
+      "category": "blockchain",
+      "tags": [
+        "xrpl",
+        "ripple",
+        "cloud",
+        "mcp"
+      ]
+    },
+    {
+      "name": "xrpl-local",
+      "source": "./plugins/xrpl-local",
+      "description": "Local stdio MCP — the same XRPL toolkit (read/prepare/submit) running fully on the user's machine. Connects directly to public XRPL nodes (xrplcluster.com etc) over WebSocket. No bearer, no cloud dependency, no third-party observer.",
+      "version": "0.1.0",
+      "author": {
+        "name": "StaticBit",
+        "url": "https://github.com/StaticBit-io/staticbit-xrpl-mcp"
+      },
+      "homepage": "https://github.com/StaticBit-io/staticbit-xrpl-mcp",
+      "category": "blockchain",
+      "tags": [
+        "xrpl",
+        "ripple",
+        "local",
+        "offline-first",
+        "mcp"
+      ]
+    },
+    {
+      "name": "xrpl-signer",
+      "source": "./plugins/xrpl-signer",
+      "description": "Offline stdio MCP for XRPL wallet management and transaction signing. Encrypted keystore (PBKDF2 + AES-256-GCM), per-wallet salt/IV. Zero network code path — pure crypto. Pairs with either xrpl-cloud or xrpl-local for the prepare/submit half of the flow.",
+      "version": "0.1.1",
+      "author": {
+        "name": "StaticBit",
+        "url": "https://github.com/StaticBit-io/staticbit-xrpl-mcp"
+      },
+      "homepage": "https://github.com/StaticBit-io/staticbit-xrpl-mcp",
+      "category": "blockchain",
+      "tags": [
+        "xrpl",
+        "ripple",
+        "signer",
+        "wallet",
+        "offline",
+        "mcp"
+      ]
+    }
+  ]
+}

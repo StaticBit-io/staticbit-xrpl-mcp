@@ -1,0 +1,12 @@
+{
+  "name": "xrpl-local",
+  "description": "Local stdio MCP — runs the XRPL toolkit entirely on the user's machine. Same 21 tools (read/prepare/submit) as xrpl-cloud, but the WebSocket to XRPL nodes (xrplcluster.com etc) is established from the user's process. No bearer, no cloud dependency, no third-party visibility.",
+  "version": "0.1.0",
+  "author": {
+    "name": "StaticBit",
+    "url": "https://github.com/StaticBit-io"
+  },
+  "homepage": "https://github.com/StaticBit-io/staticbit-xrpl-mcp",
+  "license": "MIT",
+  "keywords": ["xrpl", "ripple", "local", "offline-first", "mcp"]
+}

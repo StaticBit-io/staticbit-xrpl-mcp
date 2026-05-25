@@ -1,0 +1,60 @@
+# Build artifacts
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+[Bb]uild/
+[Pp]ublish/
+artifacts/
+
+# Visual Studio / Rider / VS Code
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.psess
+*.vsp
+*.vspx
+*.sap
+
+# .NET
+*.pdb
+*.dll
+*.exe
+*.cache
+project.lock.json
+project.fragment.lock.json
+*.nupkg
+*.snupkg
+*.log
+TestResults/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local configuration overrides
+appsettings.Local.json
+appsettings.*.Local.json
+secrets.json
+.env
+.env.*
+!.env.example
+!.env.xrpl-mcp.example
+
+# Coverage
+coverage/
+*.coverage
+*.coveragexml
+*.opencover.xml
+
+# ── Plugin binaries (whitelisted) ────────────────────────────────────────────
+# The patterns above (*.exe, *.dll, [Bb]in/, [Pp]ublish/) would otherwise hide
+# the self-contained .NET binaries we DO want to ship inside plugins/<name>/bin/.
+# These three lines un-ignore everything under that subtree so the marketplace
+# can serve compiled artifacts.
+!plugins/**/bin/
+!plugins/**/bin/**
+!plugins/**/bin/**/*

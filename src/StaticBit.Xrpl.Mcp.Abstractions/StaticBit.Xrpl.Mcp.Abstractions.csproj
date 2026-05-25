@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <RootNamespace>StaticBit.Xrpl.Mcp.Abstractions</RootNamespace>
+    <AssemblyName>StaticBit.Xrpl.Mcp.Abstractions</AssemblyName>
+    <Description>Abstractions and DTOs for the StaticBit XRPL MCP server. Embeddable from Staticbit Wallet without ASP.NET Core or transport dependencies.</Description>
+    <PackageId>StaticBit.Xrpl.Mcp.Abstractions</PackageId>
+  </PropertyGroup>
+
+</Project>

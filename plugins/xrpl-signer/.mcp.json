@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "xrpl-signer": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/bin/signer.js"],
+      "env": {
+        "XRPL_SIGNER_PASSPHRASE": "${XRPL_SIGNER_PASSPHRASE}",
+        "XRPL_SIGNER_PASSPHRASE_FILE": "${XRPL_SIGNER_PASSPHRASE_FILE}",
+        "XRPL_SIGNER_KEYSTORE_PATH": "${XRPL_SIGNER_KEYSTORE_PATH}"
+      }
+    }
+  }
+}

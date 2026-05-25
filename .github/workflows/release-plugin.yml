@@ -1,0 +1,102 @@
+name: release-plugin
+
+on:
+  workflow_dispatch:
+    inputs:
+      plugin:
+        description: 'Which plugin to release'
+        required: true
+        type: choice
+        options:
+          - xrpl-cloud
+          - xrpl-local
+          - xrpl-signer
+      bump:
+        description: 'Semver bump'
+        required: true
+        type: choice
+        default: patch
+        options:
+          - patch
+          - minor
+          - major
+      no_build:
+        description: 'Skip the binary rebuild (docs / manifest only)'
+        required: false
+        type: boolean
+        default: false
+      dry_run:
+        description: 'Do not commit, tag, push or create release (just run the script in dry-run mode)'
+        required: false
+        type: boolean
+        default: false
+
+# Releases are serialised to avoid two simultaneous version-bumps racing.
+concurrency:
+  group: release-plugin
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write          # push commits + tags + GitHub Release
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0       # need full history for changelog
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Configure git identity
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Unit tests (fail early)
+        run: dotnet test StaticBitXrplMcp.sln --filter "FullyQualifiedName~TestU" --logger "console;verbosity=normal"
+
+      - name: Run release-plugin.sh
+        id: release
+        run: |
+          chmod +x release-plugin.sh
+          ARGS=("${{ inputs.plugin }}" "${{ inputs.bump }}")
+          if [ "${{ inputs.no_build }}" = "true" ]; then ARGS+=("--no-build"); fi
+          if [ "${{ inputs.dry_run }}" = "true" ]; then ARGS+=("--dry-run"); fi
+          ./release-plugin.sh "${ARGS[@]}"
+
+          # Expose the new version for downstream steps.
+          NEW_VERSION=$(node -e "console.log(JSON.parse(require('fs').readFileSync('plugins/${{ inputs.plugin }}/.claude-plugin/plugin.json','utf8')).version)")
+          echo "new_version=$NEW_VERSION"                            >> "$GITHUB_OUTPUT"
+          echo "tag_name=${{ inputs.plugin }}--v$NEW_VERSION"        >> "$GITHUB_OUTPUT"
+
+      - name: Push commits and tags
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          git push origin HEAD:main
+          git push origin "refs/tags/${{ steps.release.outputs.tag_name }}"
+
+      - name: Create GitHub Release with CHANGELOG
+        if: ${{ inputs.dry_run != true }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Extract the top section of CHANGELOG.md (the entry just appended for this version).
+          CHANGELOG_FILE="plugins/${{ inputs.plugin }}/CHANGELOG.md"
+
+          # The script always prepends; the new entry is everything from the first '## v'
+          # line up to (but not including) the next '## v'. awk handles this cleanly.
+          NOTES=$(awk '/^## v/{n++} n==1{print} n==2{exit}' "$CHANGELOG_FILE")
+
+          gh release create "${{ steps.release.outputs.tag_name }}" \
+            --title "${{ inputs.plugin }} v${{ steps.release.outputs.new_version }}" \
+            --notes "$NOTES" \
+            --target main

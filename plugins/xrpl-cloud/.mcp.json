@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "xrpl-cloud": {
+      "type": "http",
+      "url": "https://xrpl-mcp.staticbit.io/mcp",
+      "headers": {
+        "Authorization": "Bearer ${XRPL_MCP_BEARER}"
+      }
+    }
+  }
+}
