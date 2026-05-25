@@ -48,6 +48,8 @@ public static class XrplMcpServiceCollectionExtensions
         services.AddTransient<CheckTools>();
         services.AddTransient<AmmManagementTools>();
         services.AddTransient<IssuerTools>();
+        services.AddTransient<PathTools>();
+        services.AddTransient<SubscriptionTools>();
 
         return services;
     }

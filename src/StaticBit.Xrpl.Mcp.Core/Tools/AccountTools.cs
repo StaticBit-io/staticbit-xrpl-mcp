@@ -166,6 +166,61 @@ public sealed class AccountTools
         return XrplJson.Serialize(response);
     }
 
+    [McpServerTool(Name = "xrpl_gateway_balances")]
+    [Description("Issuer-side balance summary: total obligations (tokens this account has issued and are held by non-excluded addresses), assets held that were issued by others, and balances held by the listed hotwallets. Pass hotwalletsJson as a JSON array of r-addresses to exclude operational/hot wallets from obligations. Strict mode rejects non-r-address inputs.")]
+    public async Task<string> GatewayBalancesAsync(
+        [Description("Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL.")] string network,
+        [Description("Issuer address to inspect.")] string account,
+        [Description("Optional JSON array of r-addresses to treat as hotwallets and exclude from obligations.")] string? hotwalletsJson = null,
+        [Description("If true, only accept r-address/public-key for account.")] bool strict = true,
+        [Description("Ledger selector: 'validated' (default), 'current', 'closed', or a numeric sequence.")] string? ledgerIndex = null,
+        CancellationToken cancellationToken = default)
+    {
+        IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
+
+        GatewayBalancesRequest request = new GatewayBalancesRequest(account)
+        {
+            Strict = strict,
+            HotWallet = ParseHotwallets(hotwalletsJson)!,
+            LedgerIndex = LedgerIndexParser.Parse(ledgerIndex),
+        };
+
+        GatewayBalancesResponse response = await client.GatewayBalances(request, cancellationToken).ConfigureAwait(false);
+        return XrplJson.Serialize(response);
+    }
+
+    internal static object? ParseHotwallets(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return null;
+
+        using System.Text.Json.JsonDocument doc = System.Text.Json.JsonDocument.Parse(json);
+        if (doc.RootElement.ValueKind != System.Text.Json.JsonValueKind.Array)
+        {
+            throw new ArgumentException("hotwalletsJson must be a JSON array of r-address strings.");
+        }
+
+        List<string> result = new List<string>();
+        foreach (System.Text.Json.JsonElement el in doc.RootElement.EnumerateArray())
+        {
+            if (el.ValueKind != System.Text.Json.JsonValueKind.String)
+            {
+                throw new ArgumentException("hotwalletsJson entries must be r-address strings.");
+            }
+            string? addr = el.GetString();
+            if (string.IsNullOrWhiteSpace(addr))
+            {
+                throw new ArgumentException("hotwalletsJson contains an empty address.");
+            }
+            result.Add(addr);
+        }
+
+        if (result.Count == 0)
+        {
+            throw new ArgumentException("hotwalletsJson must contain at least one address (or omit the parameter).");
+        }
+        return result;
+    }
+
     [McpServerTool(Name = "xrpl_xrp_balance")]
     [Description("Convenience: returns the spendable XRP balance for an account, as a decimal XRP string.")]
     public async Task<string> XrpBalanceAsync(
