@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using StaticBit.Xrpl.Mcp.Abstractions;
+using StaticBit.Xrpl.Mcp.Core.Options;
 using Xrpl.BinaryCodec;
 using Xrpl.Client;
 using Xrpl.Models.Transactions;
@@ -25,14 +28,16 @@ namespace StaticBit.Xrpl.Mcp.Core.Services;
 public sealed class TransactionPreparer
 {
     private readonly XrplClientPool _pool;
+    private readonly XrplMcpOptions _options;
     private static readonly JsonSerializerOptions DictionaryJsonOptions = new JsonSerializerOptions
     {
         PropertyNamingPolicy = null,
     };
 
-    public TransactionPreparer(XrplClientPool pool)
+    public TransactionPreparer(XrplClientPool pool, IOptions<XrplMcpOptions> options)
     {
         _pool = pool ?? throw new ArgumentNullException(nameof(pool));
+        _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
     }
 
     public Task<PreparedTransaction> PrepareAsync(
@@ -55,9 +60,26 @@ public sealed class TransactionPreparer
 
         IXrplClient client = await _pool.GetAsync(network, cancellationToken).ConfigureAwait(false);
 
+        // Honor the configured LastLedgerSequenceOffset by pre-seeding the field;
+        // SDK's Autofill only fills it when absent so this overrides the SDK's hardcoded offset.
+        if (_options.LastLedgerSequenceOffset > 0 && !transaction.ContainsKey("LastLedgerSequence"))
+        {
+            try
+            {
+                uint currentLedger = await client.GetLedgerIndex(cancellationToken).ConfigureAwait(false);
+                transaction["LastLedgerSequence"] = currentLedger + _options.LastLedgerSequenceOffset;
+            }
+            catch
+            {
+                // Fall through and let Autofill compute it with its own default.
+            }
+        }
+
         Dictionary<string, object> filled = await client
             .Autofill(transaction, signersCount: null, cancellationToken)
             .ConfigureAwait(false);
+
+        ApplyFeeBump(filled);
 
         string blobUnsigned = XrplBinaryCodec.Encode(filled);
         string signingData = XrplBinaryCodec.EncodeForSigning(filled);
@@ -75,6 +97,31 @@ public sealed class TransactionPreparer
             HumanSummary = humanSummary,
             RequiresUserApproval = true,
         };
+    }
+
+    /// <summary>
+    /// If <see cref="XrplMcpOptions.FeeBumpMultiplier"/> &gt; 1.0, replace the autofilled
+    /// <c>Fee</c> with <c>ceil(Fee × multiplier)</c>. Preserves drops-string formatting.
+    /// </summary>
+    private void ApplyFeeBump(IDictionary<string, object> filled)
+    {
+        if (_options.FeeBumpMultiplier <= 1.0m) return;
+        if (!filled.TryGetValue("Fee", out object? feeVal) || feeVal is null) return;
+
+        string? feeStr = feeVal switch
+        {
+            string s => s,
+            JsonElement je when je.ValueKind == JsonValueKind.String => je.GetString(),
+            _ => feeVal.ToString(),
+        };
+        if (string.IsNullOrEmpty(feeStr)) return;
+        if (!long.TryParse(feeStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out long currentDrops)) return;
+
+        decimal scaled = currentDrops * _options.FeeBumpMultiplier;
+        long bumped = (long)Math.Ceiling(scaled);
+        if (bumped <= currentDrops) return;
+
+        filled["Fee"] = bumped.ToString(CultureInfo.InvariantCulture);
     }
 
     private static uint ExtractUInt(IDictionary<string, object> dict, string key)
