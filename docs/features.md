@@ -88,11 +88,11 @@ Tool оставлен как plumbing для будущих server-side watchers
 
 ## 3. UX-улучшения подготовки транзакций
 
-- [ ] **`xrpl_tx_simulate`** — dry-run симуляция без отправки (через path_find + manual fee preview).
-- [ ] **`xrpl_tx_explain`** — превращает decoded tx в человеческую фразу: *"Payment 10 XRP от rA... к rB..., fee 12 drops, expires at ledger 1234"*. Критично для approval-flow в LLM.
-- [ ] **Pre-flight валидация суммы**: проверить `account_info` → достаточно ли резерва + amount + fee; вернуть осмысленную ошибку до того, как ledger отдаст `tecINSUFFICIENT_RESERVE`.
-- [ ] **Fee escalation policy**: сейчас `LastLedgerSequenceOffset=20` хардкод; вынести в options + auto-bump fee если команда `fee` показывает open-ledger escalation.
-- [ ] Улучшить `xrpl_tx_decode_blob`: возвращать осмысленную ошибку при невалидном hex (сейчас пустой `{}`).
+- [x] **`xrpl_tx_simulate`** — dry-run симуляция через `xrpl_tx_preflight` + (для Payment) `ripple_path_find` + текущий открытый fee + рекомендуемый LastLedgerSequence.
+- [x] **`xrpl_tx_explain`** — превращает decoded tx (blob hex или JSON) в человеческую строку: *"Payment from rA... to rB...: 10000000 drops XRP. [fee=12 drops, seq=42, LLS=1234]"*. Pure local, без сетевых вызовов. Покрывает все основные типы (Payment, TrustSet, Offer*, AMM*, NFToken*, Escrow*, Check*, PaymentChannel*, AccountSet, SetRegularKey, DepositPreauth, SignerListSet, AccountDelete, Clawback) + generic fallback.
+- [x] **`xrpl_tx_preflight`** — проверяет `account_info` + `server_state`, считает резервы (base + owner_count × inc), сравнивает с balance, для Payment ещё проверяет `RequireDestinationTag`/`DepositAuth`/`DisallowIncomingXRP` на destination. Возвращает structured report с warnings[].
+- [x] **Fee escalation policy** — `LastLedgerSequenceOffset` теперь реально применяется в `TransactionPreparer` (раньше был мёртвой опцией); добавлен `FeeBumpMultiplier` для проактивного over-pay во время open-ledger escalation.
+- [x] **`xrpl_tx_decode_blob`** — теперь возвращает осмысленные ошибки (odd length / non-hex / decode exception / null result) вместо пустого `{}`.
 
 ---
 
