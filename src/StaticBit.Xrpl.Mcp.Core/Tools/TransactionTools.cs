@@ -124,8 +124,48 @@ public sealed class TransactionTools
             throw new ArgumentException("Transaction blob is required.", nameof(txBlob));
         }
 
-        JsonNode? decoded = XrplBinaryCodec.Decode(txBlob);
-        return decoded is null ? "{}" : decoded.ToJsonString();
+        string trimmed = txBlob.Trim();
+
+        // Hex-format pre-check — XrplBinaryCodec.Decode swallows malformed input
+        // and just returns an empty/null node, which is unhelpful for callers.
+        if ((trimmed.Length & 1) != 0)
+        {
+            throw new ArgumentException(
+                $"Transaction blob has odd length ({trimmed.Length}); hex must be byte-aligned.",
+                nameof(txBlob));
+        }
+        for (int i = 0; i < trimmed.Length; i++)
+        {
+            char c = trimmed[i];
+            bool isHex = (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+            if (!isHex)
+            {
+                throw new ArgumentException(
+                    $"Transaction blob contains non-hex character '{c}' at position {i}.",
+                    nameof(txBlob));
+            }
+        }
+
+        JsonNode? decoded;
+        try
+        {
+            decoded = XrplBinaryCodec.Decode(trimmed);
+        }
+        catch (Exception ex)
+        {
+            throw new ArgumentException(
+                $"Failed to decode transaction blob: {ex.Message}",
+                nameof(txBlob), ex);
+        }
+
+        if (decoded is null)
+        {
+            throw new ArgumentException(
+                "Transaction blob decoded to null — likely truncated or not a valid serialized XRPL transaction.",
+                nameof(txBlob));
+        }
+
+        return decoded.ToJsonString();
     }
 
     [McpServerTool(Name = "xrpl_tx_prepare_generic")]

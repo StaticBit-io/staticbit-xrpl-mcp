@@ -29,6 +29,13 @@ public sealed class XrplMcpOptions
     public uint LastLedgerSequenceOffset { get; set; } = 20;
 
     /// <summary>
+    /// Multiplier applied to the auto-filled <c>Fee</c> after Autofill. Use values > 1.0 to
+    /// proactively over-pay during open-ledger fee escalation. Set to <c>1.0</c> (default) to
+    /// leave the SDK's autofilled fee untouched. Resulting fee is rounded up to the next drop.
+    /// </summary>
+    public decimal FeeBumpMultiplier { get; set; } = 1.0m;
+
+    /// <summary>
     /// Hard timeout for any single rippled WebSocket request, in seconds.
     /// </summary>
     public int RequestTimeoutSeconds { get; set; } = 30;
