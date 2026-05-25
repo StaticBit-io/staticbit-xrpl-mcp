@@ -66,6 +66,12 @@ public sealed class AdminAlerter : IAdminAlerter, IHostedService, IAsyncDisposab
         });
     }
 
+    /// <summary>
+    /// Number of alert envelopes currently queued for dispatch.
+    /// Exposed for tests — production code should never read this.
+    /// </summary>
+    internal int PendingCount => _queue.Reader.Count;
+
     public void Alert(AlertKind kind, string summary, IReadOnlyDictionary<string, string>? tags = null)
     {
         AdminAlertsOptions opts = _options.CurrentValue.AdminAlerts;

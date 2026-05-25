@@ -105,7 +105,15 @@ public sealed class TransactionTools
                 result.RawResponseJson = XrplJson.Serialize(lookup);
                 break;
             }
-            catch
+            catch (OperationCanceledException)
+            {
+                // Honor host shutdown / client cancellation — re-throw rather than
+                // silently keep polling. Without this, the outer poll-loop would
+                // swallow cancellation until the next ThrowIfCancellationRequested
+                // tick (up to one full interval later).
+                throw;
+            }
+            catch (Exception)
             {
                 // Transaction may not yet be visible — keep polling until maxPolls.
             }

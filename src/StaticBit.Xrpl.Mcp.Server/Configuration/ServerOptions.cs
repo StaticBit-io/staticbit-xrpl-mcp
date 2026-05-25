@@ -34,6 +34,19 @@ public sealed class ServerOptions
     /// </summary>
     public AdminAlertsOptions AdminAlerts { get; set; } = new();
 
+    /// <summary>
+    /// Optional browser-facing CORS configuration. Disabled by default — enable only
+    /// when serving an HTTP MCP client from a browser origin.
+    /// </summary>
+    public CorsOptions Cors { get; set; } = new();
+
+    /// <summary>
+    /// Optional structured request logging. When enabled, each non-health request is
+    /// logged with method, path, status, duration, client IP and bearer label.
+    /// Request bodies are NEVER logged — they can contain XRPL amounts / addresses.
+    /// </summary>
+    public RequestLoggingOptions RequestLogging { get; set; } = new();
+
     public bool IsHttp => string.Equals(Transport, "http", StringComparison.OrdinalIgnoreCase);
 }
 
@@ -73,6 +86,46 @@ public sealed class RateLimitOptions
     public int PermitsPerMinute { get; set; } = 60;
 
     public int QueueLimit { get; set; } = 0;
+
+    /// <summary>
+    /// How to partition rate-limit buckets:
+    /// <list type="bullet">
+    /// <item><c>ip</c> (default) — one bucket per client IP (X-Forwarded-For first hop).</item>
+    /// <item><c>token</c> — one bucket per bearer label. Better for multi-client cloud where many
+    /// clients sit behind one NAT but each holds its own token.</item>
+    /// <item><c>both</c> — bucket per (ip, label) pair. Strictest; useful when one token is
+    /// shared by many clients.</item>
+    /// </list>
+    /// </summary>
+    public string PartitionBy { get; set; } = "ip";
+}
+
+public sealed class CorsOptions
+{
+    public bool Enabled { get; set; }
+
+    /// <summary>
+    /// Allowed origins. <c>["*"]</c> permits any origin (cannot be combined with
+    /// <c>AllowCredentials=true</c> per the CORS spec).
+    /// </summary>
+    public List<string> AllowedOrigins { get; set; } = new List<string>();
+
+    public List<string> AllowedHeaders { get; set; } = new List<string> { "*" };
+
+    public List<string> AllowedMethods { get; set; } = new List<string> { "GET", "POST", "OPTIONS" };
+
+    public bool AllowCredentials { get; set; }
+}
+
+public sealed class RequestLoggingOptions
+{
+    public bool Enabled { get; set; }
+
+    /// <summary>
+    /// If true, include query strings in the log line. Off by default — XRPL queries
+    /// can carry r-addresses which are not secrets but are caller-identifying.
+    /// </summary>
+    public bool IncludeQueryString { get; set; }
 }
 
 public sealed class AdminAlertsOptions

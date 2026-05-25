@@ -104,7 +104,7 @@ internal static class Program
                 options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
                 options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(ctx =>
                     RateLimitPartition.GetFixedWindowLimiter(
-                        partitionKey: ResolveClientKey(ctx),
+                        partitionKey: ResolveRateLimitPartitionKey(ctx, serverOptions.RateLimit.PartitionBy),
                         factory: _ => new FixedWindowRateLimiterOptions
                         {
                             PermitLimit = serverOptions.RateLimit.PermitsPerMinute,
@@ -115,18 +115,50 @@ internal static class Program
                         }));
                 options.OnRejected = (ctx, _) =>
                 {
-                    string ip = ResolveClientKey(ctx.HttpContext);
+                    string ip = ResolveClientIp(ctx.HttpContext);
+                    string label = ctx.HttpContext.Items.TryGetValue(BearerAuthMiddleware.BearerLabelContextKey, out object? l)
+                        ? (l as string ?? "(unlabeled)")
+                        : "(noauth)";
                     string rejectedPath = ctx.HttpContext.Request.Path.ToString();
                     IAdminAlerter alerter = ctx.HttpContext.RequestServices.GetRequiredService<IAdminAlerter>();
                     alerter.Alert(AlertKind.RateLimit,
-                        $"Rate limit exceeded by {ip}",
+                        $"Rate limit exceeded ip={ip} label={label}",
                         new Dictionary<string, string>
                         {
                             ["ip"] = ip,
+                            ["label"] = label,
                             ["path"] = rejectedPath,
                         });
                     return ValueTask.CompletedTask;
                 };
+            });
+        }
+
+        if (serverOptions.Cors.Enabled)
+        {
+            builder.Services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(policy =>
+                {
+                    string[] origins = serverOptions.Cors.AllowedOrigins.ToArray();
+                    bool isWildcardOrigin = origins.Length == 1 && origins[0] == "*";
+                    if (isWildcardOrigin)
+                    {
+                        policy.AllowAnyOrigin();
+                    }
+                    else if (origins.Length > 0)
+                    {
+                        policy.WithOrigins(origins);
+                    }
+
+                    policy.WithHeaders(serverOptions.Cors.AllowedHeaders.ToArray());
+                    policy.WithMethods(serverOptions.Cors.AllowedMethods.ToArray());
+
+                    if (serverOptions.Cors.AllowCredentials && !isWildcardOrigin)
+                    {
+                        policy.AllowCredentials();
+                    }
+                });
             });
         }
 
@@ -154,12 +186,27 @@ internal static class Program
         app.MapGet("/healthz", () => Results.Ok(new { status = "ok" }));
         app.MapGet("/readyz", () => Results.Ok(new { status = "ready" }));
 
+        // CORS first, so OPTIONS preflights from browsers don't need a bearer.
+        if (serverOptions.Cors.Enabled)
+        {
+            app.UseCors();
+        }
+
+        // Request logging wraps the whole pipeline so we capture status code and duration
+        // regardless of what fails downstream. Bodies are NEVER captured.
+        if (serverOptions.RequestLogging.Enabled)
+        {
+            app.UseMiddleware<RequestLoggingMiddleware>();
+        }
+
         // Bearer auth must run BEFORE the MCP endpoint so unauthenticated callers
         // never reach the protocol handler. The middleware bypasses /healthz and /readyz.
         app.UseMiddleware<BearerAuthMiddleware>();
 
         if (serverOptions.RateLimit.Enabled)
         {
+            // Rate-limiter sits AFTER bearer auth so token-based partitioning has a label
+            // available in HttpContext.Items.
             app.UseRateLimiter();
         }
 
@@ -225,7 +272,7 @@ internal static class Program
         }
     }
 
-    private static string ResolveClientKey(HttpContext context)
+    private static string ResolveClientIp(HttpContext context)
     {
         if (context.Request.Headers.TryGetValue("X-Forwarded-For", out Microsoft.Extensions.Primitives.StringValues fwd))
         {
@@ -235,6 +282,23 @@ internal static class Program
             if (!string.IsNullOrEmpty(head)) return head;
         }
         return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+    }
+
+    internal static string ResolveRateLimitPartitionKey(HttpContext context, string partitionBy)
+    {
+        // Bearer auth runs first, so the label is already populated for /mcp requests.
+        string? label = context.Items.TryGetValue(BearerAuthMiddleware.BearerLabelContextKey, out object? l)
+            ? l as string
+            : null;
+        string ip = ResolveClientIp(context);
+
+        string mode = (partitionBy ?? "ip").Trim().ToLowerInvariant();
+        return mode switch
+        {
+            "token" => label ?? "noauth:" + ip,  // fall back to IP for pre-auth paths (/healthz, scanners)
+            "both" => (label ?? "noauth") + "|" + ip,
+            _ => ip,
+        };
     }
 
     private static string ParseTransport(string[] args)
