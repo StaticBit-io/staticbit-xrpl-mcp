@@ -32,4 +32,20 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
+  <!--
+    Reproducible / deterministic build settings.
+
+    Deterministic=true makes the C# compiler emit byte-identical assemblies for
+    identical inputs (no embedded timestamps, no GUIDs derived from PE metadata).
+    ContinuousIntegrationBuild=true is auto-set when CI=true; it normalizes paths
+    in PDBs (no host-specific 'C:\Users\runneradmin\…' leaking into Source Link).
+
+    Source: https://learn.microsoft.com/dotnet/core/project-sdk/msbuild-props#deterministic
+            https://github.com/dotnet/reproducible-builds
+  -->
+  <PropertyGroup>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition=" '$(CI)' == 'true' OR '$(GITHUB_ACTIONS)' == 'true' OR '$(TF_BUILD)' == 'true' ">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
 </Project>

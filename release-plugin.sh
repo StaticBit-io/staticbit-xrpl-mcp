@@ -273,6 +273,67 @@ stage_binaries() {
 # CHANGELOG (single repo — one log source)
 # ─────────────────────────────────────────────────────────────────────────────
 
+# Group raw "<subject> (<hash>)" lines by Conventional Commit type
+# (feat / fix / docs / refactor / test / perf / chore / etc.). Anything that
+# doesn't parse as a conventional commit falls into Other.
+# Stdin: raw log (one commit per line). Stdout: markdown subsections.
+group_by_conventional_commit() {
+  local raw_log="$1"
+  awk '
+    BEGIN {
+      # Ordered list of section headings; bucket name is everything before "|".
+      n_sections = 8
+      sections[1] = "feat|Features"
+      sections[2] = "fix|Fixes"
+      sections[3] = "perf|Performance"
+      sections[4] = "refactor|Refactoring"
+      sections[5] = "docs|Documentation"
+      sections[6] = "test|Tests"
+      sections[7] = "build|Build / CI"
+      sections[8] = "ci|Build / CI"
+      bucket["feat"] = 1; bucket["fix"] = 2; bucket["perf"] = 3
+      bucket["refactor"] = 4; bucket["docs"] = 5; bucket["test"] = 6
+      bucket["build"] = 7; bucket["ci"] = 8; bucket["chore"] = 0
+    }
+    {
+      line = $0
+      # Match "type:" or "type(scope):" prefix, case-insensitively.
+      if (match(line, /^[a-zA-Z]+(\([^)]*\))?(!?):[ \t]+/)) {
+        prefix = substr(line, 1, RLENGTH)
+        rest = substr(line, RLENGTH + 1)
+        # Extract bare type (lowercase).
+        if (match(prefix, /^[a-zA-Z]+/)) {
+          type = tolower(substr(prefix, 1, RLENGTH))
+          if (type in bucket) {
+            idx = bucket[type]
+            if (idx == 0) { other[++other_n] = "- " line; next }
+            entries[idx, ++count[idx]] = "- " rest
+            next
+          }
+        }
+      }
+      other[++other_n] = "- " line
+    }
+    END {
+      first = 1
+      for (i = 1; i <= n_sections; i++) {
+        if (count[i] > 0) {
+          if (!first) print ""
+          split(sections[i], parts, "|")
+          print "### " parts[2]
+          for (j = 1; j <= count[i]; j++) print entries[i, j]
+          first = 0
+        }
+      }
+      if (other_n > 0) {
+        if (!first) print ""
+        print "### Other"
+        for (k = 1; k <= other_n; k++) print other[k]
+      }
+    }
+  ' <<<"$raw_log"
+}
+
 append_changelog() {
   local plugin="$1" new_version="$2"
   local changelog="$REPO_ROOT/plugins/$plugin/CHANGELOG.md"
@@ -287,10 +348,15 @@ append_changelog() {
     log_range="HEAD"
   fi
 
+  # Raw "subject (hash)" list, one per commit, used as input for categorization below.
+  local raw_log
+  raw_log="$(git -C "$REPO_ROOT" log --pretty=format:'%s (%h)' "$log_range" 2>/dev/null || true)"
+
   local log_body
-  log_body="$(git -C "$REPO_ROOT" log --pretty=format:'- %s (%h)' "$log_range" 2>/dev/null || true)"
-  if [ -z "$log_body" ]; then
+  if [ -z "$raw_log" ]; then
     log_body="- No changes recorded since previous release."
+  else
+    log_body="$(group_by_conventional_commit "$raw_log")"
   fi
 
   local today
