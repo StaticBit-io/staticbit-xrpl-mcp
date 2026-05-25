@@ -604,6 +604,82 @@ ssh root@<vps> 'cd /opt/StaticBitXrplMcp && docker compose logs --tail 200 xrpl-
 
 Скорее всего сторонние сканеры пробуют `.well-known/oauth-protected-resource/mcp` и подобные пути. У cloud-сервера есть фильтр который отбрасывает их с 404 без алерта (commit `45e267c`). Если всё ещё спамит — попроси админа обновить сервер.
 
+### macOS — «"StaticBit.Xrpl.Mcp.Signer" cannot be opened because the developer cannot be verified»
+
+Бинарь в плагине **не подписан Apple Developer ID** (см. [docs/supply-chain.md](docs/supply-chain.md) — подпись опциональна, владелец marketplace может её настроить или нет). Когда release-workflow собран с включёнными `APPLE_*` secrets — бинарь нотаризуется и Gatekeeper его пропускает; иначе нужно вручную снять quarantine-attribute, который macOS вешает на скачанный файл:
+
+```bash
+# Узнать путь к плагину
+claude plugin list
+
+# Снять quarantine с папки плагина целиком
+xattr -dr com.apple.quarantine ~/.claude/plugins/xrpl-signer/
+
+# Альтернатива: разрешить конкретный исполняемый файл через spctl
+sudo spctl --add ~/.claude/plugins/xrpl-signer/bin/osx-arm64/StaticBit.Xrpl.Mcp.Signer
+```
+
+Если в System Settings → Privacy & Security появилось «App was blocked» — нажми «Open Anyway» сразу после неудачной попытки запуска.
+
+### Windows — SmartScreen «Windows protected your PC» или Defender блокирует .exe
+
+Та же история — бинарь без Authenticode-подписи. Опции:
+
+1. **На SmartScreen-окне** нажать `More info` → `Run anyway`. Делается один раз для каждого бинаря после обновления плагина.
+2. **Снять Mark-of-the-Web** с папки плагина:
+
+   ```powershell
+   $pluginDir = "$env:USERPROFILE\.claude\plugins\xrpl-signer"
+   Get-ChildItem $pluginDir -Recurse | Unblock-File
+   ```
+
+3. **Добавить exclusion в Defender** (если он трогает single-file .NET бинарь):
+
+   ```powershell
+   # Запустить от админа
+   Add-MpPreference -ExclusionPath "$env:USERPROFILE\.claude\plugins\xrpl-signer"
+   Add-MpPreference -ExclusionPath "$env:USERPROFILE\.claude\plugins\xrpl-local"
+   ```
+
+   Self-contained AOT-style .NET бинарь иногда триггерит ложное срабатывание из-за самораспаковки нативных библиотек — это известное поведение и не баг плагина.
+
+### Linux — SELinux/AppArmor блокирует signer
+
+Self-contained .NET бинарь распаковывает нативные библиотеки в `/tmp` или `~/.cache/dotnet_bundle_extract` при первом запуске. На enforcing-SELinux (RHEL, Fedora) или strict AppArmor (Ubuntu server, snap-confined apps) это может быть deny.
+
+Диагностика:
+
+```bash
+# SELinux
+sudo ausearch -m AVC -ts recent | grep StaticBit
+sudo setenforce 0   # временный permissive — для проверки гипотезы
+
+# AppArmor
+sudo journalctl -k | grep -E "DENIED.*StaticBit|DENIED.*dotnet"
+sudo aa-status
+```
+
+Если выяснилось что блокирует:
+
+- **SELinux** — навесить корректный context на папку плагина:
+  ```bash
+  sudo chcon -t bin_t ~/.claude/plugins/xrpl-signer/bin/linux-x64/StaticBit.Xrpl.Mcp.Signer
+  # сделать постоянным:
+  sudo semanage fcontext -a -t bin_t "$HOME/.claude/plugins/xrpl-signer/bin/linux-x64/.*"
+  sudo restorecon -Rv ~/.claude/plugins/xrpl-signer/
+  ```
+- **AppArmor** — лучше всего исключить из confinement весь Claude Code, если он запущен под snap-профилем. Альтернатива — переместить плагины из `~/snap/claude-code/.../plugins/` в обычный `~/.claude/plugins/`.
+
+Альтернатива во всех случаях — задать `DOTNET_BUNDLE_EXTRACT_BASE_DIR` на путь, который точно разрешён политикой:
+
+```bash
+export DOTNET_BUNDLE_EXTRACT_BASE_DIR="$HOME/.cache/staticbit-mcp"
+mkdir -p "$DOTNET_BUNDLE_EXTRACT_BASE_DIR"
+chmod 700 "$DOTNET_BUNDLE_EXTRACT_BASE_DIR"
+```
+
+Добавь в `~/.bashrc` / `~/.zshrc` или в env-блок плагина, чтобы persist'ило.
+
 ---
 
 ## Связанные документы

@@ -9,6 +9,10 @@ XRPL toolkit for Claude Code — **исходники + три плагина в
 > 📖 **[INSTALL.md](INSTALL.md)** — пошаговая инструкция для конечного пользователя плагинов: от чистой Claude Code до первой подписанной XRPL-транзакции.
 > 📖 **[DEPLOY.md](DEPLOY.md)** — для админа, разворачивающего cloud-сервер на VPS.
 > 📖 **[RELEASE.md](RELEASE.md)** — для меня (релизера), как публиковать новые версии плагинов.
+> 📖 **[docs/glossary.md](docs/glossary.md)** — XRPL-термины, которые встречаются в описаниях tools.
+> 📖 **[docs/supply-chain.md](docs/supply-chain.md)** — что прикладывается к каждому release (SBOM, SLSA, опц. notarization) и как пользователю это верифицировать.
+> 📖 **[docs/tools-schema.json](docs/tools-schema.json)** — машинно-читаемый JSON-Schema каталог всех MCP-tools (74 шт), для third-party агентов.
+> 📖 **[docs/examples/](docs/examples/)** — рецепты кросс-плагинных Cowork-агентов.
 
 ## Плагины marketplace
 
@@ -115,6 +119,9 @@ bash build-server-binaries.sh win-x64   # одна платформа
 
 # Release плагина (см. RELEASE.md)
 ./release-plugin.sh xrpl-signer patch --push
+
+# Регенерация docs/tools-schema.json (после добавления/изменения [McpServerTool])
+dotnet run --project tools/SchemaGen -- docs/tools-schema.json
 ```
 
 ### Конвенция тестов
