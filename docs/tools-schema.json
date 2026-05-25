@@ -1,0 +1,2994 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "StaticBit XRPL MCP — tool catalogue",
+  "description": "Auto-generated from [McpServerTool] reflection. Each entry mirrors the MCP 'tools/list' response shape: name + description + JSON-Schema inputSchema. Regenerate via: dotnet run --project tools/SchemaGen -- docs/tools-schema.json",
+  "generatedFromAssemblies": [
+    "StaticBit.Xrpl.Mcp.Core",
+    "StaticBit.Xrpl.Mcp.Signer"
+  ],
+  "toolCount": 74,
+  "tools": [
+    {
+      "name": "xrpl_account_delete_prepare",
+      "description": "Prepares an UNSIGNED AccountDelete. The account must have no owned objects (trust lines, offers, escrows, etc.) and Sequence + 256 must be ≤ current ledger sequence. Reserve fee is high — typically 2 XRP — and the residual XRP balance is sent to 'destination'.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.AccountManagementTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Account to be deleted."
+          },
+          "destination": {
+            "type": "string",
+            "description": "Funded destination that receives leftover XRP. Must NOT equal account."
+          },
+          "destinationTag": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "uint",
+            "description": "Optional destination tag (uint32)."
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "destination"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_account_info",
+      "description": "Account root data: XRP balance (drops), sequence, flags, reserves.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.AccountTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Classic XRP address (starts with 'r...')."
+          },
+          "ledgerIndex": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Ledger selector: 'validated' (default), 'current', 'closed', or a numeric ledger sequence."
+          },
+          "strict": {
+            "type": "boolean",
+            "description": "If true, the server checks the account against an STRICT mode (verifies the address).",
+            "default": true
+          },
+          "queue": {
+            "type": "boolean",
+            "description": "If true, include queued transactions for this account.",
+            "default": false
+          },
+          "signerLists": {
+            "type": "boolean",
+            "description": "If true, include signer-list ledger entries.",
+            "default": false
+          }
+        },
+        "required": [
+          "network",
+          "account"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_account_lines",
+      "description": "Trust lines for an account. Use 'limit' and 'marker' for pagination.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.AccountTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Classic XRP address."
+          },
+          "peer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional peer address to filter lines to a single counterparty."
+          },
+          "limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Page size (max ~400). Omit to use the server default."
+          },
+          "marker": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Pagination cursor returned by the previous call."
+          },
+          "ledgerIndex": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Ledger selector: 'validated' (default), 'current', 'closed', or a numeric ledger sequence."
+          }
+        },
+        "required": [
+          "network",
+          "account"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_account_nfts",
+      "description": "Read-only: lists NFTs currently owned by an account. Pageable via limit/marker.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.NftTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Classic XRP address."
+          },
+          "limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Page size (server-clamped). Omit for default."
+          },
+          "marker": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Pagination cursor returned by the previous call."
+          },
+          "ledgerIndex": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Ledger selector: 'validated' (default), 'current', 'closed', or a numeric ledger sequence."
+          }
+        },
+        "required": [
+          "network",
+          "account"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_account_objects",
+      "description": "All ledger objects owned by the account (trust lines, offers, escrows, checks, channels, NFTs, etc.).",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.AccountTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Classic XRP address."
+          },
+          "type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional object type filter (e.g. 'offer', 'state', 'escrow', 'check', 'payment_channel', 'signer_list', 'nft_offer')."
+          },
+          "limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Page size."
+          },
+          "marker": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Pagination cursor returned by the previous call."
+          },
+          "deletionBlockersOnly": {
+            "type": "boolean",
+            "description": "If true, return only objects that prevent account deletion.",
+            "default": false
+          },
+          "ledgerIndex": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Ledger selector: 'validated' (default), 'current', 'closed', or a numeric ledger sequence."
+          }
+        },
+        "required": [
+          "network",
+          "account"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_account_offers",
+      "description": "Active DEX offers owned by the account.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.AccountTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Classic XRP address."
+          },
+          "limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Page size."
+          },
+          "marker": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Pagination cursor returned by the previous call."
+          },
+          "ledgerIndex": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Ledger selector: 'validated' (default), 'current', 'closed', or a numeric ledger sequence."
+          }
+        },
+        "required": [
+          "network",
+          "account"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_account_set_prepare",
+      "description": "Prepares an UNSIGNED AccountSet. Use setFlag/clearFlag to toggle ONE asf flag per transaction (e.g. asfDefaultRipple=8, asfRequireAuth=2, asfRequireDest=1, asfDisallowXRP=3, asfDisableMaster=4, asfNoFreeze=6, asfGlobalFreeze=7, asfDepositAuth=9, asfAuthorizedNFTokenMinter=10, asfDisallowIncomingNFTokenOffer=12, asfDisallowIncomingCheck=13, asfDisallowIncomingPayChan=14, asfDisallowIncomingTrustline=15, asfAllowTrustLineClawback=16, asfAllowTrustLineLocking=17). Domain must be lowercase ASCII hex-encoded.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.AccountManagementTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Account whose settings are being modified."
+          },
+          "setFlag": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "uint",
+            "description": "Optional asf flag to ENABLE (one per transaction)."
+          },
+          "clearFlag": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "uint",
+            "description": "Optional asf flag to DISABLE (one per transaction)."
+          },
+          "domain": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional domain (ASCII lowercase, hex-encoded; max 256 chars)."
+          },
+          "emailHash": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional 32-byte hex MD5 of an email address (for Gravatar)."
+          },
+          "messageKey": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional public key for encrypted messages, hex."
+          },
+          "transferRate": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "uint",
+            "description": "Optional transfer rate (1_000_000_000 = 1.0, 0 = no fee, max 2_000_000_000)."
+          },
+          "tickSize": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "uint",
+            "description": "Optional tick size for issued offers (3..15, or 0 to disable)."
+          },
+          "nfTokenMinter": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional authorized NFToken minter (r-address)."
+          }
+        },
+        "required": [
+          "network",
+          "account"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_account_tx",
+      "description": "Transaction history for an account, paginated via marker. Returns latest first by default.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.AccountTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Classic XRP address."
+          },
+          "ledgerIndexMin": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Lower bound of the ledger range. -1 means earliest available.",
+            "default": -1
+          },
+          "ledgerIndexMax": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Upper bound of the ledger range. -1 means latest available.",
+            "default": -1
+          },
+          "limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Page size (max 200).",
+            "default": 50
+          },
+          "marker": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Pagination cursor returned by the previous call."
+          },
+          "forward": {
+            "type": "boolean",
+            "description": "If true, return results in ascending (oldest first) order.",
+            "default": false
+          },
+          "binary": {
+            "type": "boolean",
+            "description": "If true, return raw binary blobs instead of expanded JSON.",
+            "default": false
+          }
+        },
+        "required": [
+          "network",
+          "account"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_account_tx_since",
+      "description": "Polling-based account monitor. Returns transactions affecting the account starting from sinceLedger (exclusive) up to current validated ledger. Pageable via 'limit' and 'marker'. The intended pattern: caller stores the highest ledger_index it saw and passes it as sinceLedger on the next poll. Works on cloud/local/HTTP — no streaming required.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.SubscriptionTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Classic XRP address."
+          },
+          "sinceLedger": {
+            "type": "integer",
+            "description": "Inclusive lower bound: return transactions from this ledger onward. Pass 0 (default) for 'earliest available'.",
+            "default": 0
+          },
+          "limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Page size (max 200).",
+            "default": 50
+          },
+          "marker": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Pagination cursor returned by the previous call (continue from prior page)."
+          },
+          "forward": {
+            "type": "boolean",
+            "description": "If true, return results in ascending order (oldest first) — usually the right thing for monitoring.",
+            "default": true
+          }
+        },
+        "required": [
+          "network",
+          "account"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_amm_bid_prepare",
+      "description": "Prepares an UNSIGNED AMMBid for the AMM auction slot (discounted trading fee for a period). bidMin/bidMax are LP-token amounts as JSON {value,currency,issuer} where issuer = AMM account. authAccountsJson is an optional JSON array of up to 4 r-addresses: [\"r...\",\"r...\"].",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.AmmManagementTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Bidder account (must hold LP tokens of this pool)."
+          },
+          "asset1Currency": {
+            "type": "string",
+            "description": "First pool asset currency code."
+          },
+          "asset1Issuer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "First pool asset issuer (empty for XRP)."
+          },
+          "asset2Currency": {
+            "type": "string",
+            "description": "Second pool asset currency code."
+          },
+          "asset2Issuer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Second pool asset issuer (empty for XRP)."
+          },
+          "bidMin": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional minimum bid (LP tokens, JSON {value,currency,issuer})."
+          },
+          "bidMax": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional maximum bid (LP tokens, JSON {value,currency,issuer})."
+          },
+          "authAccountsJson": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional JSON array of up to 4 r-addresses authorized to trade at the discounted fee."
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "asset1Currency",
+          "asset1Issuer",
+          "asset2Currency",
+          "asset2Issuer"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_amm_create_prepare",
+      "description": "Prepares an UNSIGNED AMMCreate. Both amounts must be supplied (this defines the initial pool composition). tradingFeeBasisPoints is in 1/10 bps (0..1000 = 0%..1%). Caller pays the full amounts when this lands.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.AmmManagementTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Sender account that funds the AMM and becomes initial LP."
+          },
+          "amount": {
+            "type": "string",
+            "description": "First asset amount. Drops string for XRP or JSON {value,currency,issuer}."
+          },
+          "amount2": {
+            "type": "string",
+            "description": "Second asset amount. Same format as 'amount'."
+          },
+          "tradingFeeBasisPoints": {
+            "type": "integer",
+            "format": "uint",
+            "description": "Trading fee in 1/10 bps (0..1000). 1 = 0.001%, 1000 = 1%."
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "amount",
+          "amount2",
+          "tradingFeeBasisPoints"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_amm_delete_prepare",
+      "description": "Prepares an UNSIGNED AMMDelete to fully delete an empty AMM (after AMMWithdraw left residual trust lines). May need to be run multiple times to fully clean up.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.AmmManagementTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Sender account."
+          },
+          "asset1Currency": {
+            "type": "string",
+            "description": "First pool asset currency code."
+          },
+          "asset1Issuer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "First pool asset issuer (empty for XRP)."
+          },
+          "asset2Currency": {
+            "type": "string",
+            "description": "Second pool asset currency code."
+          },
+          "asset2Issuer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Second pool asset issuer (empty for XRP)."
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "asset1Currency",
+          "asset1Issuer",
+          "asset2Currency",
+          "asset2Issuer"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_amm_deposit_prepare",
+      "description": "Prepares an UNSIGNED AMMDeposit. Provide the pool's two assets and ONE of: (a) amount only — single-asset deposit; (b) amount + amount2 — two-asset deposit; (c) lpTokenOut only — double-asset deposit by LP amount; (d) amount + lpTokenOut — single-asset deposit by LP amount.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.AmmTransactionTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Sender address (liquidity provider)."
+          },
+          "asset1Currency": {
+            "type": "string",
+            "description": "First pool asset — currency code ('XRP' or 3-char / 40-hex)."
+          },
+          "asset1Issuer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "First pool asset — issuer. Empty for XRP."
+          },
+          "asset2Currency": {
+            "type": "string",
+            "description": "Second pool asset — currency code."
+          },
+          "asset2Issuer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Second pool asset — issuer. Empty for XRP."
+          },
+          "amount": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional amount to deposit (drops string for XRP, JSON token object for issued currencies)."
+          },
+          "amount2": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional second amount (only with 'amount' for tfTwoAsset mode)."
+          },
+          "lpTokenOut": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional LP token amount to receive (JSON {value,currency,issuer} where issuer is the AMM account)."
+          },
+          "ePrice": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional effective price (JSON token object). Used with single-asset deposit."
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "asset1Currency",
+          "asset1Issuer",
+          "asset2Currency",
+          "asset2Issuer"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_amm_info",
+      "description": "Returns state of an AMM instance — pool assets, LP token supply, trading fee, auction slot. Identify by asset pair OR by AMM account.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.AmmTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "asset1Currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "First asset of the pool — currency code ('XRP' or 3-char/40-hex token)."
+          },
+          "asset1Issuer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Issuer of the first asset. Leave empty for XRP."
+          },
+          "asset2Currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Second asset of the pool — currency code."
+          },
+          "asset2Issuer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Issuer of the second asset. Leave empty for XRP."
+          },
+          "ammAccount": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional: AMM account address. If set, asset1/asset2 are ignored."
+          },
+          "lpAccount": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional: liquidity provider account — when set, returns LP token amount this account holds."
+          },
+          "ledgerIndex": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Ledger selector: 'validated' (default), 'current', 'closed', or a numeric ledger sequence."
+          }
+        },
+        "required": [
+          "network"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_amm_vote_prepare",
+      "description": "Prepares an UNSIGNED AMMVote — LP votes on the desired trading fee of the pool. Vote weight is proportional to held LP tokens. tradingFeeBasisPoints in 1/10 bps (0..1000).",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.AmmManagementTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Voter (must hold LP tokens of this pool)."
+          },
+          "asset1Currency": {
+            "type": "string",
+            "description": "First pool asset currency code ('XRP' or 3-char/40-hex)."
+          },
+          "asset1Issuer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "First pool asset issuer (empty for XRP)."
+          },
+          "asset2Currency": {
+            "type": "string",
+            "description": "Second pool asset currency code."
+          },
+          "asset2Issuer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Second pool asset issuer (empty for XRP)."
+          },
+          "tradingFeeBasisPoints": {
+            "type": "integer",
+            "format": "uint",
+            "description": "Vote: trading fee in 1/10 bps (0..1000)."
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "asset1Currency",
+          "asset1Issuer",
+          "asset2Currency",
+          "asset2Issuer",
+          "tradingFeeBasisPoints"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_amm_withdraw_prepare",
+      "description": "Prepares an UNSIGNED AMMWithdraw. Provide the pool's two assets and either lpTokenIn, amount(s), or set withdrawAll=true to redeem all LP tokens.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.AmmTransactionTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Sender address (liquidity provider)."
+          },
+          "asset1Currency": {
+            "type": "string",
+            "description": "First pool asset — currency code ('XRP' or 3-char / 40-hex)."
+          },
+          "asset1Issuer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "First pool asset — issuer. Empty for XRP."
+          },
+          "asset2Currency": {
+            "type": "string",
+            "description": "Second pool asset — currency code."
+          },
+          "asset2Issuer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Second pool asset — issuer. Empty for XRP."
+          },
+          "amount": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional amount to withdraw (drops string for XRP, JSON token object for issued currencies)."
+          },
+          "amount2": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional second amount for two-asset withdrawals."
+          },
+          "lpTokenIn": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional LP token amount to redeem (JSON token object, issuer = AMM account)."
+          },
+          "withdrawAll": {
+            "type": "boolean",
+            "description": "If true, set tfWithdrawAll to redeem ALL held LP tokens (mutually exclusive with explicit amounts).",
+            "default": false
+          },
+          "oneAssetWithdrawAll": {
+            "type": "boolean",
+            "description": "If true and an amount is provided, redeem all LP tokens via tfOneAssetWithdrawAll for a single asset.",
+            "default": false
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "asset1Currency",
+          "asset1Issuer",
+          "asset2Currency",
+          "asset2Issuer"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_book_offers",
+      "description": "Returns the order book (offers) for a currency pair on the XRPL DEX. Use 'XRP' currency with empty issuer for XRP.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.DexTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "takerGetsCurrency": {
+            "type": "string",
+            "description": "Currency the taker would RECEIVE. 'XRP' or 3-char/40-hex token code."
+          },
+          "takerGetsIssuer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Issuer for the taker_gets currency. Leave empty for XRP."
+          },
+          "takerPaysCurrency": {
+            "type": "string",
+            "description": "Currency the taker would PAY. 'XRP' or 3-char/40-hex token code."
+          },
+          "takerPaysIssuer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Issuer for the taker_pays currency. Leave empty for XRP."
+          },
+          "taker": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional address used as the offer-taker's perspective (for filtering unfunded offers)."
+          },
+          "limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "uint",
+            "description": "Page size. Server may cap this value."
+          },
+          "ledgerIndex": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Ledger selector: 'validated' (default), 'current', 'closed', or a numeric ledger sequence."
+          }
+        },
+        "required": [
+          "network",
+          "takerGetsCurrency",
+          "takerGetsIssuer",
+          "takerPaysCurrency",
+          "takerPaysIssuer"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_check_cancel_prepare",
+      "description": "Prepares an UNSIGNED CheckCancel. Can be sent by the Check's source or destination at any time; by anyone after the Check has expired.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.CheckTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Sender of the cancel."
+          },
+          "checkId": {
+            "type": "string",
+            "description": "Check ledger object ID (64-char hex)."
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "checkId"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_check_cash_prepare",
+      "description": "Prepares an UNSIGNED CheckCash. Submitted by the Check's destination. Provide EITHER amount (cash for exactly this amount) OR deliverMin (cash for at least this amount, up to the Check's sendMax). Currency must match the Check's SendMax.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.CheckTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Sender — must be the Check's destination."
+          },
+          "checkId": {
+            "type": "string",
+            "description": "Check ledger object ID (64-char hex)."
+          },
+          "amount": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cash for EXACTLY this amount. Drops string for XRP or JSON token object. Mutually exclusive with deliverMin."
+          },
+          "deliverMin": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cash for AT LEAST this amount. Drops string for XRP or JSON token object. Mutually exclusive with amount."
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "checkId"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_check_create_prepare",
+      "description": "Prepares an UNSIGNED CheckCreate. sendMax = upper bound the sender allows to be debited (includes transfer fees). Same format as xrpl_payment_prepare amounts.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.CheckTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Sender (issuer of the Check)."
+          },
+          "destination": {
+            "type": "string",
+            "description": "Destination — the only account that can cash the Check."
+          },
+          "sendMax": {
+            "type": "string",
+            "description": "SendMax: max amount the Check can debit. Drops string for XRP, JSON {value,currency,issuer} for tokens."
+          },
+          "destinationTag": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "uint",
+            "description": "Optional destination tag."
+          },
+          "expirationUtc": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Optional UTC expiration; the Check is invalid after this time."
+          },
+          "invoiceId": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "uint",
+            "description": "Optional InvoiceID (uint32)."
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "destination",
+          "sendMax"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_clawback_prepare",
+      "description": "Prepares an UNSIGNED Clawback. The issuer claws back its own tokens from a holder. amount.issuer must be the HOLDER (the account to claw FROM), NOT the issuer (the sender). amount = JSON {value,currency,issuer}. value=0 is rejected; if value > holder's balance, the entire balance is clawed. Requires asfAllowTrustLineClawback enabled on the issuer (set BEFORE issuing any tokens).",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.IssuerTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Sender = issuer (the account that originally issued these tokens)."
+          },
+          "amount": {
+            "type": "string",
+            "description": "Amount JSON: {value,currency,issuer} where 'issuer' is the HOLDER to claw FROM."
+          },
+          "holder": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional Holder (r-address). Required only when clawing back MPT tokens; must be omitted for trust-line tokens."
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "amount"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_deposit_preauth_prepare",
+      "description": "Prepares an UNSIGNED DepositPreauth. Pass EITHER authorize (grant) OR unauthorize (revoke); they are mutually exclusive. Only meaningful if the account has asfDepositAuth enabled.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.AccountManagementTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Account granting/revoking the deposit preauthorization."
+          },
+          "authorize": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Address to preauthorize (mutually exclusive with unauthorize)."
+          },
+          "unauthorize": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Address whose preauthorization should be revoked (mutually exclusive with authorize)."
+          }
+        },
+        "required": [
+          "network",
+          "account"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_escrow_cancel_prepare",
+      "description": "Prepares an UNSIGNED EscrowCancel. Only valid after the escrow's CancelAfter time has passed; refunds the funds to the original owner.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.EscrowTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Sender of the cancel (typically the original owner, but anyone can cancel after CancelAfter)."
+          },
+          "owner": {
+            "type": "string",
+            "description": "Owner = original funder address."
+          },
+          "offerSequence": {
+            "type": "integer",
+            "format": "uint",
+            "description": "Sequence number of the original EscrowCreate transaction."
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "owner",
+          "offerSequence"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_escrow_create_prepare",
+      "description": "Prepares an UNSIGNED EscrowCreate. amount is XRP drops (string), an issued-token JSON object, or an MPT amount (requires TokenEscrow amendment). Must specify FinishAfter or CancelAfter (or both). Condition (PREIMAGE-SHA-256, hex) makes it a conditional escrow that requires a matching Fulfillment to finish. All times are UTC; they are converted to Ripple-epoch by the SDK.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.EscrowTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Sender account (escrow funder)."
+          },
+          "destination": {
+            "type": "string",
+            "description": "Destination account that receives the escrowed funds on finish."
+          },
+          "amount": {
+            "type": "string",
+            "description": "Amount: drops string for XRP, JSON {value,currency,issuer} for tokens."
+          },
+          "finishAfterUtc": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "UTC time after which the destination can claim funds (recipient-side)."
+          },
+          "cancelAfterUtc": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "UTC time after which the escrow can be cancelled (refund to sender)."
+          },
+          "conditionHex": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Hex PREIMAGE-SHA-256 crypto-condition. If set, EscrowFinish requires a matching Fulfillment."
+          },
+          "destinationTag": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "uint",
+            "description": "Optional destination tag."
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "destination",
+          "amount"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_escrow_finish_prepare",
+      "description": "Prepares an UNSIGNED EscrowFinish. owner is the original escrow funder; offerSequence is the Sequence of the EscrowCreate transaction. For conditional escrows, provide both conditionHex and fulfillmentHex.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.EscrowTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Sender of the finish (often the destination)."
+          },
+          "owner": {
+            "type": "string",
+            "description": "Owner = original funder address."
+          },
+          "offerSequence": {
+            "type": "integer",
+            "format": "uint",
+            "description": "Sequence number of the original EscrowCreate transaction."
+          },
+          "conditionHex": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Hex PREIMAGE-SHA-256 condition (must match the escrow). Required for conditional escrows."
+          },
+          "fulfillmentHex": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Hex PREIMAGE-SHA-256 fulfillment matching the condition. Required for conditional escrows."
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "owner",
+          "offerSequence"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_fee",
+      "description": "Returns current open-ledger transaction cost (drops). Use this to size Fee before submitting.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.LedgerTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          }
+        },
+        "required": [
+          "network"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_gateway_balances",
+      "description": "Issuer-side balance summary: total obligations (tokens this account has issued and are held by non-excluded addresses), assets held that were issued by others, and balances held by the listed hotwallets. Pass hotwalletsJson as a JSON array of r-addresses to exclude operational/hot wallets from obligations. Strict mode rejects non-r-address inputs.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.AccountTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Issuer address to inspect."
+          },
+          "hotwalletsJson": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional JSON array of r-addresses to treat as hotwallets and exclude from obligations."
+          },
+          "strict": {
+            "type": "boolean",
+            "description": "If true, only accept r-address/public-key for account.",
+            "default": true
+          },
+          "ledgerIndex": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Ledger selector: 'validated' (default), 'current', 'closed', or a numeric ledger sequence."
+          }
+        },
+        "required": [
+          "network",
+          "account"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_ledger",
+      "description": "Returns a ledger header (and optionally its transactions) for the specified ledger.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.LedgerTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "ledgerIndex": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Ledger selector: 'validated' (default), 'current', 'closed', or a numeric ledger sequence."
+          },
+          "transactions": {
+            "type": "boolean",
+            "description": "If true, include the transaction list of the ledger.",
+            "default": false
+          },
+          "expand": {
+            "type": "boolean",
+            "description": "If true, expand the transactions to full JSON instead of hashes only.",
+            "default": false
+          }
+        },
+        "required": [
+          "network"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_nft_accept_offer_prepare",
+      "description": "Prepares an UNSIGNED NFTokenAcceptOffer. DIRECT mode: pass either sellOfferId OR buyOfferId. BROKERED mode: pass both AND optionally a brokerFee (the broker's cut, same format as xrpl_payment_prepare).",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.NftTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Account accepting the offer (the broker in brokered mode)."
+          },
+          "sellOfferId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Sell-offer NFTokenOffer ID (direct sell-accept, or brokered mode)."
+          },
+          "buyOfferId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Buy-offer NFTokenOffer ID (direct buy-accept, or brokered mode)."
+          },
+          "brokerFee": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional broker fee (brokered mode only). Same format as xrpl_payment_prepare amount."
+          }
+        },
+        "required": [
+          "network",
+          "account"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_nft_burn_prepare",
+      "description": "Prepares an UNSIGNED NFTokenBurn. owner is only needed when burning a token you don't currently hold but are authorized to burn (e.g. issuer burning a tfBurnable NFT).",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.NftTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Account submitting the burn (usually the current holder)."
+          },
+          "nfTokenId": {
+            "type": "string",
+            "description": "NFTokenID (64-char hex) of the NFT to burn."
+          },
+          "owner": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional current owner if different from account (issuer burning a tfBurnable NFT)."
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "nfTokenId"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_nft_buy_offers",
+      "description": "Read-only: lists outstanding BUY offers for the given NFTokenID.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.NftTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "nfTokenId": {
+            "type": "string",
+            "description": "NFTokenID (64-char hex)."
+          }
+        },
+        "required": [
+          "network",
+          "nfTokenId"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_nft_cancel_offer_prepare",
+      "description": "Prepares an UNSIGNED NFTokenCancelOffer. nftOfferIds is the comma-separated list of NFTokenOffer object IDs (64-char hex each) to cancel.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.NftTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Sender account."
+          },
+          "nftOfferIds": {
+            "type": "string",
+            "description": "Comma-separated list of NFTokenOffer object IDs (each 64-char hex)."
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "nftOfferIds"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_nft_create_offer_prepare",
+      "description": "Prepares an UNSIGNED NFTokenCreateOffer. SELL offer: set isSellOffer=true and DO NOT pass owner. BUY offer: set isSellOffer=false and pass owner (the current NFT holder). amount uses same format as xrpl_payment_prepare (drops string for XRP, JSON token object otherwise).",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.NftTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Sender account."
+          },
+          "nfTokenId": {
+            "type": "string",
+            "description": "NFTokenID (64-char hex)."
+          },
+          "amount": {
+            "type": "string",
+            "description": "Price the offer GIVES (sell offer) or OFFERS (buy offer). Drops string for XRP or JSON {value,currency,issuer}."
+          },
+          "isSellOffer": {
+            "type": "boolean",
+            "description": "True for sell offer, false for buy offer."
+          },
+          "owner": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Current owner of the NFT. Required for BUY offers; must be omitted for SELL offers."
+          },
+          "destination": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional destination — only this account will be able to accept the offer."
+          },
+          "expirationUtc": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Optional UTC expiration time (offer becomes invalid after)."
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "nfTokenId",
+          "amount",
+          "isSellOffer"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_nft_mint_prepare",
+      "description": "Prepares an UNSIGNED NFTokenMint. uriHex must be hex-encoded (use uriPlain if you have a plain-string URI and want auto-encoding). Flags are a sum of: tfBurnable=1, tfOnlyXRP=2, tfTrustLine=4, tfTransferable=8, tfMutable=16. transferFee 0..50000 (0.000%..50.000%); requires tfTransferable.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.NftTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Minter account (and owner of the freshly minted NFT, unless issuer is set)."
+          },
+          "nfTokenTaxon": {
+            "type": "integer",
+            "format": "uint",
+            "description": "NFTokenTaxon (uint32). Group identifier; set 0 if you don't use it."
+          },
+          "issuer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional issuer account, only if account is an authorized minter on behalf of someone else (sets the Issuer field)."
+          },
+          "transferFee": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "uint",
+            "description": "Optional transfer fee (0..50000) for secondary sales. Requires tfTransferable."
+          },
+          "uriHex": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional NFT URI as a hex string. Mutually exclusive with uriPlain."
+          },
+          "uriPlain": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional NFT URI as a plain string; will be UTF-8-hex-encoded. Mutually exclusive with uriHex."
+          },
+          "flags": {
+            "type": "integer",
+            "format": "uint",
+            "description": "Sum of NFTokenMint flags (tfBurnable=1, tfOnlyXRP=2, tfTrustLine=4, tfTransferable=8, tfMutable=16).",
+            "default": 0
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "nfTokenTaxon"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_nft_sell_offers",
+      "description": "Read-only: lists outstanding SELL offers for the given NFTokenID.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.NftTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "nfTokenId": {
+            "type": "string",
+            "description": "NFTokenID (64-char hex)."
+          }
+        },
+        "required": [
+          "network",
+          "nfTokenId"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_offer_cancel_prepare",
+      "description": "Prepares an UNSIGNED OfferCancel transaction. offerSequence is the Sequence number of the OfferCreate to remove.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.OfferTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Sender address (the offer owner)."
+          },
+          "offerSequence": {
+            "type": "integer",
+            "format": "uint",
+            "description": "Sequence number of the OfferCreate transaction to cancel."
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "offerSequence"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_offer_create_prepare",
+      "description": "Prepares an UNSIGNED OfferCreate (limit order on the XRPL DEX). Amounts use the same format as xrpl_payment_prepare (drops string for XRP, JSON {value,currency,issuer} for tokens).",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.OfferTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Sender address (the offer owner)."
+          },
+          "takerGets": {
+            "type": "string",
+            "description": "TakerGets — what the OFFER GIVES UP. Drops string for XRP or JSON token object."
+          },
+          "takerPays": {
+            "type": "string",
+            "description": "TakerPays — what the OFFER WANTS. Drops string for XRP or JSON token object."
+          },
+          "expirationUtc": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Optional Ripple-epoch expiration (DateTime UTC). Use null for no expiration."
+          },
+          "offerSequence": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "uint",
+            "description": "OfferSequence of an existing offer to cancel atomically. Optional."
+          },
+          "passive": {
+            "type": "boolean",
+            "description": "If true, set tfPassive (don't consume exact-match offers).",
+            "default": false
+          },
+          "immediateOrCancel": {
+            "type": "boolean",
+            "description": "If true, set tfImmediateOrCancel.",
+            "default": false
+          },
+          "fillOrKill": {
+            "type": "boolean",
+            "description": "If true, set tfFillOrKill.",
+            "default": false
+          },
+          "sell": {
+            "type": "boolean",
+            "description": "If true, set tfSell (exchange entire TakerGets even if you get more than TakerPays).",
+            "default": false
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "takerGets",
+          "takerPays"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_path_find_close",
+      "description": "WebSocket-only. Closes the currently-open path_find subscription on the pool's connection.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.PathTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — must match the one used in xrpl_path_find_create."
+          }
+        },
+        "required": [
+          "network"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_path_find_create",
+      "description": "WebSocket-only. Opens a long-running pathfinding subscription on the pool's shared connection. Returns the initial set of alternatives; subsequent updates are delivered to the pool's WebSocket but NOT relayed back through MCP — for ongoing updates, re-poll via xrpl_path_find_status. Only one open path_find request per WebSocket; calling this twice replaces the previous one.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.PathTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL. JSON-RPC URLs WILL NOT work with this method."
+          },
+          "sourceAccount": {
+            "type": "string",
+            "description": "Source account address."
+          },
+          "destinationAccount": {
+            "type": "string",
+            "description": "Destination account address."
+          },
+          "destinationAmount": {
+            "type": "string",
+            "description": "Destination amount (same format as xrpl_payment_prepare)."
+          },
+          "sendMax": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional: maximum the source is willing to spend."
+          }
+        },
+        "required": [
+          "network",
+          "sourceAccount",
+          "destinationAccount",
+          "destinationAmount"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_path_find_status",
+      "description": "WebSocket-only. Requests an immediate update for the currently-open path_find subscription on the pool's connection. Returns the latest alternatives. No-op if there is no open path_find.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.PathTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — must match the one used in xrpl_path_find_create."
+          }
+        },
+        "required": [
+          "network"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_payment_channel_claim_prepare",
+      "description": "Prepares an UNSIGNED PaymentChannelClaim. Used by either side to claim XRP and/or renew/close the channel. signatureHex + publicKeyHex are required when the destination is claiming OR when the source is redeeming a signed claim (sign offline via the signer plugin). Pass renew=true to clear the channel's Expiration; close=true to schedule closure.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.PaymentChannelTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Sender of the claim (source or destination of the channel)."
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Channel ID (64-char hex)."
+          },
+          "amountDrops": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cumulative XRP drops authorized by the signature."
+          },
+          "balanceDrops": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cumulative XRP drops delivered after this claim (required unless closing)."
+          },
+          "signatureHex": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Hex signature over (channelId, amount). Required when destination claims or when redeeming a third-party signed claim."
+          },
+          "publicKeyHex": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Hex public key matching the channel's PublicKey. Required when signatureHex is set."
+          },
+          "renew": {
+            "type": "boolean",
+            "description": "If true, set tfRenew to clear the channel's Expiration (source only).",
+            "default": false
+          },
+          "close": {
+            "type": "boolean",
+            "description": "If true, set tfClose to schedule channel closure (source or destination).",
+            "default": false
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "channelId"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_payment_channel_create_prepare",
+      "description": "Prepares an UNSIGNED PaymentChannelCreate. amountDrops is XRP drops (string). settleDelaySeconds is the source-side close grace period. publicKeyHex is the secp256k1/ed25519 public key the source will sign claims with — get it from xrpl_wallet_address (publicKey).",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.PaymentChannelTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Source account funding the channel."
+          },
+          "destination": {
+            "type": "string",
+            "description": "Destination account that can claim from this channel."
+          },
+          "amountDrops": {
+            "type": "string",
+            "description": "Amount of XRP in drops (string) to fund the channel."
+          },
+          "settleDelaySeconds": {
+            "type": "integer",
+            "format": "uint",
+            "description": "Settle delay in seconds — minimum wait before source can close with unclaimed XRP."
+          },
+          "publicKeyHex": {
+            "type": "string",
+            "description": "Hex public key the source will sign claims with (33-byte secp256k1 or 32-byte ed25519, hex)."
+          },
+          "cancelAfterUtc": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Optional UTC time after which the channel auto-closes (immutable)."
+          },
+          "destinationTag": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "uint",
+            "description": "Optional destination tag."
+          },
+          "sourceTag": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "uint",
+            "description": "Optional source tag."
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "destination",
+          "amountDrops",
+          "settleDelaySeconds",
+          "publicKeyHex"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_payment_channel_fund_prepare",
+      "description": "Prepares an UNSIGNED PaymentChannelFund. Adds XRP to an open channel and optionally bumps its Expiration. Only the source account can fund.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.PaymentChannelTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Source account (channel owner)."
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Channel ID (64-char hex)."
+          },
+          "amountDrops": {
+            "type": "string",
+            "description": "Amount of XRP in drops to add."
+          },
+          "expirationUtc": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Optional new UTC Expiration time (must be later than current expiration + settleDelay)."
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "channelId",
+          "amountDrops"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_payment_prepare",
+      "description": "Prepares an UNSIGNED Payment transaction. Returns autofilled tx JSON + unsigned blob + signing data. Caller signs locally and then calls xrpl_tx_submit_signed. Amount: numeric drops string for XRP (1 XRP = 1000000 drops), or {\"value\":\"...\",\"currency\":\"...\",\"issuer\":\"...\"} JSON for tokens.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.PaymentTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Sender address (classic r-address). Server does NOT need its seed."
+          },
+          "destination": {
+            "type": "string",
+            "description": "Destination XRP address."
+          },
+          "amount": {
+            "type": "string",
+            "description": "Amount. XRP drops as a numeric string (e.g. '10000000' = 10 XRP) OR token amount as JSON {\"value\":\"...\",\"currency\":\"...\",\"issuer\":\"...\"}."
+          },
+          "destinationTag": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "uint",
+            "description": "Optional destination tag (uint32, e.g. for exchange deposits)."
+          },
+          "sourceTag": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "uint",
+            "description": "Optional source tag."
+          },
+          "invoiceId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional invoice ID (32-byte hex)."
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "destination",
+          "amount"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_ripple_path_find",
+      "description": "One-shot cross-currency pathfinder. Returns the alternatives array — every entry has a 'source_amount' you can drop straight into a Payment as SendMax along with its 'paths_computed' as Paths. destinationAmount uses the same format as xrpl_payment_prepare (drops string for XRP or JSON {value,currency,issuer} for tokens). sourceCurrenciesJson optionally restricts what the source can spend: JSON array of {currency,issuer?} objects (max 18).",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.PathTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "sourceAccount": {
+            "type": "string",
+            "description": "Source account address."
+          },
+          "destinationAccount": {
+            "type": "string",
+            "description": "Destination account address."
+          },
+          "destinationAmount": {
+            "type": "string",
+            "description": "Destination amount: drops string for XRP, JSON {value,currency,issuer} for tokens. Pass value='-1' to ask 'deliver as much as possible up to sendMax'."
+          },
+          "sendMax": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional: maximum the source is willing to spend. Same format as destinationAmount. Mutually exclusive with sourceCurrenciesJson per docs."
+          },
+          "sourceCurrenciesJson": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional: JSON array of {currency,issuer?} the source is willing to spend (max 18)."
+          },
+          "ledgerIndex": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Ledger selector: 'validated' (default), 'current', 'closed', or a numeric ledger sequence."
+          }
+        },
+        "required": [
+          "network",
+          "sourceAccount",
+          "destinationAccount",
+          "destinationAmount"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_server_definitions",
+      "description": "Returns the binary-format definition tables the node uses (FIELDS, LEDGER_ENTRY_TYPES, TRANSACTION_RESULTS, TRANSACTION_TYPES, TYPES) plus a content hash. Pass the previous hash to short-circuit if nothing changed (server returns empty result). Use this for feature/amendment detection on the node.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.LedgerTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "hash": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional content hash from a previous call — if it matches, the server returns nothing."
+          }
+        },
+        "required": [
+          "network"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_server_info",
+      "description": "Returns rippled node status: version, validated ledger range, build info, peers. Read-only.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.LedgerTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          }
+        },
+        "required": [
+          "network"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_server_state",
+      "description": "Machine-readable version of server_info. Returns load factors, validated/closed ledger info, state-accounting buckets, validation quorum, build version. Use this when you need numeric thresholds rather than human strings.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.LedgerTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          }
+        },
+        "required": [
+          "network"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_set_regular_key_prepare",
+      "description": "Prepares an UNSIGNED SetRegularKey. Pass regularKey=null (or omit) to REMOVE the existing regular key pair. Must not match the master key pair for the account.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.AccountManagementTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Account whose regular key is being assigned/cleared."
+          },
+          "regularKey": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "New regular key address (classic r-address). Omit to REMOVE."
+          }
+        },
+        "required": [
+          "network",
+          "account"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_sign",
+      "description": "Signs a transaction with the named wallet's private key. The transaction can be supplied as a JSON object or as an unsigned hex blob (the same value xrpl_payment_prepare returns as 'txBlobUnsigned'). Returns the signed hex blob and its hash — ready to feed to xrpl_tx_submit_signed.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.SignTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Wallet alias from the keystore."
+          },
+          "transaction": {
+            "type": "string",
+            "description": "Transaction to sign. Either a JSON object with 'TransactionType', 'Account', etc., OR a hex blob string from a *_prepare tool."
+          }
+        },
+        "required": [
+          "name",
+          "transaction"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_sign_combine",
+      "description": "Aggregates several multi-signed partial-blobs into one fully-signed transaction blob. Pass the array of hex blobs produced by xrpl_sign_multi from each authorized signer. Returns the combined signed blob and its hash — ready for xrpl_tx_submit_signed.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.SignTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "signedBlobs": {
+            "type": "string",
+            "description": "Array of multi-signed transaction blobs (hex strings) — output of xrpl_sign_multi from each signer. Accept as JSON array string '[\"blob1\",\"blob2\",...]' or as newline-separated blobs."
+          }
+        },
+        "required": [
+          "signedBlobs"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_sign_multi",
+      "description": "Produces a single-slot multi-sign for a transaction. Each authorized signer runs this once; the resulting partial-signed transactions are then aggregated with xrpl_sign_combine before submission. Returns the signed hex blob containing this signer's Signers entry.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.SignTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Wallet alias from the keystore — used as one of the multi-sign authorized accounts."
+          },
+          "transaction": {
+            "type": "string",
+            "description": "Transaction to sign — JSON object or hex blob. The transaction's SigningPubKey must be empty string for multi-sign."
+          },
+          "signingFor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional: the account this signature is FOR (defaults to the wallet's own classic address). Use this only if the wallet is a Regular Key signing on behalf of a different master account."
+          }
+        },
+        "required": [
+          "name",
+          "transaction"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_signer_list_set_prepare",
+      "description": "Prepares an UNSIGNED SignerListSet. signerQuorum=0 DELETES the signer list (must omit signerEntries). Otherwise signerEntries is a JSON array of objects: [{\"account\":\"r...\",\"weight\":1,\"walletLocator\":\"<optional 64-char hex>\"}, ...]. Quorum must be ≤ sum of weights; up to 32 entries.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.AccountManagementTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Account that owns this signer list."
+          },
+          "signerQuorum": {
+            "type": "integer",
+            "format": "uint",
+            "description": "Required signer weight sum. 0 = DELETE the signer list."
+          },
+          "signerEntriesJson": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "JSON array of signer entries: [{\"account\":\"r...\",\"weight\":1,\"walletLocator\":\"<hex>\"}]. Required when signerQuorum>0; must be omitted when signerQuorum=0."
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "signerQuorum"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_subscribe",
+      "description": "Installs a subscription on the pool's shared WebSocket. WARNING: streaming events are not delivered back through MCP — prefer xrpl_account_tx_since for polling-based monitoring. streamsCsv: comma-separated subset of {ledger,transactions,transactions_proposed,validations,manifests,server,peer_status,consensus,book_changes}. accountsJson / accountsProposedJson: JSON array of r-addresses.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.SubscriptionTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "streamsCsv": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Comma-separated stream names. Empty to subscribe only by account/book."
+          },
+          "accountsJson": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "JSON array of r-addresses to subscribe to (validated transactions affecting them)."
+          },
+          "accountsProposedJson": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "JSON array of r-addresses to subscribe to (proposed + validated, unfinalized)."
+          }
+        },
+        "required": [
+          "network"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_trustline_freeze_prepare",
+      "description": "Prepares an UNSIGNED TrustSet that freezes or unfreezes a specific trust line — wrapper over TrustSet with tfSetFreeze/tfClearFreeze (or tfSetDeepFreeze/tfClearDeepFreeze when deep=true). Only meaningful when sender is the token issuer. limitValue defaults to '0' (do not change the trust limit) — pass a positive value only if you also want to adjust the limit.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.IssuerTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Sender (issuer) freezing the trust line."
+          },
+          "currency": {
+            "type": "string",
+            "description": "Token currency code (3-char or 40-hex)."
+          },
+          "holder": {
+            "type": "string",
+            "description": "Counterparty (holder) address — the side being frozen."
+          },
+          "freeze": {
+            "type": "boolean",
+            "description": "True = freeze; false = unfreeze."
+          },
+          "deep": {
+            "type": "boolean",
+            "description": "If true, use DeepFreeze flags (tfSetDeepFreeze / tfClearDeepFreeze) instead of regular Freeze.",
+            "default": false
+          },
+          "limitValue": {
+            "type": "string",
+            "description": "Limit value to set on the trust line. Default '0' — keep current behavior (just toggle the flag).",
+            "default": "0"
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "currency",
+          "holder",
+          "freeze"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_trustset_prepare",
+      "description": "Prepares an UNSIGNED TrustSet transaction to create or modify a trust line. Set limitValue to '0' to remove a trust line (only succeeds when balance and flags are at defaults).",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.PaymentTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Account that holds the trust line (sender)."
+          },
+          "currency": {
+            "type": "string",
+            "description": "Token currency code (3-char or 40-hex)."
+          },
+          "issuer": {
+            "type": "string",
+            "description": "Token issuer address."
+          },
+          "limitValue": {
+            "type": "string",
+            "description": "Trust limit value as a decimal string (e.g. '1000000'). Use '0' to attempt removal."
+          },
+          "qualityIn": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "uint",
+            "description": "Quality in (rate at which received tokens are valued), 1_000_000_000 = 1.0. Optional."
+          },
+          "qualityOut": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "uint",
+            "description": "Quality out (rate at which sent tokens are valued). Optional."
+          }
+        },
+        "required": [
+          "network",
+          "account",
+          "currency",
+          "issuer",
+          "limitValue"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_tx_decode_blob",
+      "description": "Decodes a binary transaction blob (signed or unsigned) into JSON for inspection. Pure local operation — no network calls.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.TransactionTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "txBlob": {
+            "type": "string",
+            "description": "Hex-encoded transaction blob."
+          }
+        },
+        "required": [
+          "txBlob"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_tx_explain",
+      "description": "Converts a transaction into a one-line human summary for approval prompts. Pass EITHER txBlobHex (signed or unsigned canonical hex) OR txJson (the JSON object directly). Returns {transactionType, humanSummary, txJson} — humanSummary is a sentence like 'Payment from rA... to rB...: 10000000 drops XRP. [fee=12 drops, seq=42, LLS=1234]'. Pure local operation — no network calls.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.ExplainTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "txBlobHex": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Hex-encoded transaction blob (signed or unsigned). Mutually exclusive with txJson."
+          },
+          "txJson": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Transaction as a JSON object string. Mutually exclusive with txBlobHex."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_tx_lookup",
+      "description": "Looks up a single transaction by hash. Returns engine result, metadata and validated flag.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.LedgerTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "txHash": {
+            "type": "string",
+            "description": "64-char hex transaction hash."
+          },
+          "binary": {
+            "type": "boolean",
+            "description": "If true, return the binary blob instead of expanded JSON.",
+            "default": false
+          }
+        },
+        "required": [
+          "network",
+          "txHash"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_tx_preflight",
+      "description": "Read-only pre-flight check. Inspects the sender (account_info + server_state) and, for Payment, the destination, to surface common gotchas BEFORE signing/submitting: insufficient balance, insufficient reserve after Amount+Fee, RequireDestinationTag without DestinationTag, DepositAuth without preauth, DisallowIncomingXRP. Pass the prepared transaction as txJson (from a *_prepare tool). Returns a JSON report — { feasible, balanceXrp, reserveXrp, freeXrp, requiredXrp, sourceFlags, destinationFlags, warnings[] }. NOT a guarantee — does not check path liquidity or AMM state.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.PreflightTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "txJson": {
+            "type": "string",
+            "description": "Transaction JSON string (e.g. the TxJson field from a *_prepare result)."
+          }
+        },
+        "required": [
+          "network",
+          "txJson"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_tx_prepare_generic",
+      "description": "Escape hatch: prepares any XRPL transaction described as a JSON object (TransactionType + fields). Autofills Sequence/Fee/LastLedgerSequence and returns unsigned blob + signing data. Use for tx types not covered by dedicated *_prepare tools (Escrow, NFToken, Check, PaymentChannel, AccountSet, …).",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.TransactionTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "txJson": {
+            "type": "string",
+            "description": "Raw transaction as a JSON object, e.g. {\"TransactionType\":\"AccountSet\",\"Account\":\"r...\",\"SetFlag\":8}."
+          },
+          "humanSummary": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional one-line human summary shown to the user in the approval prompt."
+          }
+        },
+        "required": [
+          "network",
+          "txJson"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_tx_simulate",
+      "description": "Dry-run a transaction without submitting. Runs xrpl_tx_preflight plus type-specific checks: for Payment, calls ripple_path_find to confirm a path exists for cross-currency / token deliveries and includes the first alternative's source_amount + paths_computed. Returns { preflight, suggestedPathfind, recommendedFee, recommendedLastLedgerSequence, warnings[] }. Useful for showing the user a realistic 'what will happen' before they approve a signature.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.PreflightTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "txJson": {
+            "type": "string",
+            "description": "Transaction JSON string."
+          }
+        },
+        "required": [
+          "network",
+          "txJson"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_tx_submit_signed",
+      "description": "Submits a SIGNED transaction blob to the network. The blob must already be signed locally — the server NEVER signs. Optionally polls until the transaction is included in a validated ledger.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.TransactionTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "txBlobSigned": {
+            "type": "string",
+            "description": "Signed transaction blob as a hex string. Produced locally by signing the tx_blob_unsigned returned by a *_prepare tool."
+          },
+          "failHard": {
+            "type": "boolean",
+            "description": "If true, do NOT retry or relay if the transaction fails locally (rippled fail_hard).",
+            "default": true
+          },
+          "waitForValidation": {
+            "type": "boolean",
+            "description": "If true, after submission poll for the transaction hash until it is in a validated ledger or LastLedgerSequence is reached.",
+            "default": false
+          },
+          "pollIntervalSeconds": {
+            "type": "integer",
+            "description": "Polling interval in seconds when wait_for_validation is true. Default 2.",
+            "default": 2
+          },
+          "maxPolls": {
+            "type": "integer",
+            "description": "Max number of polls. Default 30 (≈60 seconds at default interval, longer than the LastLedgerSequence + 20 window).",
+            "default": 30
+          }
+        },
+        "required": [
+          "network",
+          "txBlobSigned"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_unsubscribe",
+      "description": "Mirror of xrpl_subscribe — removes subscriptions from the pool's shared WebSocket. Same parameter shape.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.SubscriptionTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "streamsCsv": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Comma-separated stream names to unsubscribe."
+          },
+          "accountsJson": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "JSON array of r-addresses to unsubscribe."
+          },
+          "accountsProposedJson": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "JSON array of r-addresses to unsubscribe from the proposed stream."
+          }
+        },
+        "required": [
+          "network"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_wallet_address",
+      "description": "Returns metadata (address, public key, algorithm, creation time) for one wallet by name. No secrets are returned.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.WalletTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Wallet alias."
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_wallet_export",
+      "description": "Returns the plaintext seed and (optionally) the Xumm secret numbers for the wallet. Use this for BACKUP — the seed is the only way to recover the wallet later. The seed will appear in the MCP transcript, so handle the chat carefully. Requires explicit confirm=true to guard against accidental invocation.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.WalletTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Wallet alias."
+          },
+          "confirm": {
+            "type": "boolean",
+            "description": "Must be set to true to actually return the seed — a safety interlock.",
+            "default": false
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_wallet_generate",
+      "description": "Generates a brand-new XRPL wallet with random entropy, encrypts the seed with the keystore passphrase, and stores it under the given name. Returns address and public key. The seed is NEVER returned by this tool — use xrpl_wallet_export to back it up.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.WalletTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Wallet alias used in subsequent sign calls. Allowed chars: letters, digits, '-', '_', '.'."
+          },
+          "algorithm": {
+            "type": "string",
+            "description": "Signing curve: 'ed25519' (default) or 'secp256k1'.",
+            "default": "ed25519"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_wallet_import_mnemonic",
+      "description": "Imports a wallet from a BIP39 mnemonic phrase (12/15/18/21/24 words). Optionally a BIP44 derivation path and BIP39 passphrase. The mnemonic itself is converted to a seed and the seed is encrypted in the keystore.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.WalletTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Wallet alias."
+          },
+          "mnemonic": {
+            "type": "string",
+            "description": "BIP39 mnemonic — words separated by single spaces."
+          },
+          "derivationPath": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional BIP44 derivation path. Default: \"m/44'/144'/0'/0/0\" (XRPL standard)."
+          },
+          "bip39Passphrase": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional BIP39 passphrase that augments the mnemonic. Empty by default."
+          },
+          "algorithm": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional algorithm override: 'ed25519' or 'secp256k1' (secp256k1 is the BIP39 default)."
+          }
+        },
+        "required": [
+          "name",
+          "mnemonic"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_wallet_import_seed",
+      "description": "Imports an existing XRPL seed string (e.g. 'sEd...' for Ed25519, 'sn...' for secp256k1). Encrypted and stored under the given name.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.WalletTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Wallet alias."
+          },
+          "seed": {
+            "type": "string",
+            "description": "XRPL seed — typically starts with 'sEd' or 'sn'."
+          },
+          "algorithm": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional algorithm override. If omitted the SDK infers it from the seed prefix."
+          }
+        },
+        "required": [
+          "name",
+          "seed"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_wallet_import_text",
+      "description": "Imports a wallet derived from an arbitrary text passphrase. The text is normalized and run through SHA-256 or PBKDF2 to produce 16 bytes of entropy. Useful for brain-wallets or human-memorable seeds. WARNING: short or low-entropy text is trivially brute-forceable — only use long, unique phrases.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.WalletTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Wallet alias."
+          },
+          "text": {
+            "type": "string",
+            "description": "The text — any length. Longer & more unique = better."
+          },
+          "salt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional salt mixed into the KDF. Increases isolation between different wallets derived from similar text."
+          },
+          "caseInsensitive": {
+            "type": "boolean",
+            "description": "If true the text is lowercased before hashing — easier on humans, slightly weaker against typos vs intentional variants.",
+            "default": true
+          },
+          "kdf": {
+            "type": "string",
+            "description": "KDF: 'sha256' (default, fast) or 'pbkdf2' (slow, 100K iter, much harder to brute-force).",
+            "default": "sha256"
+          },
+          "algorithm": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional algorithm override: 'ed25519' or 'secp256k1'. Default: secp256k1."
+          }
+        },
+        "required": [
+          "name",
+          "text"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_wallet_import_xumm",
+      "description": "Imports a wallet from Xumm 'secret numbers' format (8 groups of 6 digits, each including a checksum). Accepts either an array of 8 strings or one space-separated string like '554872 394230 ... ...'.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.WalletTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Wallet alias."
+          },
+          "secretNumbers": {
+            "type": "string",
+            "description": "Either eight 6-digit strings (newline / space separated) or a JSON-style array. Whichever is convenient — the tool normalizes it."
+          },
+          "algorithm": {
+            "type": "string",
+            "description": "Optional algorithm override. Default: 'secp256k1' (Xumm's native curve).",
+            "default": "secp256k1"
+          }
+        },
+        "required": [
+          "name",
+          "secretNumbers"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_wallet_list",
+      "description": "Lists all wallets in the keystore — name, address, public key, algorithm, creation timestamp. No secrets are returned.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.WalletTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_wallet_remove",
+      "description": "Permanently deletes a wallet from the keystore. The encrypted seed is overwritten on disk via atomic rewrite — but if you have backups elsewhere they are not affected.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.WalletTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Wallet alias."
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_xrp_balance",
+      "description": "Convenience: returns the spendable XRP balance for an account, as a decimal XRP string.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.AccountTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Classic XRP address."
+          }
+        },
+        "required": [
+          "network",
+          "account"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

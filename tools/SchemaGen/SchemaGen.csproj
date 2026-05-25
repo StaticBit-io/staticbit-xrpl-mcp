@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>StaticBit.Xrpl.Mcp.SchemaGen</RootNamespace>
+    <AssemblyName>StaticBit.Xrpl.Mcp.SchemaGen</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <!--
+      Loads BOTH Core (read/write XRPL tools) and Signer (wallet/sign tools) so
+      the generated schema covers every [McpServerTool] in the project.
+    -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\StaticBit.Xrpl.Mcp.Core\StaticBit.Xrpl.Mcp.Core.csproj" />
+    <ProjectReference Include="..\..\src\StaticBit.Xrpl.Mcp.Signer\StaticBit.Xrpl.Mcp.Signer.csproj" />
+  </ItemGroup>
+
+</Project>
