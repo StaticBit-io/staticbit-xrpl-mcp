@@ -41,6 +41,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write          # push commits + tags + GitHub Release
+      id-token: write          # SLSA build-provenance attestation (OIDC)
+      attestations: write      # write attestations into the GitHub attestation store
     steps:
       - uses: actions/checkout@v4
         with:
@@ -64,7 +66,7 @@ jobs:
       - name: Unit tests (fail early)
         run: dotnet test StaticBitXrplMcp.sln --filter "FullyQualifiedName~TestU" --logger "console;verbosity=normal"
 
-      - name: Run release-plugin.sh
+      - name: Run release-plugin.sh (build + version bump + CHANGELOG)
         id: release
         run: |
           chmod +x release-plugin.sh
@@ -78,13 +80,190 @@ jobs:
           echo "new_version=$NEW_VERSION"                            >> "$GITHUB_OUTPUT"
           echo "tag_name=${{ inputs.plugin }}--v$NEW_VERSION"        >> "$GITHUB_OUTPUT"
 
+      # ── Optional code-signing ────────────────────────────────────────────────
+      # macOS notarization & Windows Authenticode happen BEFORE bundling so the
+      # SBOM, SLSA attestation, and per-RID tarballs all describe the SIGNED
+      # binaries that end up in the GitHub Release. Each step is SKIPPED when its
+      # secrets are not configured — the release still proceeds with unsigned
+      # binaries (no Gatekeeper / SmartScreen approval).
+      # See docs/supply-chain.md for the required secret setup.
+
+      - name: macOS — codesign + notarize (skipped if APPLE_* secrets unset)
+        if: ${{ inputs.dry_run != true && inputs.plugin != 'xrpl-cloud' && env.APPLE_DEVELOPER_ID_P12 != '' && env.APPLE_NOTARY_API_KEY != '' }}
+        env:
+          APPLE_DEVELOPER_ID_P12: ${{ secrets.APPLE_DEVELOPER_ID_P12 }}
+          APPLE_DEVELOPER_ID_P12_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_P12_PASSWORD }}
+          APPLE_NOTARY_API_KEY: ${{ secrets.APPLE_NOTARY_API_KEY }}
+          APPLE_NOTARY_API_KEY_ID: ${{ secrets.APPLE_NOTARY_API_KEY_ID }}
+          APPLE_NOTARY_API_KEY_ISSUER: ${{ secrets.APPLE_NOTARY_API_KEY_ISSUER }}
+        run: |
+          # rcodesign is a pure-Rust signer that runs on Linux runners — no macOS
+          # host required. Install the published binary release (faster than
+          # `cargo install` and avoids pulling the whole crate index).
+          RCODESIGN_VERSION=0.27.0
+          curl -sSL "https://github.com/indygreg/apple-platform-rs/releases/download/apple-codesign%2F${RCODESIGN_VERSION}/apple-codesign-${RCODESIGN_VERSION}-x86_64-unknown-linux-musl.tar.gz" \
+            | tar -xz -C /tmp
+          install -m 0755 "/tmp/apple-codesign-${RCODESIGN_VERSION}-x86_64-unknown-linux-musl/rcodesign" /usr/local/bin/rcodesign
+          rcodesign --version
+
+          # Materialize the Developer ID certificate (base64-encoded P12) and the
+          # App Store Connect API key (private key body, also base64-encoded).
+          WORK=$(mktemp -d)
+          echo "$APPLE_DEVELOPER_ID_P12" | base64 -d > "$WORK/cert.p12"
+          printf '%s' "$APPLE_DEVELOPER_ID_P12_PASSWORD" > "$WORK/cert.pass"
+          chmod 600 "$WORK/cert.p12" "$WORK/cert.pass"
+
+          # rcodesign accepts the App Store Connect API key as a single JSON file.
+          cat > "$WORK/notary.json" <<EOF
+          { "key_id": "$APPLE_NOTARY_API_KEY_ID",
+            "issuer_id": "$APPLE_NOTARY_API_KEY_ISSUER",
+            "private_key": $(echo "$APPLE_NOTARY_API_KEY" | base64 -d | jq -Rs .) }
+          EOF
+          chmod 600 "$WORK/notary.json"
+
+          # Sign every macOS Mach-O binary then submit each (as a single-file zip)
+          # to the Apple notary service. Stapling is not possible for plain Mach-O
+          # binaries (only .app/.dmg/.pkg can carry a notary ticket); Gatekeeper
+          # falls back to the online notary lookup on first launch.
+          BIN_BASE="plugins/${{ inputs.plugin }}/bin"
+          for rid in osx-x64 osx-arm64; do
+            rid_dir="$BIN_BASE/$rid"
+            [ -d "$rid_dir" ] || continue
+            for bin in "$rid_dir"/*; do
+              [ -f "$bin" ] || continue
+              file "$bin" | grep -q 'Mach-O' || continue
+
+              echo "── Signing $bin"
+              rcodesign sign \
+                --p12-file "$WORK/cert.p12" \
+                --p12-password-file "$WORK/cert.pass" \
+                --code-signature-flags runtime \
+                "$bin"
+
+              (cd "$(dirname "$bin")" && zip -q -j "$WORK/$(basename "$bin").zip" "$(basename "$bin")")
+
+              echo "── Submitting to notary"
+              rcodesign notary-submit \
+                --api-key-file "$WORK/notary.json" \
+                --wait \
+                "$WORK/$(basename "$bin").zip"
+            done
+          done
+
+          rm -rf "$WORK"
+
+      - name: Windows — Authenticode (skipped if WINDOWS_PFX secret unset)
+        if: ${{ inputs.dry_run != true && inputs.plugin != 'xrpl-cloud' && env.WINDOWS_PFX != '' }}
+        env:
+          WINDOWS_PFX: ${{ secrets.WINDOWS_PFX }}
+          WINDOWS_PFX_PASSWORD: ${{ secrets.WINDOWS_PFX_PASSWORD }}
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -qq -y osslsigncode
+
+          WORK=$(mktemp -d)
+          echo "$WINDOWS_PFX" | base64 -d > "$WORK/cert.pfx"
+          chmod 600 "$WORK/cert.pfx"
+
+          BIN_BASE="plugins/${{ inputs.plugin }}/bin"
+          for rid in win-x64; do
+            rid_dir="$BIN_BASE/$rid"
+            [ -d "$rid_dir" ] || continue
+            for bin in "$rid_dir"/*.exe; do
+              [ -f "$bin" ] || continue
+
+              echo "── Signing $bin"
+              osslsigncode sign \
+                -pkcs12 "$WORK/cert.pfx" \
+                -pass "$WINDOWS_PFX_PASSWORD" \
+                -h sha256 \
+                -t http://timestamp.digicert.com \
+                -n "StaticBit XRPL MCP — ${{ inputs.plugin }}" \
+                -i "https://github.com/StaticBit-io/staticbit-xrpl-mcp" \
+                -in "$bin" \
+                -out "$bin.signed"
+              mv "$bin.signed" "$bin"
+
+              osslsigncode verify -in "$bin" || true
+            done
+          done
+
+          rm -rf "$WORK"
+
+      # ── Supply-chain artifacts ───────────────────────────────────────────────
+
+      - name: Generate SBOM (CycloneDX)
+        if: ${{ inputs.dry_run != true && inputs.plugin != 'xrpl-cloud' }}
+        run: |
+          dotnet tool install --global CycloneDX --version 5.* >/dev/null
+          export PATH="$PATH:$HOME/.dotnet/tools"
+
+          case "${{ inputs.plugin }}" in
+            xrpl-signer)
+              PROJECT="src/StaticBit.Xrpl.Mcp.Signer/StaticBit.Xrpl.Mcp.Signer.csproj"
+              ;;
+            xrpl-local)
+              PROJECT="src/StaticBit.Xrpl.Mcp.Server/StaticBit.Xrpl.Mcp.Server.csproj"
+              ;;
+          esac
+
+          OUT_DIR="artifacts/sbom/${{ inputs.plugin }}"
+          mkdir -p "$OUT_DIR"
+          SBOM_FILE="${{ inputs.plugin }}-v${{ steps.release.outputs.new_version }}.cdx.json"
+          dotnet CycloneDX "$PROJECT" \
+            --output "$OUT_DIR" \
+            --filename "$SBOM_FILE" \
+            --json \
+            --include-project-references
+
+          ls -la "$OUT_DIR"
+          echo "sbom_path=$OUT_DIR/$SBOM_FILE" >> "$GITHUB_ENV"
+
+      - name: Collect plugin binaries to attach
+        if: ${{ inputs.dry_run != true && inputs.plugin != 'xrpl-cloud' }}
+        id: collect_bins
+        run: |
+          # Plugin binaries (now potentially signed) are staged under
+          # plugins/<name>/bin/<rid>/. Bundle each per-RID directory into a single
+          # tarball so it's easy to download from the GitHub Release and verify
+          # against the SBOM / attestation.
+          OUT_DIR="artifacts/release/${{ inputs.plugin }}"
+          mkdir -p "$OUT_DIR"
+
+          BIN_BASE="plugins/${{ inputs.plugin }}/bin"
+          if [ ! -d "$BIN_BASE" ]; then
+            echo "No binaries staged for ${{ inputs.plugin }} — skipping bundling."
+            echo "bundles=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          BUNDLES=""
+          for rid_dir in "$BIN_BASE"/*/; do
+            rid=$(basename "$rid_dir")
+            tarball="$OUT_DIR/${{ inputs.plugin }}-v${{ steps.release.outputs.new_version }}-$rid.tar.gz"
+            tar -czf "$tarball" -C "$rid_dir" .
+            sha256sum "$tarball" > "$tarball.sha256"
+            BUNDLES="$BUNDLES $tarball $tarball.sha256"
+          done
+
+          echo "bundles=$BUNDLES" >> "$GITHUB_OUTPUT"
+          ls -la "$OUT_DIR"
+
+      - name: SLSA build provenance attestation
+        if: ${{ inputs.dry_run != true && inputs.plugin != 'xrpl-cloud' && steps.collect_bins.outputs.bundles != '' }}
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            artifacts/release/${{ inputs.plugin }}/${{ inputs.plugin }}-v${{ steps.release.outputs.new_version }}-*.tar.gz
+
+      # ── Push and create the GitHub Release ───────────────────────────────────
+
       - name: Push commits and tags
         if: ${{ inputs.dry_run != true }}
         run: |
           git push origin HEAD:main
           git push origin "refs/tags/${{ steps.release.outputs.tag_name }}"
 
-      - name: Create GitHub Release with CHANGELOG
+      - name: Create GitHub Release with CHANGELOG + attach SBOM and binaries
         if: ${{ inputs.dry_run != true }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -96,7 +275,17 @@ jobs:
           # line up to (but not including) the next '## v'. awk handles this cleanly.
           NOTES=$(awk '/^## v/{n++} n==1{print} n==2{exit}' "$CHANGELOG_FILE")
 
+          ASSETS=()
+          if [ -n "${{ env.sbom_path }}" ] && [ -f "${{ env.sbom_path }}" ]; then
+            ASSETS+=("${{ env.sbom_path }}")
+          fi
+          # Per-RID binary bundles + their sha256 files (set by collect_bins).
+          for asset in ${{ steps.collect_bins.outputs.bundles }}; do
+            [ -f "$asset" ] && ASSETS+=("$asset")
+          done
+
           gh release create "${{ steps.release.outputs.tag_name }}" \
             --title "${{ inputs.plugin }} v${{ steps.release.outputs.new_version }}" \
             --notes "$NOTES" \
-            --target main
+            --target main \
+            "${ASSETS[@]}"
