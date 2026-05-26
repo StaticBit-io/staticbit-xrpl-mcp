@@ -9,7 +9,9 @@ using ModelContextProtocol.Server;
 using StaticBit.Xrpl.Mcp.Abstractions;
 using StaticBit.Xrpl.Mcp.Core.Services;
 using Xrpl.Client;
+using Xrpl.Models;
 using Xrpl.Models.Common;
+using Xrpl.Models.Ledger;
 using Xrpl.Models.Methods;
 
 namespace StaticBit.Xrpl.Mcp.Core.Tools;
@@ -236,6 +238,58 @@ public sealed class PreflightTools
                         report.Warnings.Add("Destination has DisallowIncomingXRP set (advisory; not enforced by ledger but discouraged).");
                     }
                 }
+            }
+        }
+        else if (string.Equals(txType, "AccountDelete", StringComparison.Ordinal))
+        {
+            // AccountDelete has two unique pre-flight constraints (rippled rules):
+            // 1. The account must own NO deletion-blocker objects (some types like
+            //    Escrow, PaymentChannel, NFTokenPage with NFTs cannot be deleted).
+            // 2. Sequence + 256 must be ≤ current validated ledger sequence — protects
+            //    against deleting an account whose recent tx history is still in flight.
+            try
+            {
+                AccountObjectsRequest objReq = new AccountObjectsRequest(account)
+                {
+                    DeletionBlockersOnly = true,
+                    LedgerIndex = new LedgerIndex(LedgerIndexType.Validated),
+                };
+                AccountObjects objResp = await client.AccountObjects(objReq, cancellationToken).ConfigureAwait(false);
+                if (objResp.AccountObjectList is not null && objResp.AccountObjectList.Count > 0)
+                {
+                    List<string> blockerTypes = new List<string>();
+                    foreach (BaseLedgerEntry entry in objResp.AccountObjectList)
+                    {
+                        blockerTypes.Add(entry.LedgerEntryType.ToString());
+                    }
+                    report.Warnings.Add(
+                        $"AccountDelete will fail: account owns {objResp.AccountObjectList.Count} deletion-blocker object(s): " +
+                        string.Join(", ", blockerTypes) +
+                        ". Resolve each (cancel escrows, close payment channels, burn NFTs, etc.) and retry.");
+                    report.Feasible = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                report.Warnings.Add("account_objects(deletion_blockers_only=true) failed: " + ex.Message);
+            }
+
+            try
+            {
+                uint currentLedger = await client.GetLedgerIndex(cancellationToken).ConfigureAwait(false);
+                if (currentLedger > 0 && report.CurrentSequence > 0
+                    && currentLedger < report.CurrentSequence + 256u)
+                {
+                    long ledgersToWait = (long)(report.CurrentSequence + 256u) - currentLedger;
+                    report.Warnings.Add(string.Create(CultureInfo.InvariantCulture,
+                        $"AccountDelete needs current ledger ≥ account.Sequence + 256. Current={currentLedger}, " +
+                        $"Sequence={report.CurrentSequence}, must wait ~{ledgersToWait} more ledgers (~{ledgersToWait * 4}s)."));
+                    report.Feasible = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                report.Warnings.Add("ledger index lookup failed (cannot verify Sequence+256 rule): " + ex.Message);
             }
         }
 

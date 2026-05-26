@@ -6,7 +6,7 @@
     "StaticBit.Xrpl.Mcp.Core",
     "StaticBit.Xrpl.Mcp.Signer"
   ],
-  "toolCount": 74,
+  "toolCount": 77,
   "tools": [
     {
       "name": "xrpl_account_delete_prepare",
@@ -40,6 +40,50 @@
           "network",
           "account",
           "destination"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_account_escrows",
+      "description": "Lists every Escrow ledger object owned by the account. Splits into 'sent' (account is the source/funder, waiting for Finish or Cancel) and 'received' (account is the destination, can call EscrowFinish once FinishAfter passes). Each entry includes counterparty, amount, finishAfter, cancelAfter, condition (if conditional), and the EscrowCreate Sequence (use as offerSequence in xrpl_escrow_finish_prepare / xrpl_escrow_cancel_prepare).",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.AccountObjectsHelperTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Classic XRP address to inspect."
+          },
+          "limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Page size (server-clamped). Omit for default."
+          },
+          "marker": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Pagination cursor returned by the previous call."
+          },
+          "ledgerIndex": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Ledger selector: 'validated' (default), 'current', 'closed', or a numeric ledger sequence."
+          }
+        },
+        "required": [
+          "network",
+          "account"
         ],
         "additionalProperties": false
       }
@@ -1146,7 +1190,7 @@
     },
     {
       "name": "xrpl_deposit_preauth_prepare",
-      "description": "Prepares an UNSIGNED DepositPreauth. Pass EITHER authorize (grant) OR unauthorize (revoke); they are mutually exclusive. Only meaningful if the account has asfDepositAuth enabled.",
+      "description": "Prepares an UNSIGNED DepositPreauth. Pass EXACTLY ONE of: authorize (grant by address), unauthorize (revoke by address), authorizeCredentialsJson (XLS-70 grant by credential set, 1-8 entries), unauthorizeCredentialsJson (XLS-70 revoke by credential set, 1-8 entries). Only meaningful if the account has asfDepositAuth enabled. Credential entries shape: [{\"issuer\":\"r...\",\"credentialType\":\"<hex>\"}, ...].",
       "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.AccountManagementTools",
       "inputSchema": {
         "type": "object",
@@ -1164,14 +1208,28 @@
               "string",
               "null"
             ],
-            "description": "Address to preauthorize (mutually exclusive with unauthorize)."
+            "description": "Address to preauthorize (mutually exclusive with other variants)."
           },
           "unauthorize": {
             "type": [
               "string",
               "null"
             ],
-            "description": "Address whose preauthorization should be revoked (mutually exclusive with authorize)."
+            "description": "Address whose preauthorization should be revoked (mutually exclusive with other variants)."
+          },
+          "authorizeCredentialsJson": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "XLS-70: JSON array of {issuer,credentialType-hex}, 1-8 entries. Holders presenting ALL of these credentials are preauthorized. Mutually exclusive with the other variants."
+          },
+          "unauthorizeCredentialsJson": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "XLS-70: JSON array of {issuer,credentialType-hex}, 1-8 entries — revoke a credential-based preauth granted earlier. Mutually exclusive with the other variants."
           }
         },
         "required": [
@@ -1418,6 +1476,29 @@
         },
         "required": [
           "network"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_manifest",
+      "description": "Returns the validator manifest (publish slot, master key, ephemeral signing key, sequence) for a given public_key. Useful for inspecting which validator is behind a public key seen in 'validations' stream messages. SDK has no typed wrapper for this — dispatched as a generic command.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.LedgerTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "publicKey": {
+            "type": "string",
+            "description": "Validator master public key (base58 with 'n...' prefix) or ephemeral signing key."
+          }
+        },
+        "required": [
+          "network",
+          "publicKey"
         ],
         "additionalProperties": false
       }
@@ -2352,6 +2433,43 @@
           "network",
           "account",
           "signerQuorum"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_signer_list_status",
+      "description": "Reads the account's SignerList ledger object and returns multi-sign status: quorum, total available weight (sum of all signer weights), and per-signer breakdown. Pass alreadySignedAccountsCsv to compute the weight already collected and how much more is needed to reach quorum — useful when collecting signatures for a multi-sign transaction.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.AccountObjectsHelperTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "description": "Network identifier — 'mainnet', 'testnet', 'devnet' or a wss:// URL."
+          },
+          "account": {
+            "type": "string",
+            "description": "Classic XRP address whose SignerList to inspect."
+          },
+          "alreadySignedAccountsCsv": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional comma-separated list of signer addresses that have already signed; used to compute deltaToQuorum."
+          },
+          "ledgerIndex": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Ledger selector: 'validated' (default), 'current', 'closed', or a numeric ledger sequence."
+          }
+        },
+        "required": [
+          "network",
+          "account"
         ],
         "additionalProperties": false
       }

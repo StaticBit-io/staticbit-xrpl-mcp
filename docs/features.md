@@ -20,9 +20,11 @@
 - [x] `xrpl_account_set_prepare` — `AccountSet` со всеми флагами (`DefaultRipple`, `RequireAuth`, `RequireDest`, `DepositAuth`, `AllowTrustLineClawback`, `DisallowIncomingXRP/NFTokenOffer/Check/PayChan/Trustline`), полями `Domain`, `EmailHash`, `MessageKey`, `TickSize`, `TransferRate`, `NFTokenMinter`.
 - [x] `xrpl_set_regular_key_prepare` — `SetRegularKey`.
 - [x] `xrpl_signer_list_set_prepare` — `SignerListSet` (для multi-sign).
-  - [ ] Helper "сколько подписей ещё нужно" поверх `account_objects` — ещё не реализован.
-- [x] `xrpl_deposit_preauth_prepare` — `DepositPreauth` (whitelist отправителей). XLS-70 credential-based вариант пока не покрыт.
-- [x] `xrpl_account_delete_prepare` — `AccountDelete` (базово). Pre-flight по owned objects и sequence-distance — ещё не реализован.
+  - [x] Helper `xrpl_signer_list_status` поверх `account_objects(type=SignerList)`: возвращает `{quorum, totalAvailableWeight, signers[]}`; принимает `alreadySignedAccountsCsv` и считает `collectedWeight` + `deltaToQuorum` + `quorumReached`.
+- [x] `xrpl_deposit_preauth_prepare` — `DepositPreauth` (whitelist отправителей).
+  - [x] XLS-70 credential-based вариант — `authorizeCredentialsJson` / `unauthorizeCredentialsJson` (массивы `{issuer, credentialType-hex}`, 1-8 entries, mutually exclusive с авторизацией по адресу).
+- [x] `xrpl_account_delete_prepare` — `AccountDelete`.
+  - [x] Pre-flight расширен в `xrpl_tx_preflight`: проверяет `account_objects(deletion_blockers_only=true)` (если есть блокеры — `feasible=false` + список типов), и правило `currentLedger ≥ account.Sequence + 256` (если не выполнено — сообщает сколько ledger'ов осталось ждать).
 
 ### 1.2. NFT (XLS-20)
 
@@ -34,7 +36,7 @@
 
 - [x] `EscrowCreate`, `EscrowFinish`, `EscrowCancel` prepare.
 - [x] Поддержка crypto-conditions (PREIMAGE-SHA-256) для `Condition`/`Fulfillment`.
-- [ ] Read-helper: фильтр `account_objects` по `LedgerEntryType=Escrow` + human-readable summary.
+- [x] Read-helper `xrpl_account_escrows` — `account_objects(type=Escrow)` с split на `sent[]` (account = funder) и `received[]` (account = destination), каждая запись содержит counterparty, amount + human-readable, finishAfter/cancelAfter (UTC), condition, source/destination tags, previousTxnId.
 
 ### 1.4. PaymentChannel
 
@@ -57,7 +59,7 @@
 ### 1.8. Multi-sign UX
 
 - [x] `xrpl_sign_multi`, `xrpl_sign_combine` уже есть.
-- [ ] Тул "сколько подписей собрано / ещё нужно" (читает `SignerList` + сравнивает с пришедшими `SignerEntries` в blob).
+- [x] `xrpl_signer_list_status` — см. §1.1: показывает quorum, текущий собранный вес, дельту до quorum, флаг unknownSigners (если в csv пришли адреса, которых нет в on-chain SignerList).
 
 ---
 
@@ -72,7 +74,7 @@
 | `xrpl_server_definitions` | ✅ | FIELDS/LEDGER_ENTRY_TYPES/TRANSACTION_TYPES + content hash. |
 | `xrpl_subscribe` / `xrpl_unsubscribe` | ⚠️ Pass-through | Подписка ставится на shared WebSocket пула; события **не возвращаются** обратно через MCP (см. ниже). |
 | `xrpl_account_tx_since` | ✅ | Polling-based alternative to subscribe: stateless, работает на cloud/local/HTTP. |
-| `xrpl_manifest` | ⏳ | В SDK нет типизированного метода — нужно делать через `GRequest<>`. Не реализовано. |
+| `xrpl_manifest` | ✅ | Validator manifest по public_key. SDK не имеет типизированного метода — используется `GRequest<JsonNode, ManifestRequest>` с inline-описанием envelope'а. |
 
 ### Subscribe/unsubscribe — честные ограничения
 
@@ -114,9 +116,9 @@ Tool оставлен как plumbing для будущих server-side watchers
 - [x] **CORS** — `ServerOptions.Cors` (`Enabled`, `AllowedOrigins[]`, `AllowedHeaders[]`, `AllowedMethods[]`, `AllowCredentials`). Поддерживает wildcard `["*"]` для AllowedOrigins. Подключается ДО bearer-auth чтобы OPTIONS preflights не требовали токен.
 - [x] **Graceful shutdown** для long-poll `wait_for_validation` — суженный catch в `TransactionTools.SubmitSignedAsync` (только `Exception` без `OperationCanceledException`). Cancellation теперь пробрасывается немедленно.
 - [x] **Rate-limit per token** — `RateLimitOptions.PartitionBy={ip|token|both}` (default `ip` для совместимости). При `token`/`both` partition key включает bearer label. AdminAlert при превышении теперь включает и label, и ip.
-- [ ] **OpenTelemetry / metrics**: счётчики MCP-вызовов по tool, latency, network errors к XRPL, размер connection pool. Prometheus-endpoint на `/metrics`. — отложено.
-- [ ] **Connection pool health**: `XrplClientPool` — TTL соединений, ping/pong, авто-реконнект при разрыве WS. — отложено.
-- [ ] **Integration-тесты** против rippled testnet/devnet — отдельная категория `[TestCategory("Integration")]`, в CI запускать по schedule, не на каждый PR. — отложено.
+- [x] **OpenTelemetry / metrics** — `XrplMcpMetrics` Meter в Core (`xrpl_mcp_pool_connections` gauge, `xrpl_mcp_pool_reconnects_total{network,reason}` counter с reasons cold/dropped/ttl/error, `xrpl_mcp_pool_connect_duration_seconds` histogram, `xrpl_mcp_tool_calls_total{tool,status,label}` + `xrpl_mcp_tool_duration_seconds` для HTTP MCP-вызовов). Server опционально включает Prometheus scrape endpoint через `ServerOptions.Metrics.Enabled`, `Path` (default `/metrics`); auth bypassed, защита через reverse proxy.
+- [x] **Connection pool health** — `XrplMcpOptions.ConnectionTtlMinutes` (default 0 = off). Reactive eviction на следующем `GetAsync`: возраст > TTL → reconnect с reason="ttl" в metric. Существующий dropped-socket reconnect теперь тоже инкрементит counter с reason="dropped". `PoolEntry` хранит `CreatedAt`. Без отдельного background-timer'а.
+- [x] **Integration-тесты** — новый проект `tests/StaticBit.Xrpl.Mcp.Integration.Tests/` с `[TestCategory("Integration")]`, конвенция `*TestsI.cs` / `TestI_*`. 5 smoke tests против testnet (server_info, server_state, fee, account_info на funded address, ledger validated). Workflow [.github/workflows/integration-tests.yml](../.github/workflows/integration-tests.yml) — daily cron + workflow_dispatch с override URL. Переопределение endpoint через `XRPL_TESTNET_WS`.
 
 ---
 

@@ -94,19 +94,26 @@ public sealed class AccountManagementTools
     }
 
     [McpServerTool(Name = "xrpl_deposit_preauth_prepare")]
-    [Description("Prepares an UNSIGNED DepositPreauth. Pass EITHER authorize (grant) OR unauthorize (revoke); they are mutually exclusive. Only meaningful if the account has asfDepositAuth enabled.")]
+    [Description("Prepares an UNSIGNED DepositPreauth. Pass EXACTLY ONE of: authorize (grant by address), unauthorize (revoke by address), authorizeCredentialsJson (XLS-70 grant by credential set, 1-8 entries), unauthorizeCredentialsJson (XLS-70 revoke by credential set, 1-8 entries). Only meaningful if the account has asfDepositAuth enabled. Credential entries shape: [{\"issuer\":\"r...\",\"credentialType\":\"<hex>\"}, ...].")]
     public async Task<PreparedTransaction> DepositPreauthPrepareAsync(
         [Description(ToolDescriptions.Network)] string network,
         [Description("Account granting/revoking the deposit preauthorization.")] string account,
-        [Description("Address to preauthorize (mutually exclusive with unauthorize).")] string? authorize = null,
-        [Description("Address whose preauthorization should be revoked (mutually exclusive with authorize).")] string? unauthorize = null,
+        [Description("Address to preauthorize (mutually exclusive with other variants).")] string? authorize = null,
+        [Description("Address whose preauthorization should be revoked (mutually exclusive with other variants).")] string? unauthorize = null,
+        [Description("XLS-70: JSON array of {issuer,credentialType-hex}, 1-8 entries. Holders presenting ALL of these credentials are preauthorized. Mutually exclusive with the other variants.")] string? authorizeCredentialsJson = null,
+        [Description("XLS-70: JSON array of {issuer,credentialType-hex}, 1-8 entries — revoke a credential-based preauth granted earlier. Mutually exclusive with the other variants.")] string? unauthorizeCredentialsJson = null,
         CancellationToken cancellationToken = default)
     {
         bool hasAuth = !string.IsNullOrEmpty(authorize);
         bool hasUnauth = !string.IsNullOrEmpty(unauthorize);
-        if (hasAuth == hasUnauth)
+        bool hasAuthCreds = !string.IsNullOrWhiteSpace(authorizeCredentialsJson);
+        bool hasUnauthCreds = !string.IsNullOrWhiteSpace(unauthorizeCredentialsJson);
+
+        int provided = (hasAuth ? 1 : 0) + (hasUnauth ? 1 : 0) + (hasAuthCreds ? 1 : 0) + (hasUnauthCreds ? 1 : 0);
+        if (provided != 1)
         {
-            throw new ArgumentException("Provide exactly one of 'authorize' or 'unauthorize'.");
+            throw new ArgumentException(
+                "Provide exactly one of 'authorize', 'unauthorize', 'authorizeCredentialsJson' or 'unauthorizeCredentialsJson'.");
         }
 
         DepositPreauth tx = new DepositPreauth
@@ -114,15 +121,74 @@ public sealed class AccountManagementTools
             Account = account,
             Authorize = authorize,
             Unauthorize = unauthorize,
+            AuthorizeCredentials = hasAuthCreds ? ParseCredentialEntries(authorizeCredentialsJson!, nameof(authorizeCredentialsJson)) : null!,
+            UnauthorizeCredentials = hasUnauthCreds ? ParseCredentialEntries(unauthorizeCredentialsJson!, nameof(unauthorizeCredentialsJson)) : null!,
         };
 
         string summary = hasAuth
             ? $"DepositPreauth on {ToolDisplay.Truncate(account)}: AUTHORIZE {ToolDisplay.Truncate(authorize)}."
-            : $"DepositPreauth on {ToolDisplay.Truncate(account)}: UNAUTHORIZE {ToolDisplay.Truncate(unauthorize)}.";
+            : hasUnauth
+                ? $"DepositPreauth on {ToolDisplay.Truncate(account)}: UNAUTHORIZE {ToolDisplay.Truncate(unauthorize)}."
+                : hasAuthCreds
+                    ? $"DepositPreauth on {ToolDisplay.Truncate(account)}: AUTHORIZE via {tx.AuthorizeCredentials?.Count} credential(s)."
+                    : $"DepositPreauth on {ToolDisplay.Truncate(account)}: UNAUTHORIZE {tx.UnauthorizeCredentials?.Count} credential(s).";
 
         return await _preparer
             .PrepareAsync(new NetworkRef(network), tx, summary, cancellationToken)
             .ConfigureAwait(false);
+    }
+
+    internal static List<AuthorizeCredentialEntry> ParseCredentialEntries(string json, string paramName)
+    {
+        using JsonDocument doc = JsonDocument.Parse(json);
+        if (doc.RootElement.ValueKind != JsonValueKind.Array)
+        {
+            throw new ArgumentException($"{paramName} must be a JSON array of {{issuer, credentialType}} objects.");
+        }
+
+        List<AuthorizeCredentialEntry> result = new List<AuthorizeCredentialEntry>();
+        foreach (JsonElement el in doc.RootElement.EnumerateArray())
+        {
+            if (el.ValueKind != JsonValueKind.Object)
+            {
+                throw new ArgumentException($"Each {paramName} entry must be a JSON object.");
+            }
+
+            string? issuer = el.TryGetProperty("issuer", out JsonElement i) && i.ValueKind == JsonValueKind.String
+                ? i.GetString()
+                : null;
+            string? credentialType = el.TryGetProperty("credentialType", out JsonElement c) && c.ValueKind == JsonValueKind.String
+                ? c.GetString()
+                : null;
+
+            if (string.IsNullOrEmpty(issuer))
+            {
+                throw new ArgumentException($"{paramName} entry is missing 'issuer'.");
+            }
+            if (string.IsNullOrEmpty(credentialType))
+            {
+                throw new ArgumentException($"{paramName} entry is missing 'credentialType' (hex string).");
+            }
+
+            result.Add(new AuthorizeCredentialEntry
+            {
+                Credential = new AuthorizeCredentialBody
+                {
+                    Issuer = issuer,
+                    CredentialType = credentialType,
+                },
+            });
+        }
+
+        if (result.Count == 0)
+        {
+            throw new ArgumentException($"{paramName} must contain at least one entry (XLS-70 requires 1-8).");
+        }
+        if (result.Count > 8)
+        {
+            throw new ArgumentException($"{paramName} cannot contain more than 8 entries (XLS-70 limit).");
+        }
+        return result;
     }
 
     [McpServerTool(Name = "xrpl_signer_list_set_prepare")]

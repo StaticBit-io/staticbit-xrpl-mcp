@@ -1,4 +1,6 @@
+using System;
 using System.ComponentModel;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using ModelContextProtocol.Server;
@@ -62,6 +64,26 @@ public sealed class LedgerTools
         return XrplJson.Serialize(response);
     }
 
+    [McpServerTool(Name = "xrpl_manifest")]
+    [Description("Returns the validator manifest (publish slot, master key, ephemeral signing key, sequence) for a given public_key. Useful for inspecting which validator is behind a public key seen in 'validations' stream messages. SDK has no typed wrapper for this — dispatched as a generic command.")]
+    public async Task<string> ManifestAsync(
+        [Description(ToolDescriptions.Network)] string network,
+        [Description("Validator master public key (base58 with 'n...' prefix) or ephemeral signing key.")] string publicKey,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(publicKey))
+        {
+            throw new ArgumentException("publicKey is required.", nameof(publicKey));
+        }
+
+        IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
+        ManifestRequest request = new ManifestRequest(publicKey);
+        JsonNode? response = await client
+            .GRequest<JsonNode, ManifestRequest>(request, cancellationToken)
+            .ConfigureAwait(false);
+        return response?.ToJsonString() ?? "null";
+    }
+
     [McpServerTool(Name = "xrpl_fee")]
     [Description("Returns current open-ledger transaction cost (drops). Use this to size Fee before submitting.")]
     public async Task<string> FeeAsync(
@@ -113,4 +135,21 @@ public sealed class LedgerTools
         TransactionResponse response = await client.Tx(request, cancellationToken).ConfigureAwait(false);
         return XrplJson.Serialize(response);
     }
+}
+
+/// <summary>
+/// Generic request envelope for the rippled <c>manifest</c> method. The SDK
+/// does not ship a typed wrapper, so we describe the request inline and let
+/// the generic <c>GRequest</c> pipeline pick it up.
+/// </summary>
+internal sealed class ManifestRequest : global::Xrpl.Models.Methods.BaseRequest
+{
+    public ManifestRequest(string publicKey)
+    {
+        Command = "manifest";
+        PublicKey = publicKey;
+    }
+
+    [System.Text.Json.Serialization.JsonPropertyName("public_key")]
+    public string PublicKey { get; set; }
 }
