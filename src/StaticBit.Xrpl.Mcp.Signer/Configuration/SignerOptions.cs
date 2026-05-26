@@ -31,6 +31,14 @@ public sealed class SignerOptions
     /// </summary>
     public string Passphrase { get; init; } = string.Empty;
 
+    /// <summary>
+    /// Optional path to an append-only JSON-lines audit log of every successful or
+    /// failed signing operation. Empty (default) disables the audit log entirely.
+    /// Override with <c>XRPL_SIGNER_AUDIT_LOG</c> env var; the conventional value
+    /// is <c>&lt;keystore_dir&gt;/signer-audit.log</c>.
+    /// </summary>
+    public string AuditLogPath { get; init; } = string.Empty;
+
     public static SignerOptions ResolveFromEnvironment()
     {
         string passphrase = Environment.GetEnvironmentVariable("XRPL_SIGNER_PASSPHRASE") ?? string.Empty;
@@ -46,10 +54,15 @@ public sealed class SignerOptions
         string keystorePath = Environment.GetEnvironmentVariable("XRPL_SIGNER_KEYSTORE_PATH")
             ?? GetDefaultKeystorePath();
 
+        // Audit log is opt-in. Empty value = disabled. The conventional place is
+        // alongside the keystore so a single backup script catches both.
+        string auditLogPath = Environment.GetEnvironmentVariable("XRPL_SIGNER_AUDIT_LOG") ?? string.Empty;
+
         return new SignerOptions
         {
             KeystorePath = keystorePath,
             Passphrase = passphrase,
+            AuditLogPath = auditLogPath,
         };
     }
 
