@@ -8,8 +8,17 @@ namespace StaticBit.Xrpl.Mcp.Signer.Keystore;
 /// Field names are kept short and snake-case to keep the file readable when
 /// inspected by a user — the keystore is a plain JSON file at rest.
 /// </summary>
+/// <remarks>
+/// Version 1 — single-seed entries only.
+/// Version 2 — adds the optional <c>Kind</c>/<c>Bip39*</c>/<c>DerivationPathTemplate</c>
+/// fields on <see cref="KeystoreEntry"/> for HD (BIP-39) wallets. Old files are
+/// read transparently; the file is upgraded to version 2 only when the first
+/// mnemonic entry is added.
+/// </remarks>
 public sealed class KeystoreFile
 {
+    public const int CurrentVersion = 2;
+
     [JsonPropertyName("version")]
     public int Version { get; set; } = 1;
 
@@ -18,18 +27,34 @@ public sealed class KeystoreFile
 }
 
 /// <summary>
-/// One wallet record. The seed is encrypted with per-record salt and IV so that
-/// compromising one entry does not weaken any other entry. AES-256-GCM provides
-/// authenticated encryption — a tampered ciphertext fails to decrypt with a
-/// recognizable error rather than returning garbage.
+/// One wallet record. The seed (or mnemonic, for HD entries) is encrypted with
+/// per-record salt and IV so that compromising one entry does not weaken any
+/// other entry. AES-256-GCM provides authenticated encryption — a tampered
+/// ciphertext fails to decrypt with a recognizable error rather than returning
+/// garbage.
 /// </summary>
 public sealed class KeystoreEntry
 {
-    /// <summary>XRPL classic address (r…).</summary>
+    /// <summary>
+    /// What the <see cref="Ciphertext"/> field holds:
+    /// <c>"seed"</c> — an XRPL family seed (e.g. "sEd…" / "sn…"), one address per entry.
+    /// <c>"mnemonic"</c> — a BIP-39 mnemonic phrase; can derive any number of
+    ///   XRPL addresses by index via <see cref="DerivationPathTemplate"/>.
+    /// Absent in legacy files — defaults to <c>"seed"</c> for back-compat.
+    /// </summary>
+    [JsonPropertyName("kind")]
+    public string Kind { get; set; } = "seed";
+
+    /// <summary>
+    /// XRPL classic address (r…). For <c>kind=mnemonic</c> entries this is a
+    /// preview — the address at index 0 of <see cref="DerivationPathTemplate"/>.
+    /// </summary>
     [JsonPropertyName("address")]
     public string Address { get; set; } = string.Empty;
 
-    /// <summary>Hex-encoded public key.</summary>
+    /// <summary>
+    /// Hex-encoded public key. For <c>kind=mnemonic</c> entries — preview at index 0.
+    /// </summary>
     [JsonPropertyName("publicKey")]
     public string PublicKey { get; set; } = string.Empty;
 
@@ -54,9 +79,40 @@ public sealed class KeystoreEntry
     [JsonPropertyName("cipherParams")]
     public CipherParams CipherParams { get; set; } = new CipherParams();
 
-    /// <summary>Encrypted seed bytes (hex). Decrypts to the original seed string used at import.</summary>
+    /// <summary>
+    /// Encrypted primary secret (hex). For <c>kind=seed</c> decrypts to the
+    /// original XRPL seed; for <c>kind=mnemonic</c> decrypts to the BIP-39
+    /// mnemonic phrase.
+    /// </summary>
     [JsonPropertyName("ciphertext")]
     public string Ciphertext { get; set; } = string.Empty;
+
+    /// <summary>
+    /// (HD only) Optional BIP-39 passphrase that augments the mnemonic during
+    /// seed derivation. Encrypted with its own per-record salt+IV so the master
+    /// passphrase compromise doesn't reveal it in plaintext on disk alongside.
+    /// </summary>
+    [JsonPropertyName("bip39PassphraseCiphertext")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Bip39PassphraseCiphertext { get; set; }
+
+    [JsonPropertyName("bip39PassphraseKdfParams")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public KdfParams? Bip39PassphraseKdfParams { get; set; }
+
+    [JsonPropertyName("bip39PassphraseCipherParams")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CipherParams? Bip39PassphraseCipherParams { get; set; }
+
+    /// <summary>
+    /// (HD only) BIP-44 derivation path template with <c>{i}</c> placeholder
+    /// for the account index. Default — <c>"m/44'/144'/{i}'/0/0"</c> (XRPL
+    /// standard from SLIP-44). Stored explicitly so future format changes
+    /// don't break existing entries.
+    /// </summary>
+    [JsonPropertyName("derivationPathTemplate")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? DerivationPathTemplate { get; set; }
 }
 
 public sealed class KdfParams

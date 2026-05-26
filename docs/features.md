@@ -100,12 +100,14 @@ Tool оставлен как plumbing для будущих server-side watchers
 
 ## 4. Signer — расширение
 
-- [ ] **HD-кошельки (BIP-44)** — сейчас один seed = один аккаунт; добавить derivation indices.
-- [ ] **Аппаратные кошельки**: integration с Ledger Nano (через HID или `Ledger.NET`). Опционально.
+- [x] **HD-кошельки (BIP-44)** — `KeystoreEntry` расширен опциональными полями (`Kind="seed"|"mnemonic"`, отдельно зашифрованная мнемоника + BIP-39 passphrase + `DerivationPathTemplate`). Старые seed-записи (без `Kind`) грузятся как `Kind="seed"` без изменения формата; первая HD-запись поднимает file version 1 → 2. Default для HD = secp256k1 (XRPL BIP-44 convention из xrpl.js, подтверждено UI-проектом).
+  Новые tools: `xrpl_wallet_generate_mnemonic` (генерит BIP-39 12/15/18/21/24 слов, возвращает мнемонику один раз для бэкапа), `xrpl_wallet_derive_address` (выводит `{address, publicKey}` для произвольного index без секретов), `xrpl_wallet_export_index` (даёт XRPL family-seed для конкретного индекса HD — для импорта в другие тулзы).
+  Расширены: `xrpl_wallet_import_mnemonic` (новый default `storeAsHd=true`, fallback на legacy seed-режим через `storeAsHd=false`), `xrpl_wallet_export` (для mnemonic-kind возвращает мнемонику + bip39Passphrase + template + algorithm), `xrpl_sign`/`xrpl_sign_multi` (новый параметр `index=0`, для seed-kind строго 0).
 - [ ] **Audit log**: append-only `~/.staticbit/signer-audit.log` с фактом подписания (tx hash, wallet name, время) — для compliance.
-- [ ] **Per-wallet passphrase** — сейчас один master шифрует все записи; добавить режим, где каждая запись имеет свой пароль (тогда `xrpl_sign` запрашивает его в payload).
-- [ ] **Импорт из стандартных форматов**: keypair JSON, RippleAdmin, xrpl.js wallet JSON.
-- [ ] **OS-биометрика** для разблокировки master-passphrase: macOS Keychain, Windows DPAPI, Linux libsecret. Опционально.
+- [ ] **Аппаратные кошельки** (Ledger Nano и т.п.) — отложено; реализуется как отдельный плагин `xrpl-signer-ledger`, требует физическое устройство для тестирования.
+- [ ] **Per-wallet passphrase** — отложено (решение оставить один master шифрующий все записи; см. обсуждение в чате).
+- [ ] **Импорт из стандартных форматов** (xrpl.js wallet JSON, RippleAdmin) — отложено; текущих 4 импорта (seed/mnemonic/xumm/text) хватает для большинства сценариев.
+- [ ] **OS-биометрика** — отложено; три отдельные платформенные интеграции (DPAPI / Keychain / libsecret), требует тестирования на каждой ОС.
 
 ---
 

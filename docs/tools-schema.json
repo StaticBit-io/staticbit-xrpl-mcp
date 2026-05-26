@@ -6,7 +6,7 @@
     "StaticBit.Xrpl.Mcp.Core",
     "StaticBit.Xrpl.Mcp.Signer"
   ],
-  "toolCount": 77,
+  "toolCount": 80,
   "tools": [
     {
       "name": "xrpl_account_delete_prepare",
@@ -2332,7 +2332,7 @@
     },
     {
       "name": "xrpl_sign",
-      "description": "Signs a transaction with the named wallet's private key. The transaction can be supplied as a JSON object or as an unsigned hex blob (the same value xrpl_payment_prepare returns as 'txBlobUnsigned'). Returns the signed hex blob and its hash — ready to feed to xrpl_tx_submit_signed.",
+      "description": "Signs a transaction with the named wallet's private key. The transaction can be supplied as a JSON object or as an unsigned hex blob (the same value xrpl_payment_prepare returns as 'txBlobUnsigned'). For HD (mnemonic-kind) wallets, pass 'index' to select which derived account to sign with (default 0). Returns the signed hex blob and its hash — ready to feed to xrpl_tx_submit_signed.",
       "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.SignTools",
       "inputSchema": {
         "type": "object",
@@ -2344,6 +2344,11 @@
           "transaction": {
             "type": "string",
             "description": "Transaction to sign. Either a JSON object with 'TransactionType', 'Account', etc., OR a hex blob string from a *_prepare tool."
+          },
+          "index": {
+            "type": "integer",
+            "description": "HD account index (0..2^31-1) for mnemonic-kind wallets. Ignored for seed-kind wallets. Default 0.",
+            "default": 0
           }
         },
         "required": [
@@ -2392,6 +2397,11 @@
               "null"
             ],
             "description": "Optional: the account this signature is FOR (defaults to the wallet's own classic address). Use this only if the wallet is a Regular Key signing on behalf of a different master account."
+          },
+          "index": {
+            "type": "integer",
+            "description": "HD account index for mnemonic-kind wallets. Ignored for seed-kind. Default 0.",
+            "default": 0
           }
         },
         "required": [
@@ -2846,7 +2856,7 @@
     },
     {
       "name": "xrpl_wallet_address",
-      "description": "Returns metadata (address, public key, algorithm, creation time) for one wallet by name. No secrets are returned.",
+      "description": "Returns metadata (kind, address, public key, algorithm, derivationPathTemplate for HD, creation time) for one wallet by name. For HD wallets the address shown is the preview at index 0 — use xrpl_wallet_derive_address for other indices. No secrets are returned.",
       "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.WalletTools",
       "inputSchema": {
         "type": "object",
@@ -2854,6 +2864,29 @@
           "name": {
             "type": "string",
             "description": "Wallet alias."
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "xrpl_wallet_derive_address",
+      "description": "Derives an XRPL address at the given index for an HD (mnemonic-kind) wallet. Decrypts the mnemonic, derives via BIP-44 template, returns address + public key. No seed material in the response. Throws for seed-kind wallets.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.WalletTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Wallet alias."
+          },
+          "index": {
+            "type": "integer",
+            "description": "Account index (0..2^31-1). Default 0.",
+            "default": 0
           }
         },
         "required": [
@@ -2864,7 +2897,7 @@
     },
     {
       "name": "xrpl_wallet_export",
-      "description": "Returns the plaintext seed and (optionally) the Xumm secret numbers for the wallet. Use this for BACKUP — the seed is the only way to recover the wallet later. The seed will appear in the MCP transcript, so handle the chat carefully. Requires explicit confirm=true to guard against accidental invocation.",
+      "description": "Returns the plaintext secret for backup. For seed-kind: the XRPL family seed. For HD (mnemonic-kind): the BIP-39 mnemonic + optional BIP-39 passphrase + derivation path template + algorithm. The secret will appear in the MCP transcript — handle the chat carefully. Requires confirm=true to guard against accidental invocation.",
       "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.WalletTools",
       "inputSchema": {
         "type": "object",
@@ -2875,7 +2908,7 @@
           },
           "confirm": {
             "type": "boolean",
-            "description": "Must be set to true to actually return the seed — a safety interlock.",
+            "description": "Must be set to true to actually return the secret — a safety interlock.",
             "default": false
           }
         },
@@ -2886,8 +2919,36 @@
       }
     },
     {
+      "name": "xrpl_wallet_export_index",
+      "description": "Derives an XRPL family seed for a specific index of an HD (mnemonic-kind) wallet. Useful for backing up a derived account independently, or importing it into other XRPL tools that only accept a seed. Requires confirm=true. Throws for seed-kind wallets.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.WalletTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Wallet alias."
+          },
+          "index": {
+            "type": "integer",
+            "description": "Account index to derive."
+          },
+          "confirm": {
+            "type": "boolean",
+            "description": "Must be set to true to actually return the seed.",
+            "default": false
+          }
+        },
+        "required": [
+          "name",
+          "index"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
       "name": "xrpl_wallet_generate",
-      "description": "Generates a brand-new XRPL wallet with random entropy, encrypts the seed with the keystore passphrase, and stores it under the given name. Returns address and public key. The seed is NEVER returned by this tool — use xrpl_wallet_export to back it up.",
+      "description": "Generates a brand-new single-address XRPL wallet with random entropy, encrypts the seed with the keystore passphrase, and stores it under the given name. For an HD (multi-address) wallet generate a mnemonic instead — xrpl_wallet_generate_mnemonic.",
       "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.WalletTools",
       "inputSchema": {
         "type": "object",
@@ -2909,8 +2970,43 @@
       }
     },
     {
+      "name": "xrpl_wallet_generate_mnemonic",
+      "description": "Generates a random BIP-39 mnemonic (12/15/18/21/24 words) and stores it encrypted as an HD wallet. Returns the mnemonic in plaintext ONCE — write it down for backup, it will not be shown again unless you call xrpl_wallet_export. Sets up XRPL standard BIP-44 path m/44'/144'/{i}'/0/0; address at index 0 is returned as preview.",
+      "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.WalletTools",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Wallet alias."
+          },
+          "wordCount": {
+            "type": "integer",
+            "description": "Mnemonic length in words: 12 (default, 128-bit entropy), 15, 18, 21 or 24 (256-bit).",
+            "default": 12
+          },
+          "bip39Passphrase": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional BIP-39 passphrase that augments the mnemonic. Stored encrypted separately. Empty by default."
+          },
+          "algorithm": {
+            "type": "string",
+            "description": "Signing curve for derived accounts: 'secp256k1' (default, XRPL BIP-44 convention) or 'ed25519'.",
+            "default": "secp256k1"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
       "name": "xrpl_wallet_import_mnemonic",
-      "description": "Imports a wallet from a BIP39 mnemonic phrase (12/15/18/21/24 words). Optionally a BIP44 derivation path and BIP39 passphrase. The mnemonic itself is converted to a seed and the seed is encrypted in the keystore.",
+      "description": "Imports a BIP-39 mnemonic (12/15/18/21/24 words) as an HD wallet — the mnemonic itself is stored encrypted, and any number of XRPL addresses can be derived later via xrpl_wallet_derive_address. Set storeAsHd=false to use the legacy behaviour where only the seed for a single derivation path is stored (mnemonic discarded after import).",
       "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.WalletTools",
       "inputSchema": {
         "type": "object",
@@ -2921,28 +3017,31 @@
           },
           "mnemonic": {
             "type": "string",
-            "description": "BIP39 mnemonic — words separated by single spaces."
+            "description": "BIP-39 mnemonic — words separated by single spaces."
           },
-          "derivationPath": {
+          "derivationPathTemplate": {
             "type": [
               "string",
               "null"
             ],
-            "description": "Optional BIP44 derivation path. Default: \"m/44'/144'/0'/0/0\" (XRPL standard)."
+            "description": "Optional BIP-44 derivation path TEMPLATE with '{i}' placeholder for index. Default: 'm/44'/144'/{i}'/0/0' (XRPL standard)."
           },
           "bip39Passphrase": {
             "type": [
               "string",
               "null"
             ],
-            "description": "Optional BIP39 passphrase that augments the mnemonic. Empty by default."
+            "description": "Optional BIP-39 passphrase that augments the mnemonic. Stored encrypted separately. Empty by default."
           },
           "algorithm": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "Optional algorithm override: 'ed25519' or 'secp256k1' (secp256k1 is the BIP39 default)."
+            "type": "string",
+            "description": "Signing curve: 'secp256k1' (default, XRPL BIP-44 convention) or 'ed25519'.",
+            "default": "secp256k1"
+          },
+          "storeAsHd": {
+            "type": "boolean",
+            "description": "If true (default), store the mnemonic encrypted as an HD wallet — multi-address. If false, derive ONLY index 0's seed and store that as a seed-kind wallet (mnemonic discarded).",
+            "default": true
           }
         },
         "required": [
@@ -2954,7 +3053,7 @@
     },
     {
       "name": "xrpl_wallet_import_seed",
-      "description": "Imports an existing XRPL seed string (e.g. 'sEd...' for Ed25519, 'sn...' for secp256k1). Encrypted and stored under the given name.",
+      "description": "Imports an existing XRPL seed string (e.g. 'sEd...' for Ed25519, 'sn...' for secp256k1). Encrypted and stored as a single-address (seed-kind) wallet.",
       "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.WalletTools",
       "inputSchema": {
         "type": "object",
@@ -2984,7 +3083,7 @@
     },
     {
       "name": "xrpl_wallet_import_text",
-      "description": "Imports a wallet derived from an arbitrary text passphrase. The text is normalized and run through SHA-256 or PBKDF2 to produce 16 bytes of entropy. Useful for brain-wallets or human-memorable seeds. WARNING: short or low-entropy text is trivially brute-forceable — only use long, unique phrases.",
+      "description": "Imports a wallet derived from an arbitrary text passphrase. The text is normalized and run through SHA-256 or PBKDF2 to produce 16 bytes of entropy. Useful for brain-wallets or human-memorable seeds. WARNING: short or low-entropy text is trivially brute-forceable — only use long, unique phrases. Stored as single-address (seed-kind).",
       "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.WalletTools",
       "inputSchema": {
         "type": "object",
@@ -3031,7 +3130,7 @@
     },
     {
       "name": "xrpl_wallet_import_xumm",
-      "description": "Imports a wallet from Xumm 'secret numbers' format (8 groups of 6 digits, each including a checksum). Accepts either an array of 8 strings or one space-separated string like '554872 394230 ... ...'.",
+      "description": "Imports a wallet from Xumm 'secret numbers' format (8 groups of 6 digits, each including a checksum). Accepts either an array of 8 strings or one space-separated string like '554872 394230 ... ...'. Stored as single-address (seed-kind).",
       "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.WalletTools",
       "inputSchema": {
         "type": "object",
@@ -3059,7 +3158,7 @@
     },
     {
       "name": "xrpl_wallet_list",
-      "description": "Lists all wallets in the keystore — name, address, public key, algorithm, creation timestamp. No secrets are returned.",
+      "description": "Lists all wallets in the keystore — name, kind (seed | mnemonic), address (preview for HD), public key, algorithm, derivationPathTemplate (HD only), creation timestamp. No secrets are returned.",
       "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.WalletTools",
       "inputSchema": {
         "type": "object",
@@ -3069,7 +3168,7 @@
     },
     {
       "name": "xrpl_wallet_remove",
-      "description": "Permanently deletes a wallet from the keystore. The encrypted seed is overwritten on disk via atomic rewrite — but if you have backups elsewhere they are not affected.",
+      "description": "Permanently deletes a wallet from the keystore. The encrypted ciphertext is overwritten on disk via atomic rewrite — but if you have backups elsewhere they are not affected.",
       "sourceClass": "StaticBit.Xrpl.Mcp.Signer.Tools.WalletTools",
       "inputSchema": {
         "type": "object",

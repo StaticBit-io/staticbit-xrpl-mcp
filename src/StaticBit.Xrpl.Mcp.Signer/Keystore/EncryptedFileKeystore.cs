@@ -13,8 +13,9 @@ namespace StaticBit.Xrpl.Mcp.Signer.Keystore;
 
 /// <summary>
 /// File-backed implementation of <see cref="IKeystore"/>. Encrypts each wallet's seed
-/// with AES-256-GCM using a key derived from the passphrase by PBKDF2-SHA256 with
-/// per-record salt. Writes are atomic: serialize to a temp file, fsync, then rename.
+/// (or mnemonic, for HD entries) with AES-256-GCM using a key derived from the
+/// passphrase by PBKDF2-SHA256 with per-record salt. Writes are atomic: serialize
+/// to a temp file, then rename.
 /// </summary>
 public sealed class EncryptedFileKeystore : IKeystore
 {
@@ -63,7 +64,7 @@ public sealed class EncryptedFileKeystore : IKeystore
         KeystoreFile file = Load();
         return file.Wallets
             .OrderBy(p => p.Key, StringComparer.Ordinal)
-            .Select(p => new WalletMetadata(p.Key, p.Value.Address, p.Value.PublicKey, p.Value.Algorithm, p.Value.CreatedAt))
+            .Select(p => ToMetadata(p.Key, p.Value))
             .ToList();
     }
 
@@ -72,7 +73,7 @@ public sealed class EncryptedFileKeystore : IKeystore
         ValidateName(name);
         KeystoreFile file = Load();
         return file.Wallets.TryGetValue(name, out KeystoreEntry? entry)
-            ? new WalletMetadata(name, entry.Address, entry.PublicKey, entry.Algorithm, entry.CreatedAt)
+            ? ToMetadata(name, entry)
             : null;
     }
 
@@ -97,32 +98,88 @@ public sealed class EncryptedFileKeystore : IKeystore
                 throw new InvalidOperationException($"Wallet '{name}' already exists. Remove it first or pick a different name.");
             }
 
-            byte[] salt = RandomNumberGenerator.GetBytes(SaltBytes);
-            byte[] iv = RandomNumberGenerator.GetBytes(IvBytes);
-            byte[] key = DeriveKey(_passphrase, salt, KdfParamsDefaults.Iterations);
-            byte[] plaintext = Encoding.UTF8.GetBytes(seed);
-            byte[] ciphertext = new byte[plaintext.Length];
-            byte[] tag = new byte[TagBytes];
-
-            using (AesGcm aes = new AesGcm(key, TagBytes))
-            {
-                aes.Encrypt(iv, plaintext, ciphertext, tag);
-            }
-            CryptographicOperations.ZeroMemory(key);
-            CryptographicOperations.ZeroMemory(plaintext);
+            (string ciphertext, KdfParams kdfParams, CipherParams cipherParams) = EncryptString(seed);
 
             file.Wallets[name] = new KeystoreEntry
             {
+                Kind = "seed",
                 Address = address,
                 PublicKey = publicKey,
                 Algorithm = algorithm,
-                CreatedAt = DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture),
+                CreatedAt = NowIso(),
                 Kdf = "pbkdf2-sha256",
-                KdfParams = new KdfParams { Iterations = KdfParamsDefaults.Iterations, Salt = ToHex(salt) },
+                KdfParams = kdfParams,
                 Cipher = "aes-256-gcm",
-                CipherParams = new CipherParams { Iv = ToHex(iv), Tag = ToHex(tag) },
-                Ciphertext = ToHex(ciphertext),
+                CipherParams = cipherParams,
+                Ciphertext = ciphertext,
             };
+
+            Save(file);
+        }
+    }
+
+    public void AddMnemonic(
+        string name,
+        string mnemonic,
+        string previewAddress,
+        string previewPublicKey,
+        string algorithm,
+        string? bip39Passphrase,
+        string derivationPathTemplate)
+    {
+        ValidateName(name);
+        if (string.IsNullOrWhiteSpace(mnemonic)) throw new ArgumentException("Mnemonic is empty.", nameof(mnemonic));
+        if (string.IsNullOrEmpty(previewAddress)) throw new ArgumentException("Preview address is empty.", nameof(previewAddress));
+        if (string.IsNullOrEmpty(previewPublicKey)) throw new ArgumentException("Preview public key is empty.", nameof(previewPublicKey));
+        if (string.IsNullOrWhiteSpace(derivationPathTemplate)) throw new ArgumentException("Derivation path template is empty.", nameof(derivationPathTemplate));
+        if (!derivationPathTemplate.Contains("{i}", StringComparison.Ordinal))
+        {
+            throw new ArgumentException(
+                $"Derivation path template '{derivationPathTemplate}' must contain the '{{i}}' placeholder for the account index.",
+                nameof(derivationPathTemplate));
+        }
+
+        lock (_lock)
+        {
+            KeystoreFile file = Load();
+            if (file.Wallets.ContainsKey(name))
+            {
+                throw new InvalidOperationException($"Wallet '{name}' already exists. Remove it first or pick a different name.");
+            }
+
+            (string mnemonicCiphertext, KdfParams mnemonicKdf, CipherParams mnemonicCipher) = EncryptString(mnemonic);
+
+            string? passphraseCiphertext = null;
+            KdfParams? passphraseKdf = null;
+            CipherParams? passphraseCipher = null;
+            if (!string.IsNullOrEmpty(bip39Passphrase))
+            {
+                (string c, KdfParams k, CipherParams cp) = EncryptString(bip39Passphrase);
+                passphraseCiphertext = c;
+                passphraseKdf = k;
+                passphraseCipher = cp;
+            }
+
+            file.Wallets[name] = new KeystoreEntry
+            {
+                Kind = "mnemonic",
+                Address = previewAddress,
+                PublicKey = previewPublicKey,
+                Algorithm = algorithm,
+                CreatedAt = NowIso(),
+                Kdf = "pbkdf2-sha256",
+                KdfParams = mnemonicKdf,
+                Cipher = "aes-256-gcm",
+                CipherParams = mnemonicCipher,
+                Ciphertext = mnemonicCiphertext,
+                Bip39PassphraseCiphertext = passphraseCiphertext,
+                Bip39PassphraseKdfParams = passphraseKdf,
+                Bip39PassphraseCipherParams = passphraseCipher,
+                DerivationPathTemplate = derivationPathTemplate,
+            };
+
+            // Bump file version on first HD-entry write — readers tolerate both.
+            file.Version = Math.Max(file.Version, KeystoreFile.CurrentVersion);
 
             Save(file);
         }
@@ -131,39 +188,43 @@ public sealed class EncryptedFileKeystore : IKeystore
     public string GetSeed(string name)
     {
         ValidateName(name);
-        KeystoreFile file = Load();
-        if (!file.Wallets.TryGetValue(name, out KeystoreEntry? entry))
+        KeystoreEntry entry = LoadEntryOrThrow(name);
+        if (!string.Equals(entry.Kind, "seed", StringComparison.Ordinal))
         {
-            throw new KeyNotFoundException($"Wallet '{name}' not found.");
-        }
-
-        byte[] salt = FromHex(entry.KdfParams.Salt);
-        byte[] iv = FromHex(entry.CipherParams.Iv);
-        byte[] tag = FromHex(entry.CipherParams.Tag);
-        byte[] ciphertext = FromHex(entry.Ciphertext);
-        byte[] key = DeriveKey(_passphrase, salt, entry.KdfParams.Iterations);
-
-        byte[] plaintext = new byte[ciphertext.Length];
-        try
-        {
-            using AesGcm aes = new AesGcm(key, TagBytes);
-            aes.Decrypt(iv, ciphertext, tag, plaintext);
-        }
-        catch (CryptographicException ex)
-        {
-            CryptographicOperations.ZeroMemory(plaintext);
             throw new InvalidOperationException(
-                $"Failed to decrypt wallet '{name}'. The passphrase is likely wrong (or the keystore file is corrupted).",
-                ex);
+                $"Wallet '{name}' is kind='{entry.Kind}', not 'seed'. Use GetMnemonic or derive an index instead.");
         }
-        finally
-        {
-            CryptographicOperations.ZeroMemory(key);
-        }
+        return DecryptString(name, entry.Ciphertext, entry.KdfParams, entry.CipherParams, "seed");
+    }
 
-        string seed = Encoding.UTF8.GetString(plaintext);
-        CryptographicOperations.ZeroMemory(plaintext);
-        return seed;
+    public string GetMnemonic(string name)
+    {
+        ValidateName(name);
+        KeystoreEntry entry = LoadEntryOrThrow(name);
+        if (!string.Equals(entry.Kind, "mnemonic", StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                $"Wallet '{name}' is kind='{entry.Kind}', not 'mnemonic'. Use GetSeed instead.");
+        }
+        return DecryptString(name, entry.Ciphertext, entry.KdfParams, entry.CipherParams, "mnemonic");
+    }
+
+    public string? GetBip39Passphrase(string name)
+    {
+        ValidateName(name);
+        KeystoreEntry entry = LoadEntryOrThrow(name);
+        if (!string.Equals(entry.Kind, "mnemonic", StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                $"Wallet '{name}' is kind='{entry.Kind}', not 'mnemonic'.");
+        }
+        if (string.IsNullOrEmpty(entry.Bip39PassphraseCiphertext)
+            || entry.Bip39PassphraseKdfParams is null
+            || entry.Bip39PassphraseCipherParams is null)
+        {
+            return null;
+        }
+        return DecryptString(name, entry.Bip39PassphraseCiphertext, entry.Bip39PassphraseKdfParams, entry.Bip39PassphraseCipherParams, "bip39_passphrase");
     }
 
     public bool Remove(string name)
@@ -176,6 +237,80 @@ public sealed class EncryptedFileKeystore : IKeystore
             if (removed) Save(file);
             return removed;
         }
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // Encryption helpers
+    // ────────────────────────────────────────────────────────────────────────
+
+    private (string ciphertext, KdfParams kdf, CipherParams cipher) EncryptString(string plaintext)
+    {
+        byte[] salt = RandomNumberGenerator.GetBytes(SaltBytes);
+        byte[] iv = RandomNumberGenerator.GetBytes(IvBytes);
+        byte[] key = DeriveKey(_passphrase, salt, KdfParamsDefaults.Iterations);
+        byte[] plain = Encoding.UTF8.GetBytes(plaintext);
+        byte[] ciphertext = new byte[plain.Length];
+        byte[] tag = new byte[TagBytes];
+
+        try
+        {
+            using AesGcm aes = new AesGcm(key, TagBytes);
+            aes.Encrypt(iv, plain, ciphertext, tag);
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(key);
+            CryptographicOperations.ZeroMemory(plain);
+        }
+
+        return (
+            ToHex(ciphertext),
+            new KdfParams { Iterations = KdfParamsDefaults.Iterations, Salt = ToHex(salt) },
+            new CipherParams { Iv = ToHex(iv), Tag = ToHex(tag) }
+        );
+    }
+
+    private string DecryptString(string walletName, string ciphertextHex, KdfParams kdf, CipherParams cipher, string fieldHint)
+    {
+        byte[] salt = FromHex(kdf.Salt);
+        byte[] iv = FromHex(cipher.Iv);
+        byte[] tag = FromHex(cipher.Tag);
+        byte[] ciphertext = FromHex(ciphertextHex);
+        byte[] key = DeriveKey(_passphrase, salt, kdf.Iterations);
+
+        byte[] plaintext = new byte[ciphertext.Length];
+        try
+        {
+            using AesGcm aes = new AesGcm(key, TagBytes);
+            aes.Decrypt(iv, ciphertext, tag, plaintext);
+        }
+        catch (CryptographicException ex)
+        {
+            CryptographicOperations.ZeroMemory(plaintext);
+            throw new InvalidOperationException(
+                $"Failed to decrypt wallet '{walletName}' (field={fieldHint}). The passphrase is likely wrong (or the keystore file is corrupted).",
+                ex);
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(key);
+        }
+
+        string result = Encoding.UTF8.GetString(plaintext);
+        CryptographicOperations.ZeroMemory(plaintext);
+        return result;
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+
+    private KeystoreEntry LoadEntryOrThrow(string name)
+    {
+        KeystoreFile file = Load();
+        if (!file.Wallets.TryGetValue(name, out KeystoreEntry? entry))
+        {
+            throw new KeyNotFoundException($"Wallet '{name}' not found.");
+        }
+        return entry;
     }
 
     private KeystoreFile Load()
@@ -192,7 +327,14 @@ public sealed class EncryptedFileKeystore : IKeystore
         }
 
         KeystoreFile? parsed = JsonSerializer.Deserialize<KeystoreFile>(text, JsonOptions);
-        return parsed ?? new KeystoreFile();
+        if (parsed is null) return new KeystoreFile();
+
+        // Legacy entries (version 1) have no "kind" — fall back to "seed".
+        foreach (KeystoreEntry e in parsed.Wallets.Values)
+        {
+            if (string.IsNullOrEmpty(e.Kind)) e.Kind = "seed";
+        }
+        return parsed;
     }
 
     private void Save(KeystoreFile file)
@@ -214,6 +356,15 @@ public sealed class EncryptedFileKeystore : IKeystore
         TryRestrictFilePermissions(_path);
     }
 
+    private static WalletMetadata ToMetadata(string name, KeystoreEntry entry)
+    {
+        return new WalletMetadata(name, entry.Address, entry.PublicKey, entry.Algorithm, entry.CreatedAt)
+        {
+            Kind = string.IsNullOrEmpty(entry.Kind) ? "seed" : entry.Kind,
+            DerivationPathTemplate = entry.DerivationPathTemplate,
+        };
+    }
+
     private static void TryRestrictDirectoryPermissions(string path)
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
@@ -223,7 +374,6 @@ public sealed class EncryptedFileKeystore : IKeystore
         }
         catch
         {
-            // Best-effort; never block on file-mode setting.
         }
     }
 
@@ -236,7 +386,6 @@ public sealed class EncryptedFileKeystore : IKeystore
         }
         catch
         {
-            // Best-effort.
         }
     }
 
@@ -279,6 +428,9 @@ public sealed class EncryptedFileKeystore : IKeystore
             }
         }
     }
+
+    private static string NowIso() =>
+        DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
 
     private static string ToHex(byte[] bytes) => Convert.ToHexString(bytes);
 
