@@ -52,6 +52,7 @@ public static class XrplMcpServiceCollectionExtensions
         services.AddTransient<SubscriptionTools>();
         services.AddTransient<ExplainTools>();
         services.AddTransient<PreflightTools>();
+        services.AddTransient<AccountObjectsHelperTools>();
 
         return services;
     }
