@@ -69,6 +69,14 @@ jobs:
       - name: Run release-plugin.sh (build + version bump + CHANGELOG)
         id: release
         run: |
+          # release-plugin.sh pre-flight rejects any uncommitted changes.
+          # actions/checkout on Linux can leave the working tree dirty when
+          # files were committed from Windows with CRLF — discard those
+          # phantom diffs explicitly. (.gitattributes normalizes new commits,
+          # this resets pre-existing checkouts.)
+          git checkout HEAD -- .
+          git status --short
+
           chmod +x release-plugin.sh
           ARGS=("${{ inputs.plugin }}" "${{ inputs.bump }}")
           if [ "${{ inputs.no_build }}" = "true" ]; then ARGS+=("--no-build"); fi

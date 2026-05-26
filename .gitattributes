@@ -1,0 +1,31 @@
+# Default: normalize all text files to LF in the repo.
+# Linux/macOS CI builds (and our release-plugin.sh) require this — otherwise
+# git diff sees phantom changes after a Windows-side checkout that converts to CRLF.
+* text=auto eol=lf
+
+# Files that MUST stay CRLF (Windows batch / Visual Studio props).
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+*.sln text eol=crlf
+
+# Shell scripts MUST be LF — CRLF on Linux breaks `#!/usr/bin/env bash`.
+*.sh text eol=lf
+
+# Common binary file patterns. (Git auto-detects most but explicit is safer
+# for new contributors with unusual gitconfig.)
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.dll binary
+*.exe binary
+*.pdb binary
+*.snk binary
+*.bin binary
+*.zip binary
+*.gz binary
+*.tar binary
+*.p12 binary
+*.pfx binary
