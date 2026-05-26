@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using OpenTelemetry.Metrics;
 using StaticBit.Xrpl.Mcp.Core.DependencyInjection;
 using StaticBit.Xrpl.Mcp.Core.Tools;
 using StaticBit.Xrpl.Mcp.Server.Configuration;
@@ -134,6 +135,20 @@ internal static class Program
             });
         }
 
+        if (serverOptions.Metrics.Enabled)
+        {
+            // Wire OpenTelemetry into the "StaticBitXrplMcp" Meter defined in Core.
+            // Prometheus scrape exporter is mounted later (after build) on the
+            // configured Metrics.Path. Process / runtime metrics come along free
+            // from the AddProcessInstrumentation / AddRuntimeInstrumentation hooks
+            // — we skip them here to keep the surface minimal, callers can opt in.
+            builder.Services
+                .AddOpenTelemetry()
+                .WithMetrics(b => b
+                    .AddMeter(StaticBit.Xrpl.Mcp.Core.Services.XrplMcpMetrics.MeterName)
+                    .AddPrometheusExporter());
+        }
+
         if (serverOptions.Cors.Enabled)
         {
             builder.Services.AddCors(options =>
@@ -185,6 +200,15 @@ internal static class Program
         // The auth middleware lets them through without a bearer.
         app.MapGet("/healthz", () => Results.Ok(new { status = "ok" }));
         app.MapGet("/readyz", () => Results.Ok(new { status = "ready" }));
+
+        // Prometheus scrape endpoint — opt-in via ServerOptions.Metrics.Enabled.
+        // The auth middleware also bypasses this path (see BearerAuthMiddleware
+        // updates below). Lock it down at the reverse proxy if you don't want
+        // pool size / reconnect counts public.
+        if (serverOptions.Metrics.Enabled)
+        {
+            app.UseOpenTelemetryPrometheusScrapingEndpoint(serverOptions.Metrics.Path);
+        }
 
         // CORS first, so OPTIONS preflights from browsers don't need a bearer.
         if (serverOptions.Cors.Enabled)

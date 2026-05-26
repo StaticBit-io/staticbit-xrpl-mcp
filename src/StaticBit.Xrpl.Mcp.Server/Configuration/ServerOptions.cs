@@ -47,6 +47,14 @@ public sealed class ServerOptions
     /// </summary>
     public RequestLoggingOptions RequestLogging { get; set; } = new();
 
+    /// <summary>
+    /// Optional Prometheus scrape endpoint. When enabled, exposes the
+    /// "StaticBitXrplMcp" Meter (pool size, reconnects, tool calls, durations)
+    /// at <see cref="MetricsOptions.Path"/>. NO auth — protect via the reverse
+    /// proxy (Traefik / nginx allowlist) if you don't want metrics public.
+    /// </summary>
+    public MetricsOptions Metrics { get; set; } = new();
+
     public bool IsHttp => string.Equals(Transport, "http", StringComparison.OrdinalIgnoreCase);
 }
 
@@ -126,6 +134,14 @@ public sealed class RequestLoggingOptions
     /// can carry r-addresses which are not secrets but are caller-identifying.
     /// </summary>
     public bool IncludeQueryString { get; set; }
+}
+
+public sealed class MetricsOptions
+{
+    public bool Enabled { get; set; }
+
+    /// <summary>HTTP path the Prometheus exporter exposes. Default <c>/metrics</c>.</summary>
+    public string Path { get; set; } = "/metrics";
 }
 
 public sealed class AdminAlertsOptions

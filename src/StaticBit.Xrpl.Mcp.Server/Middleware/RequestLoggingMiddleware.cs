@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+using StaticBit.Xrpl.Mcp.Core.Services;
 using StaticBit.Xrpl.Mcp.Server.Configuration;
 
 namespace StaticBit.Xrpl.Mcp.Server.Middleware;
@@ -22,15 +24,18 @@ public sealed class RequestLoggingMiddleware
     private readonly RequestDelegate _next;
     private readonly IOptionsMonitor<ServerOptions> _options;
     private readonly ILogger<RequestLoggingMiddleware> _logger;
+    private readonly XrplMcpMetrics _metrics;
 
     public RequestLoggingMiddleware(
         RequestDelegate next,
         IOptionsMonitor<ServerOptions> options,
-        ILogger<RequestLoggingMiddleware> logger)
+        ILogger<RequestLoggingMiddleware> logger,
+        XrplMcpMetrics metrics)
     {
         _next = next;
         _options = options;
         _logger = logger;
+        _metrics = metrics;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -73,6 +78,20 @@ public sealed class RequestLoggingMiddleware
                 Math.Round(elapsed.TotalMilliseconds, 1),
                 ip,
                 label);
+
+            // Per-MCP-request metric. The MCP SDK doesn't expose a per-tool hook we
+            // can intercept from outside; until it does we record one bucket per
+            // /mcp POST. Per-tool granularity should come from the SDK side later.
+            if (path.StartsWithSegments("/mcp"))
+            {
+                string status = context.Response.StatusCode < 400 ? "ok" : "error";
+                _metrics.ToolCalls.Add(1,
+                    new KeyValuePair<string, object?>("tool", "mcp.request"),
+                    new KeyValuePair<string, object?>("status", status),
+                    new KeyValuePair<string, object?>("label", label));
+                _metrics.ToolDurationSeconds.Record(elapsed.TotalSeconds,
+                    new KeyValuePair<string, object?>("tool", "mcp.request"));
+            }
         }
     }
 

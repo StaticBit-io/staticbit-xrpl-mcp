@@ -49,7 +49,14 @@ public sealed class BearerAuthMiddleware
         PathString path = context.Request.Path;
 
         // Health probes (used by Docker HEALTHCHECK / Traefik / k8s) bypass auth.
-        if (path.StartsWithSegments("/healthz") || path.StartsWithSegments("/readyz"))
+        // The Prometheus scrape path also bypasses — gated by the reverse proxy
+        // / firewall, since the metrics endpoint can't easily participate in
+        // bearer flow used by MCP clients.
+        ServerOptions current = _options.CurrentValue;
+        string metricsPath = current.Metrics.Path ?? "/metrics";
+        if (path.StartsWithSegments("/healthz")
+            || path.StartsWithSegments("/readyz")
+            || (current.Metrics.Enabled && path.StartsWithSegments(metricsPath)))
         {
             await _next(context).ConfigureAwait(false);
             return;
