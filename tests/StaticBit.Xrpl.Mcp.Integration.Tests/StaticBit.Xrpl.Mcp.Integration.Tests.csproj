@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <!--
+      Integration tests hit a live rippled testnet (slow, non-deterministic,
+      not part of the per-PR signal). CI workflow runs this category on schedule
+      (see .github/workflows/integration-tests.yml) using
+      dotnet test filter TestCategory=Integration.
+
+      Convention (see README, section "Конвенция тестов"):
+      File:   *TestsI.cs
+      Method: TestI_scenario
+    -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MSTest" Version="4.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\StaticBit.Xrpl.Mcp.Core\StaticBit.Xrpl.Mcp.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,57 @@
+name: integration-tests
+
+# Integration tests hit a live XRPL testnet and so are noisy / slow / non-deterministic.
+# We run them on a daily schedule (not on every PR) plus on manual dispatch.
+#
+# Override the testnet endpoint via the XRPL_TESTNET_WS env var if rippletest.net
+# is acting up — e.g. another community testnet node.
+
+on:
+  schedule:
+    # 06:17 UTC daily — odd minute to avoid the on-the-hour stampede.
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+    inputs:
+      testnet_ws:
+        description: 'Override testnet WebSocket URL (default wss://s.altnet.rippletest.net:51233)'
+        required: false
+        default: ''
+
+concurrency:
+  group: integration-tests-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore + build (Release)
+        run: |
+          dotnet restore StaticBitXrplMcp.sln
+          dotnet build StaticBitXrplMcp.sln --no-restore --configuration Release
+
+      - name: Run integration tests (live testnet)
+        env:
+          XRPL_TESTNET_WS: ${{ inputs.testnet_ws }}
+        run: |
+          dotnet test StaticBitXrplMcp.sln \
+            --no-build --configuration Release \
+            --filter "TestCategory=Integration" \
+            --logger "console;verbosity=normal" \
+            --logger "trx;LogFileName=integration.trx" \
+            -- RunConfiguration.CollectSourceInformation=true
+
+      - name: Upload TRX results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-trx
+          path: '**/TestResults/integration.trx'
+          if-no-files-found: warn
