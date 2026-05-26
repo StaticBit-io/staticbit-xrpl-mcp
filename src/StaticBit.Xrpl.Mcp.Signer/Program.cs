@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using StaticBit.Xrpl.Mcp.Signer.Audit;
 using StaticBit.Xrpl.Mcp.Signer.Configuration;
 using StaticBit.Xrpl.Mcp.Signer.Keystore;
 using StaticBit.Xrpl.Mcp.Signer.Tools;
@@ -36,6 +37,12 @@ internal static class Program
 
         builder.Services.AddSingleton(options);
         builder.Services.AddSingleton<IKeystore, EncryptedFileKeystore>();
+
+        // Audit infrastructure exists but the file-backed sink is wired in a
+        // follow-up commit (feat(signer): audit log). For now the no-op keeps
+        // every call site able to depend on IAuditLogger unconditionally.
+        builder.Services.AddSingleton<IAuditLogger, NullAuditLogger>();
+
         builder.Services.AddTransient<WalletTools>();
         builder.Services.AddTransient<SignTools>();
 
