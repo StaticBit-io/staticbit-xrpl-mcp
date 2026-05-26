@@ -41,6 +41,15 @@ public sealed class XrplMcpOptions
     public int RequestTimeoutSeconds { get; set; } = 30;
 
     /// <summary>
+    /// If &gt; 0, evict and re-establish a pooled XRPL WebSocket connection after
+    /// it has been alive this many minutes. Reactive — checked on the next
+    /// <c>GetAsync</c> call, no background timer.
+    /// 0 (default) disables TTL eviction; connections are reused indefinitely
+    /// until the socket drops or the pool is disposed.
+    /// </summary>
+    public int ConnectionTtlMinutes { get; set; }
+
+    /// <summary>
     /// Built-in defaults used when configuration does not override a well-known network.
     /// </summary>
     public static IReadOnlyDictionary<string, string> DefaultNetworks { get; } =

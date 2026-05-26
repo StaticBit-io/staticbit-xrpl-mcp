@@ -27,6 +27,7 @@ public static class XrplMcpServiceCollectionExtensions
             .Bind(configuration.GetSection(XrplMcpOptions.SectionName))
             .ValidateOnStart();
 
+        services.AddSingleton<XrplMcpMetrics>();
         services.AddSingleton<NetworkResolver>();
         services.AddSingleton<XrplClientPool>();
         services.AddSingleton<IXrplClientPool<IXrplClient>>(sp => sp.GetRequiredService<XrplClientPool>());

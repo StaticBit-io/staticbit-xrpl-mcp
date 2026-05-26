@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using StaticBit.Xrpl.Mcp.Core.Services;
 using StaticBit.Xrpl.Mcp.Server.Configuration;
 using StaticBit.Xrpl.Mcp.Server.Middleware;
 
@@ -30,12 +31,15 @@ public class RequestLoggingMiddlewareTestsU
         return (ctx, new RecordingLogger<RequestLoggingMiddleware>());
     }
 
+    private static readonly XrplMcpMetrics SharedMetrics = new XrplMcpMetrics();
+
     private static async Task RunAsync(HttpContext ctx, ServerOptions options, RecordingLogger<RequestLoggingMiddleware> logger, RequestDelegate? next = null)
     {
         RequestLoggingMiddleware mw = new RequestLoggingMiddleware(
             next ?? (_ => Task.CompletedTask),
             new StaticOptionsMonitor<ServerOptions>(options),
-            logger);
+            logger,
+            SharedMetrics);
         await mw.InvokeAsync(ctx);
     }
 
