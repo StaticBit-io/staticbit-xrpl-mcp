@@ -258,6 +258,13 @@ jobs:
 
       - name: SLSA build provenance attestation
         if: ${{ inputs.dry_run != true && inputs.plugin != 'xrpl-cloud' && steps.collect_bins.outputs.bundles != '' }}
+        # The GitHub attestations API requires either a public repository OR a
+        # paid org plan (Team / Enterprise). On free/private orgs it returns
+        # 403 "Feature not available for the organization". We mark this step
+        # as non-fatal so releases still publish — SBOM + per-RID tarball
+        # SHA-256 still ship and verify integrity. If the repo is later made
+        # public or the org is upgraded, attestations start flowing again.
+        continue-on-error: true
         uses: actions/attest-build-provenance@v2
         with:
           subject-path: |

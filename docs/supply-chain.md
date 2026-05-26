@@ -14,9 +14,19 @@
 | **Per-RID tarballs** `<plugin>-v<X>-<rid>.tar.gz` | для `xrpl-signer` и `xrpl-local` | `tar -tzf` чтобы посмотреть; `sha256sum -c <file>.sha256` для целостности. |
 | **SHA-256 sidecars** `<tarball>.sha256` | всегда вместе с tarballs | `sha256sum -c` сравнит локальный хеш с тем, что был на момент сборки. |
 | **SBOM (CycloneDX)** `<plugin>-v<X>.cdx.json` | для `xrpl-signer` и `xrpl-local` | `cyclonedx-cli analyze`, `grype sbom:<file>`, импорт в Dependency-Track. |
-| **SLSA build provenance attestation** | для `xrpl-signer` и `xrpl-local` | `gh attestation verify <tarball> --repo StaticBit-io/staticbit-xrpl-mcp` (GitHub CLI). Подтверждает что бинарь действительно собран этим workflow на этом коммите. |
+| **SLSA build provenance attestation** | для `xrpl-signer` и `xrpl-local` — **только если репо public или org на paid плане** (см. ниже) | `gh attestation verify <tarball> --repo StaticBit-io/staticbit-xrpl-mcp` (GitHub CLI). Подтверждает что бинарь действительно собран этим workflow на этом коммите. |
 | **macOS notarization** | если настроены `APPLE_*` secrets | `codesign --verify --deep --strict <binary>`, `spctl --assess --type execute <binary>` (Gatekeeper). Apple notary lookup онлайн при первом запуске. |
 | **Windows Authenticode** | если настроены `WINDOWS_PFX*` secrets | `signtool verify /pa /v <binary>.exe`, или `osslsigncode verify -in <binary>.exe` на Linux. |
+
+### SLSA attestation — ограничение GitHub Free / private repos
+
+GitHub Attestations API доступен только для:
+- **Public repositories** (бесплатно).
+- Приватных репо в **Team / Enterprise** плане организации.
+
+На приватных репо free-плана API возвращает 403 *"Feature not available for the organization"*. Workflow step помечен `continue-on-error: true` — релиз всё равно публикуется, просто без attestation в Sigstore. Целостность tarball'ов в этом случае подтверждается прилагаемыми `.sha256` sidecars + Git-тегом коммита.
+
+Когда репо станет public или org апгрейднется — attestations начнут флоуить автоматически без изменений в workflow.
 
 ## Reproducible builds
 
