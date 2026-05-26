@@ -38,10 +38,18 @@ internal static class Program
         builder.Services.AddSingleton(options);
         builder.Services.AddSingleton<IKeystore, EncryptedFileKeystore>();
 
-        // Audit infrastructure exists but the file-backed sink is wired in a
-        // follow-up commit (feat(signer): audit log). For now the no-op keeps
-        // every call site able to depend on IAuditLogger unconditionally.
-        builder.Services.AddSingleton<IAuditLogger, NullAuditLogger>();
+        // Audit logger is opt-in via SignerOptions.AuditLogPath. When empty,
+        // wire the no-op so the call sites can depend on IAuditLogger unconditionally.
+        if (string.IsNullOrWhiteSpace(options.AuditLogPath))
+        {
+            builder.Services.AddSingleton<IAuditLogger, NullAuditLogger>();
+        }
+        else
+        {
+            builder.Services.AddSingleton<IAuditLogger>(sp => new FileAuditLogger(
+                options.AuditLogPath,
+                sp.GetRequiredService<ILoggerFactory>().CreateLogger<FileAuditLogger>()));
+        }
 
         builder.Services.AddTransient<WalletTools>();
         builder.Services.AddTransient<SignTools>();
@@ -65,8 +73,9 @@ internal static class Program
             IKeystore keystore = host.Services.GetRequiredService<IKeystore>();
             int count = keystore.List().Count;
             startupLog.LogInformation(
-                "StaticBitXrplMcp.Signer stdio ready. Keystore at {Path}, wallets={Count}.",
-                options.KeystorePath, count);
+                "StaticBitXrplMcp.Signer stdio ready. Keystore at {Path}, wallets={Count}, audit={AuditState}.",
+                options.KeystorePath, count,
+                string.IsNullOrEmpty(options.AuditLogPath) ? "disabled" : options.AuditLogPath);
         }
         catch (Exception ex)
         {
