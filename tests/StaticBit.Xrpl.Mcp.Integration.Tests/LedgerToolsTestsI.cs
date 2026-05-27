@@ -12,6 +12,7 @@ namespace StaticBit.Xrpl.Mcp.Integration.Tests;
 /// </summary>
 [TestClass]
 [TestCategory("Integration")]
+[DoNotParallelize] // SDK RequestManager has ID collisions when methods share a WebSocket
 public class LedgerToolsTestsI
 {
     private static XrplClientPool? _pool;
@@ -62,8 +63,11 @@ public class LedgerToolsTestsI
         string response = await tool.AccountInfoAsync("testnet", TestnetFixture.KnownFundedTestnetAccount);
 
         Assert.IsFalse(string.IsNullOrEmpty(response));
-        // account_data → Balance present on any funded account
-        StringAssert.Contains(response, "Balance");
+        // account_data → balance present on any funded account. SDK serialization
+        // varies between camelCase ("balance") and PascalCase ("Balance") across
+        // versions — accept either.
+        bool hasBalance = response.Contains("\"balance\"") || response.Contains("\"Balance\"");
+        Assert.IsTrue(hasBalance, $"Expected account_info response to include a balance field. Got: {response[..System.Math.Min(200, response.Length)]}");
     }
 
     [TestMethod]
