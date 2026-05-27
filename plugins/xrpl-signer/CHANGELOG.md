@@ -1,3 +1,14 @@
+## v0.3.3 — 2026-05-27
+
+### Build / CI
+- bump actions/attest-build-provenance from 2 to 4 (#6) (d34494e)
+- bump docker/login-action from 3 to 4 (#5) (3fa0098)
+- bump actions/setup-dotnet from 4 to 5 (#4) (aa67ba7)
+- bump docker/build-push-action from 6 to 7 (#3) (572ed84)
+
+### Other
+- deps: Bump the dotnet-minor-patch group with 2 updates (#7) (cc08c0f)
+
 ## v0.3.2 — 2026-05-27
 
 ### Fixes
