@@ -138,6 +138,201 @@ public sealed class AccountManagementTools
             .ConfigureAwait(false);
     }
 
+    [McpServerTool(Name = "xrpl_ticket_create_prepare")]
+    [Description("Prepares an UNSIGNED TicketCreate. Reserves ticketCount sequence numbers as Tickets that can later be consumed via the TicketSequence field on any future transaction (instead of Sequence). Each Ticket is one owner-object (+2 XRP reserve). ticketCount must be 1..250 and the account must end up owning ≤250 Tickets total.")]
+    public async Task<PreparedTransaction> TicketCreatePrepareAsync(
+        [Description(ToolDescriptions.Network)] string network,
+        [Description("Account that will own the new Tickets.")] string account,
+        [Description("How many Tickets to create (1..250). Each reserves one sequence number + one owner-object slot (~2 XRP reserve).")] uint ticketCount,
+        CancellationToken cancellationToken = default)
+    {
+        if (ticketCount < 1 || ticketCount > 250)
+        {
+            throw new ArgumentException("ticketCount must be between 1 and 250.", nameof(ticketCount));
+        }
+
+        TicketCreate tx = new TicketCreate
+        {
+            Account = account,
+            TicketCount = ticketCount,
+        };
+
+        string summary = $"TicketCreate by {ToolDisplay.Truncate(account)}: reserve {ticketCount} Ticket(s).";
+
+        return await _preparer
+            .PrepareAsync(new NetworkRef(network), tx, summary, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    [McpServerTool(Name = "xrpl_delegate_set_prepare")]
+    [Description("Prepares an UNSIGNED DelegateSet (XLS-75). Grants 'delegate' permission to submit, on behalf of 'account', transactions of the listed types. 'permissionsCsv' is a comma-separated list of transaction-type names (e.g. 'Payment,TrustSet,OfferCreate'); 1..10 entries, no duplicates. The following types CANNOT be delegated: AccountSet, SetRegularKey, SignerListSet, DelegateSet. Pass an empty/whitespace permissionsCsv to clear the delegation.")]
+    public async Task<PreparedTransaction> DelegateSetPrepareAsync(
+        [Description(ToolDescriptions.Network)] string network,
+        [Description("Account granting (or clearing) the delegation.")] string account,
+        [Description("Delegatee classic XRP address — the account allowed to submit on behalf of 'account'.")] string delegateAccount,
+        [Description("Comma-separated transaction-type names (1..10), e.g. 'Payment,TrustSet'. Empty string clears all delegated permissions.")] string permissionsCsv,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(delegateAccount))
+        {
+            throw new ArgumentException("delegateAccount is required.", nameof(delegateAccount));
+        }
+        if (string.Equals(account, delegateAccount, StringComparison.Ordinal))
+        {
+            throw new ArgumentException("delegateAccount must differ from account.", nameof(delegateAccount));
+        }
+
+        List<Dictionary<string, object>> permissions = ParseDelegatePermissions(permissionsCsv);
+
+        Dictionary<string, object> tx = new Dictionary<string, object>(StringComparer.Ordinal)
+        {
+            ["TransactionType"] = "DelegateSet",
+            ["Account"] = account,
+            ["Authorize"] = delegateAccount,
+            ["Permissions"] = permissions,
+        };
+
+        string summary = permissions.Count == 0
+            ? $"DelegateSet by {ToolDisplay.Truncate(account)}: CLEAR delegation to {ToolDisplay.Truncate(delegateAccount)}."
+            : $"DelegateSet by {ToolDisplay.Truncate(account)}: delegate to {ToolDisplay.Truncate(delegateAccount)} for {permissions.Count} tx-type(s).";
+
+        return await _preparer
+            .PrepareAsync(new NetworkRef(network), tx, summary, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    internal static List<Dictionary<string, object>> ParseDelegatePermissions(string csv)
+    {
+        List<Dictionary<string, object>> result = new List<Dictionary<string, object>>();
+        if (string.IsNullOrWhiteSpace(csv)) return result;
+
+        HashSet<string> seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (string raw in csv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (raw.Length == 0)
+            {
+                throw new ArgumentException("permissionsCsv contains an empty entry.");
+            }
+            if (DelegateNonDelegableTypes.Contains(raw))
+            {
+                throw new ArgumentException(
+                    $"Transaction type '{raw}' cannot be delegated (security-critical types are blocked by rippled).");
+            }
+            if (!DelegateTxTypeCodes.TryGetValue(raw, out uint code))
+            {
+                throw new ArgumentException(
+                    $"Unknown transaction type '{raw}'. Pass a canonical XRPL TransactionType name (e.g. Payment, TrustSet, OfferCreate).");
+            }
+            if (!seen.Add(raw))
+            {
+                throw new ArgumentException($"permissionsCsv contains duplicate '{raw}'.");
+            }
+
+            result.Add(new Dictionary<string, object>(StringComparer.Ordinal)
+            {
+                ["Permission"] = new Dictionary<string, object>(StringComparer.Ordinal)
+                {
+                    // PermissionValue is the numeric XRPL TransactionType code, not the string name —
+                    // the binary codec serializes this as UInt32. The map below mirrors the canonical
+                    // TRANSACTION_TYPES table from rippled / xrpl.js definitions.json.
+                    ["PermissionValue"] = code,
+                },
+            });
+        }
+
+        if (result.Count > 10)
+        {
+            throw new ArgumentException("permissionsCsv cannot contain more than 10 entries.");
+        }
+
+        return result;
+    }
+
+    private static readonly HashSet<string> DelegateNonDelegableTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        "AccountSet", "SetRegularKey", "SignerListSet", "DelegateSet",
+    };
+
+    /// <summary>
+    /// Canonical XRPL TransactionType numeric codes — required for the
+    /// <c>DelegateSet.Permissions[].PermissionValue</c> field, which the binary
+    /// codec serializes as UInt32. Mirrors <c>TRANSACTION_TYPES</c> in rippled /
+    /// xrpl.js <c>definitions.json</c>. Excludes non-delegable security-critical
+    /// types (handled separately via <see cref="DelegateNonDelegableTypes"/>).
+    /// </summary>
+    private static readonly Dictionary<string, uint> DelegateTxTypeCodes = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Payment"] = 0,
+        ["EscrowCreate"] = 1,
+        ["EscrowFinish"] = 2,
+        ["EscrowCancel"] = 4,
+        ["OfferCreate"] = 7,
+        ["OfferCancel"] = 8,
+        ["TicketCreate"] = 10,
+        ["PaymentChannelCreate"] = 13,
+        ["PaymentChannelFund"] = 14,
+        ["PaymentChannelClaim"] = 15,
+        ["CheckCreate"] = 16,
+        ["CheckCash"] = 17,
+        ["CheckCancel"] = 18,
+        ["DepositPreauth"] = 19,
+        ["TrustSet"] = 20,
+        ["AccountDelete"] = 21,
+        ["NFTokenMint"] = 25,
+        ["NFTokenBurn"] = 26,
+        ["NFTokenCreateOffer"] = 27,
+        ["NFTokenCancelOffer"] = 28,
+        ["NFTokenAcceptOffer"] = 29,
+        ["Clawback"] = 30,
+        ["AMMClawback"] = 31,
+        ["AMMCreate"] = 35,
+        ["AMMDeposit"] = 36,
+        ["AMMWithdraw"] = 37,
+        ["AMMVote"] = 38,
+        ["AMMBid"] = 39,
+        ["AMMDelete"] = 40,
+        ["XChainCreateClaimID"] = 41,
+        ["XChainCommit"] = 42,
+        ["XChainClaim"] = 43,
+        ["XChainAccountCreateCommit"] = 44,
+        ["XChainAddClaimAttestation"] = 45,
+        ["XChainAddAccountCreateAttestation"] = 46,
+        ["XChainModifyBridge"] = 47,
+        ["XChainCreateBridge"] = 48,
+        ["DIDSet"] = 49,
+        ["DIDDelete"] = 50,
+        ["OracleSet"] = 51,
+        ["OracleDelete"] = 52,
+        ["LedgerStateFix"] = 53,
+        ["MPTokenIssuanceCreate"] = 54,
+        ["MPTokenIssuanceDestroy"] = 55,
+        ["MPTokenIssuanceSet"] = 56,
+        ["MPTokenAuthorize"] = 57,
+        ["CredentialCreate"] = 58,
+        ["CredentialAccept"] = 59,
+        ["CredentialDelete"] = 60,
+        ["NFTokenModify"] = 61,
+        ["PermissionedDomainSet"] = 62,
+        ["PermissionedDomainDelete"] = 63,
+        ["VaultCreate"] = 65,
+        ["VaultSet"] = 66,
+        ["VaultDelete"] = 67,
+        ["VaultDeposit"] = 68,
+        ["VaultWithdraw"] = 69,
+        ["VaultClawback"] = 70,
+        ["Batch"] = 71,
+        ["LoanBrokerSet"] = 74,
+        ["LoanBrokerDelete"] = 75,
+        ["LoanBrokerCoverDeposit"] = 76,
+        ["LoanBrokerCoverWithdraw"] = 77,
+        ["LoanBrokerCoverClawback"] = 78,
+        ["LoanSet"] = 80,
+        ["LoanDelete"] = 81,
+        ["LoanManage"] = 82,
+        ["LoanPay"] = 84,
+    };
+
     internal static List<AuthorizeCredentialEntry> ParseCredentialEntries(string json, string paramName)
     {
         using JsonDocument doc = JsonDocument.Parse(json);

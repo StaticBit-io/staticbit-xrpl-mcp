@@ -130,6 +130,70 @@ public sealed class AmmManagementTools
             .ConfigureAwait(false);
     }
 
+    [McpServerTool(Name = "xrpl_amm_clawback_prepare")]
+    [Description("Prepares an UNSIGNED AMMClawback (XLS-37). The token issuer claws back tokens previously deposited into an AMM pool by 'holder'. The issuer must have asfAllowTrustLineClawback enabled. 'asset1' is the issuer's token in the pool (its issuer field MUST equal the sender 'account'); 'asset2' is the pool counterpart. Optional 'amountValue' (string) limits the claw-back to that amount of the issuer's token; omit to claw back the maximum available.")]
+    public async Task<PreparedTransaction> AmmClawbackPrepareAsync(
+        [Description(ToolDescriptions.Network)] string network,
+        [Description("Issuer account submitting the clawback.")] string account,
+        [Description("Holder whose AMM-deposited tokens are being clawed back.")] string holder,
+        [Description("Issuer's token currency code (3-char or 40-char hex). Cannot be 'XRP' — only issued currencies can be clawed back.")] string asset1Currency,
+        [Description("Issuer's token issuer — MUST equal account.")] string asset1Issuer,
+        [Description("Counterpart pool asset currency code.")] string asset2Currency,
+        [Description("Counterpart pool asset issuer. Empty for XRP.")] string? asset2Issuer = null,
+        [Description("Optional clawback amount as a decimal string. Omit to claw back the maximum available of the issuer's token.")] string? amountValue = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(holder))
+        {
+            throw new ArgumentException("holder is required.", nameof(holder));
+        }
+        if (string.Equals(holder, account, StringComparison.Ordinal))
+        {
+            throw new ArgumentException("holder must differ from account (the issuer).", nameof(holder));
+        }
+        if (string.Equals(asset1Currency, "XRP", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException("AMMClawback only applies to issued tokens — asset1 cannot be XRP.", nameof(asset1Currency));
+        }
+        if (string.IsNullOrWhiteSpace(asset1Issuer))
+        {
+            throw new ArgumentException("asset1Issuer is required and must equal the issuer (account).", nameof(asset1Issuer));
+        }
+        if (!string.Equals(asset1Issuer, account, StringComparison.Ordinal))
+        {
+            throw new ArgumentException("asset1Issuer must equal account — only an issuer can claw back its own tokens.", nameof(asset1Issuer));
+        }
+
+        IssuedCurrency a1 = ToolDisplay.BuildAsset(asset1Currency, asset1Issuer);
+        IssuedCurrency a2 = ToolDisplay.BuildAsset(asset2Currency, asset2Issuer);
+
+        Currency? amount = null;
+        if (!string.IsNullOrWhiteSpace(amountValue))
+        {
+            // The amount currency MUST match asset1 (issuer's token); construct accordingly.
+            string amountJson = "{\"value\":\"" + amountValue + "\",\"currency\":\"" + asset1Currency
+                + "\",\"issuer\":\"" + account + "\"}";
+            amount = CurrencyParser.Parse(amountJson);
+        }
+
+        AMMClawBack tx = new AMMClawBack
+        {
+            Account = account,
+            Holder = holder,
+            Asset = a1,
+            Asset2 = a2,
+            Amount = amount!,
+        };
+
+        string amtDesc = amount is null ? "max available" : ToolDisplay.DescribeAmount(amount);
+        string summary = $"AMMClawback by issuer {ToolDisplay.Truncate(account)} from holder {ToolDisplay.Truncate(holder)}: "
+            + $"pool {ToolDisplay.DescribeAsset(a1)} / {ToolDisplay.DescribeAsset(a2)}, amount={amtDesc}.";
+
+        return await _preparer
+            .PrepareAsync(new NetworkRef(network), tx, summary, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
     [McpServerTool(Name = "xrpl_amm_delete_prepare")]
     [Description("Prepares an UNSIGNED AMMDelete to fully delete an empty AMM (after AMMWithdraw left residual trust lines). May need to be run multiple times to fully clean up.")]
     public async Task<PreparedTransaction> AmmDeletePrepareAsync(

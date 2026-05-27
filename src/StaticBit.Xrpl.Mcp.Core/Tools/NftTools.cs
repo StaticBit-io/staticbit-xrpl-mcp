@@ -99,6 +99,71 @@ public sealed class NftTools
             .ConfigureAwait(false);
     }
 
+    [McpServerTool(Name = "xrpl_nft_modify_prepare")]
+    [Description("Prepares an UNSIGNED NFTokenModify (XLS-46). Updates the URI of an existing NFT — only allowed when the NFT was minted with the tfMutable flag (16). Provide uriHex or uriPlain (auto-UTF-8-hex); pass clearUri=true to set an empty URI. The submitter must be either the current owner or the authorized minter for the issuer.")]
+    public async Task<PreparedTransaction> NftModifyPrepareAsync(
+        [Description(ToolDescriptions.Network)] string network,
+        [Description("Submitter account — current owner of the NFT, or the issuer/authorized minter when 'owner' is set.")] string account,
+        [Description("NFTokenID (64-char hex) of the NFT to modify.")] string nfTokenId,
+        [Description("Optional current owner if different from account (e.g. issuer modifying a held NFT).")] string? owner = null,
+        [Description("New NFT URI as a hex string. Mutually exclusive with uriPlain / clearUri.")] string? uriHex = null,
+        [Description("New NFT URI as a plain string; will be UTF-8-hex-encoded. Mutually exclusive with uriHex / clearUri.")] string? uriPlain = null,
+        [Description("If true, omit URI entirely (clears the existing URI). Mutually exclusive with uriHex / uriPlain.")] bool clearUri = false,
+        CancellationToken cancellationToken = default)
+    {
+        int provided = (string.IsNullOrEmpty(uriHex) ? 0 : 1)
+            + (string.IsNullOrEmpty(uriPlain) ? 0 : 1)
+            + (clearUri ? 1 : 0);
+        if (provided != 1)
+        {
+            throw new ArgumentException("Provide exactly one of uriHex, uriPlain, or clearUri=true.");
+        }
+
+        if (string.IsNullOrWhiteSpace(nfTokenId) || nfTokenId.Length != 64)
+        {
+            throw new ArgumentException("nfTokenId must be a 64-char hex string.", nameof(nfTokenId));
+        }
+
+        string? finalUri = uriHex;
+        if (string.IsNullOrEmpty(finalUri) && !string.IsNullOrEmpty(uriPlain))
+        {
+            finalUri = Convert.ToHexString(Encoding.UTF8.GetBytes(uriPlain));
+        }
+
+        if (!clearUri)
+        {
+            if (string.IsNullOrEmpty(finalUri))
+            {
+                throw new ArgumentException("URI cannot be empty when clearUri=false; use clearUri=true to remove the URI.");
+            }
+            for (int i = 0; i < finalUri.Length; i++)
+            {
+                char c = finalUri[i];
+                bool ok = (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
+                if (!ok)
+                {
+                    throw new ArgumentException($"URI hex contains non-hex character at position {i}.");
+                }
+            }
+        }
+
+        NFTokenModify tx = new NFTokenModify
+        {
+            Account = account,
+            NFTokenID = nfTokenId,
+            Owner = string.IsNullOrEmpty(owner) ? null : owner,
+            URI = clearUri ? null : finalUri,
+        };
+
+        string summary = clearUri
+            ? $"NFTokenModify by {ToolDisplay.Truncate(account)}: NFT {Short(nfTokenId)} → CLEAR URI."
+            : $"NFTokenModify by {ToolDisplay.Truncate(account)}: NFT {Short(nfTokenId)} → new URI ({finalUri!.Length / 2} bytes).";
+
+        return await _preparer
+            .PrepareAsync(new NetworkRef(network), tx, summary, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
     [McpServerTool(Name = "xrpl_nft_create_offer_prepare")]
     [Description("Prepares an UNSIGNED NFTokenCreateOffer. SELL offer: set isSellOffer=true and DO NOT pass owner. BUY offer: set isSellOffer=false and pass owner (the current NFT holder). amount uses same format as xrpl_payment_prepare (drops string for XRP, JSON token object otherwise).")]
     public async Task<PreparedTransaction> NftCreateOfferPrepareAsync(
