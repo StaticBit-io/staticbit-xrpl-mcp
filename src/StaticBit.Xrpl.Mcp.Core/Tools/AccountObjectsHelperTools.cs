@@ -40,6 +40,7 @@ public sealed class AccountObjectsHelperTools
         [Description(ToolDescriptions.LedgerIndex)] string? ledgerIndex = null,
         CancellationToken cancellationToken = default)
     {
+        AddressValidation.AssertValid(account, nameof(account));
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
 
         AccountObjectsRequest request = new AccountObjectsRequest(account)
@@ -125,6 +126,7 @@ public sealed class AccountObjectsHelperTools
         [Description(ToolDescriptions.LedgerIndex)] string? ledgerIndex = null,
         CancellationToken cancellationToken = default)
     {
+        AddressValidation.AssertValid(account, nameof(account));
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
 
         AccountObjectsRequest request = new AccountObjectsRequest(account)
@@ -220,6 +222,7 @@ public sealed class AccountObjectsHelperTools
         [Description(ToolDescriptions.LedgerIndex)] string? ledgerIndex = null,
         CancellationToken cancellationToken = default)
     {
+        AddressValidation.AssertValid(account, nameof(account));
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
 
         AccountObjectsRequest request = new AccountObjectsRequest(account)
@@ -284,6 +287,7 @@ public sealed class AccountObjectsHelperTools
         [Description(ToolDescriptions.LedgerIndex)] string? ledgerIndex = null,
         CancellationToken cancellationToken = default)
     {
+        AddressValidation.AssertValid(account, nameof(account));
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
 
         AccountObjectsRequest request = new AccountObjectsRequest(account)
@@ -345,6 +349,7 @@ public sealed class AccountObjectsHelperTools
         [Description(ToolDescriptions.LedgerIndex)] string? ledgerIndex = null,
         CancellationToken cancellationToken = default)
     {
+        AddressValidation.AssertValid(account, nameof(account));
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
 
         AccountObjectsRequest request = new AccountObjectsRequest(account)
@@ -420,6 +425,7 @@ public sealed class AccountObjectsHelperTools
         [Description(ToolDescriptions.LedgerIndex)] string? ledgerIndex = null,
         CancellationToken cancellationToken = default)
     {
+        AddressValidation.AssertValid(account, nameof(account));
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
 
         AccountObjectsRequest request = new AccountObjectsRequest(account)
@@ -474,6 +480,7 @@ public sealed class AccountObjectsHelperTools
         [Description(ToolDescriptions.LedgerIndex)] string? ledgerIndex = null,
         CancellationToken cancellationToken = default)
     {
+        AddressValidation.AssertValid(account, nameof(account));
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
 
         AccountObjectsRequest request = new AccountObjectsRequest(account)
@@ -545,6 +552,7 @@ public sealed class AccountObjectsHelperTools
         [Description(ToolDescriptions.LedgerIndex)] string? ledgerIndex = null,
         CancellationToken cancellationToken = default)
     {
+        AddressValidation.AssertValid(account, nameof(account));
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
 
         AccountObjectsRequest request = new AccountObjectsRequest(account)
@@ -612,6 +620,7 @@ public sealed class AccountObjectsHelperTools
         [Description(ToolDescriptions.LedgerIndex)] string? ledgerIndex = null,
         CancellationToken cancellationToken = default)
     {
+        AddressValidation.AssertValid(account, nameof(account));
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
 
         AccountObjectsRequest request = new AccountObjectsRequest(account)
@@ -670,6 +679,7 @@ public sealed class AccountObjectsHelperTools
         [Description(ToolDescriptions.LedgerIndex)] string? ledgerIndex = null,
         CancellationToken cancellationToken = default)
     {
+        AddressValidation.AssertValid(account, nameof(account));
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
 
         AccountObjectsRequest request = new AccountObjectsRequest(account)
@@ -736,6 +746,7 @@ public sealed class AccountObjectsHelperTools
         [Description(ToolDescriptions.LedgerIndex)] string? ledgerIndex = null,
         CancellationToken cancellationToken = default)
     {
+        AddressValidation.AssertValid(account, nameof(account));
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
 
         AccountObjectsRequest request = new AccountObjectsRequest(account)

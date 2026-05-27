@@ -24,14 +24,8 @@ public sealed class HashTools
         [Description("Credential type as hex (1..128 hex chars, even length). Mutually exclusive with credentialTypePlain.")] string? credentialTypeHex = null,
         [Description("Credential type as plain UTF-8 text (auto-hex-encoded). Mutually exclusive with credentialTypeHex.")] string? credentialTypePlain = null)
     {
-        if (string.IsNullOrWhiteSpace(subject))
-        {
-            throw new ArgumentException("subject is required.", nameof(subject));
-        }
-        if (string.IsNullOrWhiteSpace(issuer))
-        {
-            throw new ArgumentException("issuer is required.", nameof(issuer));
-        }
+        AddressValidation.AssertValid(subject, nameof(subject));
+        AddressValidation.AssertValid(issuer, nameof(issuer));
 
         string credentialTypeHexResolved = ResolveCredentialType(credentialTypeHex, credentialTypePlain);
 

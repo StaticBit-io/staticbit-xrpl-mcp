@@ -35,6 +35,7 @@ public sealed class AccountTools
         [Description("If true, include signer-list ledger entries.")] bool signerLists = false,
         CancellationToken cancellationToken = default)
     {
+        AddressValidation.AssertValid(account, nameof(account));
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
 
         AccountInfoRequest request = new AccountInfoRequest(account)
@@ -60,6 +61,11 @@ public sealed class AccountTools
         [Description(ToolDescriptions.LedgerIndex)] string? ledgerIndex = null,
         CancellationToken cancellationToken = default)
     {
+        AddressValidation.AssertValid(account, nameof(account));
+        if (peer != null)
+        {
+            AddressValidation.AssertValid(peer, nameof(peer));
+        }
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
 
         AccountLinesRequest request = new AccountLinesRequest(account)
@@ -87,6 +93,7 @@ public sealed class AccountTools
         [Description("If true, return raw binary blobs instead of expanded JSON.")] bool binary = false,
         CancellationToken cancellationToken = default)
     {
+        AddressValidation.AssertValid(account, nameof(account));
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
 
         AccountTransactionsRequest request = new AccountTransactionsRequest(account)
@@ -113,6 +120,7 @@ public sealed class AccountTools
         [Description(ToolDescriptions.LedgerIndex)] string? ledgerIndex = null,
         CancellationToken cancellationToken = default)
     {
+        AddressValidation.AssertValid(account, nameof(account));
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
 
         AccountOffersRequest request = new AccountOffersRequest(account)
@@ -138,6 +146,7 @@ public sealed class AccountTools
         [Description(ToolDescriptions.LedgerIndex)] string? ledgerIndex = null,
         CancellationToken cancellationToken = default)
     {
+        AddressValidation.AssertValid(account, nameof(account));
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
 
         LedgerEntryType? parsedType = null;
@@ -176,6 +185,7 @@ public sealed class AccountTools
         [Description(ToolDescriptions.LedgerIndex)] string? ledgerIndex = null,
         CancellationToken cancellationToken = default)
     {
+        AddressValidation.AssertValid(account, nameof(account));
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
 
         GatewayBalancesRequest request = new GatewayBalancesRequest(account)
@@ -228,6 +238,7 @@ public sealed class AccountTools
         [Description("Classic XRP address.")] string account,
         CancellationToken cancellationToken = default)
     {
+        AddressValidation.AssertValid(account, nameof(account));
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
         string balance = await client.GetXrpBalance(account, cancellationToken).ConfigureAwait(false);
         return XrplJson.Serialize(new { account, balanceXrp = balance });

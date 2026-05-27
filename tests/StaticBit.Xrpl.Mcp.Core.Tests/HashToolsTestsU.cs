@@ -146,4 +146,33 @@ public class HashToolsTestsU
             tool.HashCredential("rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe", "",
                 credentialTypePlain: "KYC"));
     }
+
+    [TestMethod]
+    public void TestU_HashCredential_InvalidSubjectChecksum_ThrowsArgument()
+    {
+        // 'rfBKzgT2VK4eUJTRYBpzPJcdqnnxAGn2VK' looks like a classic address but
+        // fails base58check. Must surface as a clean ArgumentException, not a
+        // SDK-internal EncodingFormatException leaking through the MCP layer.
+        HashTools tool = new HashTools();
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            tool.HashCredential(
+                "rfBKzgT2VK4eUJTRYBpzPJcdqnnxAGn2VK",
+                "rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH",
+                credentialTypePlain: "KYC"));
+        StringAssert.Contains(ex.Message, "subject", StringComparison.OrdinalIgnoreCase);
+        StringAssert.Contains(ex.Message, "base58check", StringComparison.OrdinalIgnoreCase);
+    }
+
+    [TestMethod]
+    public void TestU_HashCredential_InvalidIssuerChecksum_ThrowsArgument()
+    {
+        HashTools tool = new HashTools();
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            tool.HashCredential(
+                "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe",
+                "rfBKzgT2VK4eUJTRYBpzPJcdqnnxAGn2VK",
+                credentialTypePlain: "KYC"));
+        StringAssert.Contains(ex.Message, "issuer", StringComparison.OrdinalIgnoreCase);
+        StringAssert.Contains(ex.Message, "base58check", StringComparison.OrdinalIgnoreCase);
+    }
 }
