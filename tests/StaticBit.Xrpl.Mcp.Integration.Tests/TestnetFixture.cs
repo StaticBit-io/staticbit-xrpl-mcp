@@ -26,9 +26,35 @@ internal static class TestnetFixture
 
     public static XrplClientPool BuildPool()
     {
-        string url = Environment.GetEnvironmentVariable("XRPL_TESTNET_WS") ?? DefaultTestnetWs;
+        XrplMcpOptions options = BuildOptions();
+        IOptionsMonitor<XrplMcpOptions> monitor = new StaticOptionsMonitor(options);
+        NetworkResolver resolver = new NetworkResolver(monitor);
+        XrplMcpMetrics metrics = new XrplMcpMetrics();
+        return new XrplClientPool(resolver, NullLogger<XrplClientPool>.Instance, new OptionsWrapper<XrplMcpOptions>(options), metrics);
+    }
 
-        XrplMcpOptions options = new XrplMcpOptions
+    /// <summary>
+    /// Build a TransactionPreparer wired to the testnet pool — used by prepare-smoke tests
+    /// that round-trip Autofill + binary encoding but do NOT sign or submit. The Account
+    /// passed to each prepare-tool must be a real funded testnet account (Autofill calls
+    /// account_info); other addresses (Destination, Holder, Counterparty, etc.) can be
+    /// synthetic since rippled only validates them at submit time.
+    /// </summary>
+    public static (XrplClientPool pool, TransactionPreparer preparer) BuildPreparer()
+    {
+        XrplMcpOptions options = BuildOptions();
+        IOptionsMonitor<XrplMcpOptions> monitor = new StaticOptionsMonitor(options);
+        NetworkResolver resolver = new NetworkResolver(monitor);
+        XrplMcpMetrics metrics = new XrplMcpMetrics();
+        XrplClientPool pool = new XrplClientPool(resolver, NullLogger<XrplClientPool>.Instance, new OptionsWrapper<XrplMcpOptions>(options), metrics);
+        TransactionPreparer preparer = new TransactionPreparer(pool, new OptionsWrapper<XrplMcpOptions>(options));
+        return (pool, preparer);
+    }
+
+    private static XrplMcpOptions BuildOptions()
+    {
+        string url = Environment.GetEnvironmentVariable("XRPL_TESTNET_WS") ?? DefaultTestnetWs;
+        return new XrplMcpOptions
         {
             DefaultNetwork = "testnet",
             Networks = new System.Collections.Generic.Dictionary<string, string>
@@ -36,11 +62,6 @@ internal static class TestnetFixture
                 ["testnet"] = url,
             },
         };
-
-        IOptionsMonitor<XrplMcpOptions> monitor = new StaticOptionsMonitor(options);
-        NetworkResolver resolver = new NetworkResolver(monitor);
-        XrplMcpMetrics metrics = new XrplMcpMetrics();
-        return new XrplClientPool(resolver, NullLogger<XrplClientPool>.Instance, new OptionsWrapper<XrplMcpOptions>(options), metrics);
     }
 
     private sealed class StaticOptionsMonitor : IOptionsMonitor<XrplMcpOptions>
