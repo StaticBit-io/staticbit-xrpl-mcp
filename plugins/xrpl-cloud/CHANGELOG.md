@@ -1,3 +1,19 @@
+## v0.2.0 — 2026-05-27
+
+### Features
+- payment credentialIdsJson + xrpl_hash_credential (62bc29c)
+- add 50 prepare/read tools for 12 XRPL amendments (2ee21e2)
+
+### Documentation
+- bilingual EN/RU convention + 12 Cowork recipes + schema regen (0f25e5d)
+
+### Tests
+- unit + integration smoke for 50 new MCP tools (603aa77)
+
+### Build / CI
+- mark CodeQL upload continue-on-error (GHAS unavailable on free private) (4a13cc9)
+- Dependabot + CodeQL + branch-protection docs (c530621)
+
 # xrpl-cloud changelog
 
 All notable changes to this plugin are listed here. Newest at the top.
