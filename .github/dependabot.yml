@@ -1,0 +1,56 @@
+# Weekly Dependabot scan for NuGet packages and GitHub Actions versions.
+#
+# Currently watching:
+#   • .NET project dependencies across all csprojs in the solution
+#   • Action versions used in workflows (actions/checkout, actions/setup-dotnet, …)
+#
+# A known concern this catches: OpenTelemetry.Api 1.9.0 → GHSA-g94r-2vxg-569j
+# (advisory level: medium). Without Dependabot, this CVE warning blooms on
+# every `dotnet restore` but never produces an actionable PR.
+
+version: 2
+
+updates:
+  # ── NuGet packages across the whole solution ─────────────────────────────
+  - package-ecosystem: nuget
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Moscow
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - nuget
+    commit-message:
+      prefix: "deps"
+      include: scope
+    # Group minor + patch updates into a single PR — major upgrades stay solo
+    # so they can be reviewed individually.
+    groups:
+      dotnet-minor-patch:
+        update-types:
+          - minor
+          - patch
+
+  # ── GitHub Actions used in our workflows ─────────────────────────────────
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Moscow
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+      - github-actions
+    commit-message:
+      prefix: "ci"
+      include: scope
+    groups:
+      actions-minor-patch:
+        update-types:
+          - minor
+          - patch

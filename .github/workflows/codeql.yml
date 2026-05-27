@@ -1,0 +1,56 @@
+name: codeql
+
+# Static security analysis for C# (CodeQL OWASP-class queries).
+# Runs:
+#   • on every PR targeting main — catches new vulns in review
+#   • weekly cron — catches new advisories that match existing code
+#   • on push to main — full baseline scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Sunday 04:23 UTC — odd minute to avoid the on-the-hour stampede.
+    - cron: '23 4 * * 0'
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze (csharp)
+    runs-on: ubuntu-latest
+
+    permissions:
+      actions: read
+      contents: read
+      security-events: write     # required to publish results to the Security tab
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: csharp
+          # Default + extended security queries (a bit slower but catches more).
+          queries: security-extended
+
+      # CodeQL needs a real build of the project — autobuild works for most
+      # .NET solutions; if it ever fails we can switch to an explicit
+      # `dotnet build StaticBitXrplMcp.sln -c Release` step.
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:csharp'
