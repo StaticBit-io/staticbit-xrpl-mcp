@@ -265,7 +265,7 @@ jobs:
         # SHA-256 still ship and verify integrity. If the repo is later made
         # public or the org is upgraded, attestations start flowing again.
         continue-on-error: true
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: |
             artifacts/release/${{ inputs.plugin }}/${{ inputs.plugin }}-v${{ steps.release.outputs.new_version }}-*.tar.gz
