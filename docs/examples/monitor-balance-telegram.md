@@ -1,19 +1,21 @@
-# Пример: Cowork-агент «monitor balance, notify in Telegram»
+> 🇷🇺 [Прочесть на русском](monitor-balance-telegram.ru.md)
 
-Кросс-плагинный рецепт. Агент крутится в фоне, polling-ом проверяет новые транзакции на адрес и шлёт уведомления в Telegram.
+# Example: Cowork agent "monitor balance, notify in Telegram"
 
-## Что используется
+A cross-plugin recipe. The agent runs in the background, polls for new transactions on an address, and posts notifications to Telegram.
 
-| Плагин | Что нужно для рецепта |
+## What is used
+
+| Plugin | What the recipe needs |
 |---|---|
-| **xrpl-cloud** (или `xrpl-local`) | `xrpl_account_tx_since` для polling, `xrpl_tx_explain` для форматирования |
-| **telegram** (отдельный плагин) | `mcp__telegram-cloud__send_message` для уведомлений |
+| **xrpl-cloud** (or `xrpl-local`) | `xrpl_account_tx_since` for polling, `xrpl_tx_explain` for formatting |
+| **telegram** (separate plugin) | `mcp__telegram-cloud__send_message` for notifications |
 
-`xrpl-signer` не нужен — только чтение.
+`xrpl-signer` is not needed — read-only.
 
-## Архитектура
+## Architecture
 
-Никаких subscribe / WebSocket в MCP — у протокола нет двунаправленного канала (см. [features.md §2](../features.md#2-read-api-и-streaming)). Используем **polling** через `xrpl_account_tx_since`: caller хранит max `ledger_index` из прошлого ответа и передаёт его как `sinceLedger` на следующей итерации. Идемпотентно, stateless, работает в любом deployment-режиме.
+No subscribe / WebSocket inside MCP — the protocol has no bidirectional channel (see [features.md §2](../features.md#2-read-api-and-streaming)). We use **polling** through `xrpl_account_tx_since`: the caller keeps the max `ledger_index` from the previous response and passes it as `sinceLedger` on the next iteration. Idempotent, stateless, works in any deployment mode.
 
 ```
 ┌────────────┐  every N min   ┌────────────────────┐   new txs    ┌──────────────┐
@@ -29,9 +31,9 @@
                                                               └────────────────────┘
 ```
 
-## Промт агента
+## Agent prompt
 
-Сохрани в `~/.claude/agents/xrpl-watch.md` либо в `.claude/agents/xrpl-watch.md` проекта:
+Save into `~/.claude/agents/xrpl-watch.md` or `.claude/agents/xrpl-watch.md` of your project:
 
 ```markdown
 ---
@@ -76,9 +78,9 @@ If `xrpl_account_tx_since` returns an empty list, just output
 `NEW_SINCE_LEDGER=<since_ledger>` (unchanged).
 ```
 
-## Запуск через `/schedule` (рекомендуется)
+## Running via `/schedule` (recommended)
 
-`/schedule` — управляет cron-задачами remote-агента. Выживает после рестарта Claude Code, работает даже когда CLI не открыт.
+`/schedule` manages cron jobs for a remote agent. Survives Claude Code restarts and works even when the CLI is closed.
 
 ```
 /schedule create
@@ -92,36 +94,36 @@ If `xrpl_account_tx_since` returns an empty list, just output
     telegram_chat_id=123456789
 ```
 
-> Первый запуск с `since_ledger=0` поднимет всю историю. Если адрес активный — лучше начальный bootstrap сделать руками с `since_ledger=<current ledger from xrpl_ledger>` минус 1, чтобы первая итерация была пустой.
+> The first invocation with `since_ledger=0` will pull the entire history. For an active address, do the initial bootstrap manually with `since_ledger=<current ledger from xrpl_ledger>` minus 1 so the first iteration is empty.
 
-Scheduler сам прокидывает stdout последней итерации в prompt следующей через template-переменные. Точный синтаксис — в `/schedule help`.
+The scheduler feeds the stdout of the previous iteration into the prompt of the next one via template variables. Exact syntax — see `/schedule help`.
 
-## Запуск через `/loop` (для отладки)
+## Running via `/loop` (for debugging)
 
-`/loop` крутит задачу в текущей сессии — удобно для подбора параметров. Не выживает рестарт.
+`/loop` runs the job in the current session — handy for tuning parameters. Does not survive restarts.
 
 ```
 /loop 5m xrpl-watch account=r... network=mainnet since_ledger=0 telegram_chat_id=...
 ```
 
-## Расширения
+## Extensions
 
-- **Несколько адресов** — в prompt'е переданный `account` сделай массивом, агент пройдёт по каждому отдельно (отдельный `since_ledger` на адрес — сохраняй в файле через bash-tool, либо распарси из prompt'а как JSON).
-- **Фильтрация по типу** — пропускай tx если `TransactionType` не входит в whitelist. В prompt'е добавь `types_filter=Payment,TrustSet`.
-- **Только incoming** — пропускай если `Account == watched_account` (это outgoing).
-- **Threshold по сумме** — для Payment'ов парсь `Amount` (drops для XRP, объект для token'ов), сравнивай с порогом, шли только большие.
-- **Сценарий с подписью** — добавь `xrpl-signer` + автоматический ответ-payment'ом на incoming (например, для refund-бота). **Не делай это без user-approval на каждую исходящую tx** — `RequiresUserApproval=true` в `PreparedTransaction` существует именно для этого.
+- **Multiple addresses** — make the `account` parameter an array; the agent walks each separately (per-address `since_ledger` — store in a file via the bash tool, or parse from prompt as JSON).
+- **Filter by type** — skip tx when `TransactionType` is not in the whitelist. Add `types_filter=Payment,TrustSet` to the prompt.
+- **Incoming only** — skip when `Account == watched_account` (those are outgoing).
+- **Amount threshold** — for Payment, parse `Amount` (drops for XRP, object for tokens) and compare against a threshold; send only the big ones.
+- **Auto-respond scenario** — add `xrpl-signer` + auto-reply Payment to incoming (e.g. for a refund bot). **Never do this without user-approval on every outgoing tx** — `RequiresUserApproval=true` in `PreparedTransaction` exists exactly for this.
 
 ## Verification
 
-Перед prod-deployment проверь:
+Before prod deployment, verify:
 
-1. **Idempotency** — запусти агента два раза подряд с одним `since_ledger`. Второй раз не должен отправить ничего нового. Если шлёт — баг в извлечении max ledger.
-2. **Lag** — `xrpl_account_tx_since` возвращает `validated` ledger'ы, между прошедшим on-chain событием и notification может пройти interval + ~10 секунд на consensus.
-3. **Telegram rate limit** — bot API: 30 messages/sec в разные chat'ы, 1/sec в один chat. При больших историях добавь throttle.
+1. **Idempotency** — run the agent twice in a row with the same `since_ledger`. The second run must not send anything new. If it does — a bug in max-ledger extraction.
+2. **Lag** — `xrpl_account_tx_since` returns `validated` ledgers only; between the on-chain event and the notification you may see `interval + ~10 seconds` of consensus delay.
+3. **Telegram rate limit** — bot API: 30 messages/sec across chats, 1/sec to a single chat. For large histories, add throttling.
 
-## Затраты
+## Cost
 
-- **xrpl-cloud bearer**: одна invocation = ~1 запрос к cloud-серверу (cheap). Для 5-минутного интервала: 12/час, 288/день. Default rate limit 60/min не задевает.
-- **rippled load** — `account_tx` paginates по indexes, на validated-only ledger range. Не нагружает ноду.
-- **Telegram** — bot API бесплатен.
+- **xrpl-cloud bearer**: one invocation ≈ one request to the cloud server (cheap). For a 5-minute interval: 12/hour, 288/day. Default rate limit 60/min is not impacted.
+- **rippled load** — `account_tx` paginates by indexes on the validated-only ledger range. No node strain.
+- **Telegram** — bot API is free.
