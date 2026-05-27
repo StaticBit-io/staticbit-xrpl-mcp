@@ -1,3 +1,8 @@
+## v0.3.1 — 2026-05-27
+
+### Documentation
+- post-release fixes — plugin update syntax, stale marketplace name (4e1b768)
+
 ## v0.3.0 — 2026-05-27
 
 ### Features
