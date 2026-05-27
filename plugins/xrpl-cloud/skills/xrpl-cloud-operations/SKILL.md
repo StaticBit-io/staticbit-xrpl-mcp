@@ -58,7 +58,7 @@ Surface `engineResult` to the user verbatim — rippled errors like `tecUNFUNDED
 - **Never** ask the user to paste a seed, mnemonic, secret numbers, or passphrase into the chat. Those belong in the signer plugin's keystore (passphrase in ENV `XRPL_SIGNER_PASSPHRASE`).
 - **Never** call write tools without showing `humanSummary` first.
 - **Never** retry a stale prepare blob — `LastLedgerSequence` expires fast. Re-run `*_prepare` for a fresh window.
-- If `xrpl-signer` is not installed, tell the user to install it (`/plugin install xrpl-signer@staticbit-plugins`) before attempting write flow.
+- If `xrpl-signer` is not installed, tell the user to install it (`/plugin install xrpl-signer@staticbit-xrpl-mcp`) before attempting write flow.
 
 ## When this skill is NOT for you
 

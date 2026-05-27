@@ -372,8 +372,13 @@ claude plugin list
 ### 11.2 Обновить отдельный плагин
 
 ```
-claude plugin update xrpl-signer
+claude plugin update xrpl-signer@staticbit-xrpl-mcp
 ```
+
+> ⚠️ Форма `<plugin>@<marketplace>` **обязательна**. Короткая
+> `claude plugin update xrpl-signer` падает с `Plugin not found` в
+> текущей версии Claude Code CLI — резолвер не достраивает имя
+> marketplace'а сам.
 
 Рестарт Claude Code после обновления.
 

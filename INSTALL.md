@@ -372,8 +372,13 @@ Updated plugins will be marked as having a newer version.
 ### 11.2 Update a single plugin
 
 ```
-claude plugin update xrpl-signer
+claude plugin update xrpl-signer@staticbit-xrpl-mcp
 ```
+
+> ⚠️ The `<plugin>@<marketplace>` form is required. The short form
+> `claude plugin update xrpl-signer` fails with `Plugin not found` in
+> the current Claude Code CLI — the resolver doesn't fall back to the
+> marketplace when the suffix is omitted.
 
 Restart Claude Code after updating.
 

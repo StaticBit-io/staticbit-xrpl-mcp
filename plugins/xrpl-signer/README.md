@@ -10,7 +10,7 @@ Offline stdio MCP — управление XRPL кошельками и подп
 
 ```
 /plugin marketplace add https://github.com/StaticBit-io/staticbit-xrpl-mcp
-/plugin install xrpl-signer@staticbit-plugins
+/plugin install xrpl-signer@staticbit-xrpl-mcp
 ```
 
 ### Обязательная ENV — passphrase для keystore
@@ -107,14 +107,14 @@ Node.js launcher `bin/signer.js` выбирает нужный по `os.platform
 
 С cloud-flow:
 ```
-/plugin install xrpl-cloud@staticbit-plugins
-/plugin install xrpl-signer@staticbit-plugins
+/plugin install xrpl-cloud@staticbit-xrpl-mcp
+/plugin install xrpl-signer@staticbit-xrpl-mcp
 ```
 
 С local-flow (никакого внешнего сервиса):
 ```
-/plugin install xrpl-local@staticbit-plugins
-/plugin install xrpl-signer@staticbit-plugins
+/plugin install xrpl-local@staticbit-xrpl-mcp
+/plugin install xrpl-signer@staticbit-xrpl-mcp
 ```
 
 В обоих случаях агент сам разводит вызовы между prepare-сервером и signer'ом.

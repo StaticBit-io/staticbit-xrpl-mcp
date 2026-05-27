@@ -15,7 +15,7 @@
 
 ```
 /plugin marketplace add https://github.com/StaticBit-io/staticbit-xrpl-mcp
-/plugin install xrpl-local@staticbit-plugins
+/plugin install xrpl-local@staticbit-xrpl-mcp
 ```
 
 Без bearer-токенов, без cloud-зависимости. Просто работает.
@@ -54,7 +54,7 @@ Tools зарегистрированы как `mcp__plugin_xrpl-local_xrpl-local
 Этот плагин **не** имеет ключей. Чтобы подписывать — рядом ставь `xrpl-signer`:
 
 ```
-/plugin install xrpl-signer@staticbit-plugins
+/plugin install xrpl-signer@staticbit-xrpl-mcp
 ```
 
 Local делает `prepare` → signer (offline, локально) делает `sign` → local делает `submit_signed`. Никакого внешнего сервиса в цепочке.

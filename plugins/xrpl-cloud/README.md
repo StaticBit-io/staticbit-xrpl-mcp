@@ -14,7 +14,7 @@
 
 ```
 /plugin marketplace add https://github.com/StaticBit-io/staticbit-xrpl-mcp
-/plugin install xrpl-cloud@staticbit-plugins
+/plugin install xrpl-cloud@staticbit-xrpl-mcp
 ```
 
 ### Bearer от админа cloud-сервера
@@ -51,7 +51,7 @@ xrpl-cloud  https://xrpl-mcp.staticbit.io/mcp (HTTP)  ✓ Connected
 Этот плагин **только** проксирует к серверу, **не** имеет ключей. Чтобы реально отправлять транзакции, поставь рядом `xrpl-signer`:
 
 ```
-/plugin install xrpl-signer@staticbit-plugins
+/plugin install xrpl-signer@staticbit-xrpl-mcp
 ```
 
 Cloud делает `prepare` → signer (локально) делает `sign` → cloud делает `submit_signed`. Подробности — в README каждого плагина и в их skills.

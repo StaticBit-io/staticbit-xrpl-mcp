@@ -7,7 +7,7 @@ This document is for **you**, the release manager, when you need to ship an upda
 ## TL;DR
 
 ```bash
-cd /e/GIT/XRPL/StaticBitXrplMcp
+# Run from the monorepo root (source + marketplace live in the same repo).
 
 # 1. You committed code, pushed, ran tests — standard flow.
 git status            # must be clean
@@ -17,7 +17,7 @@ git push
 ./release-plugin.sh xrpl-signer patch --push
 ```
 
-The script rebuilds binaries, copies them into the marketplace, bumps the version in `plugin.json` + `marketplace.json`, appends a CHANGELOG entry from git log, creates a commit and a git tag in the marketplace, and fast-forward-pushes.
+The script rebuilds binaries, copies them into `plugins/<name>/bin/`, bumps the version in `plugin.json` + `marketplace.json`, appends a CHANGELOG entry from git log, creates a commit and a git tag, and fast-forward-pushes.
 
 ---
 
@@ -68,15 +68,13 @@ git push
 ### Scenario B — updated skill / README of a plugin (no rebuild)
 
 ```bash
-# Edit in the marketplace repo:
-cd /e/GIT/staticbit-plugins
+# Edit in place — source and marketplace live in the same monorepo:
 vim plugins/xrpl-cloud/skills/xrpl-cloud-operations/SKILL.md
-git add -A
+git add plugins/xrpl-cloud/skills/xrpl-cloud-operations/SKILL.md
 git commit -m "docs(xrpl-cloud): clarify two-phase signing flow in skill"
 git push
 
 # Release without a build:
-cd /e/GIT/XRPL/StaticBitXrplMcp
 ./release-plugin.sh xrpl-cloud patch --no-build --push
 ```
 
@@ -109,8 +107,8 @@ ssh root@195.26.227.83 'cd /opt/StaticBitXrplMcp && git pull && docker compose u
 # a prep-commit before the normal release.
 
 # Local check by reinstalling the plugin:
-claude plugin marketplace update staticbit-plugins
-claude plugin update xrpl-signer
+claude plugin marketplace update staticbit-xrpl-mcp
+claude plugin update xrpl-signer@staticbit-xrpl-mcp
 # Restart Claude Code, test live.
 
 # If everything's OK — normal release:
@@ -140,9 +138,12 @@ Both plugin versions bump simultaneously, binaries of each are built, with one s
 1. **Cloud deployment**, if server code is affected and there's a live VPS. The script doesn't SSH on its own.
 2. **Notify users** that the update is available (if there are more than just you). They run:
    ```
-   /plugin marketplace update staticbit-plugins
-   /plugin update xrpl-signer
+   /plugin marketplace update staticbit-xrpl-mcp
+   /plugin update xrpl-signer@staticbit-xrpl-mcp
    ```
+   The `<plugin>@<marketplace>` form is required — the short
+   `claude plugin update xrpl-signer` fails with `Plugin not found`
+   in the current Claude Code CLI.
 3. **GitHub Release with UI notes** — if desired — `gh release create xrpl-signer--v0.1.1 --notes-from-tag`. The plugin's CHANGELOG.md is a great base for notes.
 
 ## Script flags (full list)
@@ -159,7 +160,6 @@ Useful:
 | `--build-only` | Build + copy only, no bump/commit/tag |
 | `--push` | After all commits, fast-forward-push both repos |
 | `--version X.Y.Z` | Explicit version instead of semver bump |
-| `--plugins-path P` | Non-standard marketplace repo location |
 | `--dry-run` | Show what would happen, change nothing |
 
 ## Troubleshooting
@@ -167,7 +167,6 @@ Useful:
 | Symptom | Cause | Fix |
 |---|---|---|
 | `Repo … has uncommitted changes` | Script requires clean repos | `git status` + commit or stash |
-| `Marketplace path not found` | Marketplace not auto-detected | `STATICBIT_PLUGINS_PATH=/path/to/staticbit-plugins ./release-plugin.sh ...` or `--plugins-path` |
 | `Plugin … not found in marketplace.json` | Plugin name not registered in the marketplace | Check `plugins[].name` in `.claude-plugin/marketplace.json` |
 | `Artifacts not found at …` | Build script failed or didn't run | Run `bash build-signer-binaries.sh` separately to see errors |
 | `non-fast-forward` on push | Someone (or you from another device) pushed earlier | `git pull --rebase` in the relevant repo → retry with `--push` |
@@ -175,4 +174,4 @@ Useful:
 
 ## Extension to other plugins
 
-If a plugin from a **different** source repo joins this marketplace (e.g. `x-mcp-cloud` from `Platonenkov/XMcp`) — you need the same `release-plugin.sh` in that source repo. It would know about its own binaries (if any) and copy them into `staticbit-plugins/plugins/x-mcp-cloud/`. The JSON-helpers / changelog / commit-tag-push logic is one-to-one — you can copy it across and substitute your `PLUGIN_KIND` values.
+If a plugin from a **different** source repo joins this marketplace (e.g. `x-mcp-cloud` from `Platonenkov/XMcp`) — you need the same `release-plugin.sh` in that source repo. It would know about its own binaries (if any) and copy them into `staticbit-xrpl-mcp/plugins/x-mcp-cloud/`. The JSON-helpers / changelog / commit-tag-push logic is one-to-one — you can copy it across and substitute your `PLUGIN_KIND` values.
