@@ -1,3 +1,5 @@
+> 🇷🇺 [Прочесть на русском](DEPLOY.ru.md)
+
 # Deploying StaticBitXrplMcp
 
 This document is **self-contained**. Hand a Claude (or any operator) a link to

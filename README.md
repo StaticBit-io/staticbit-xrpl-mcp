@@ -1,26 +1,30 @@
+> 🇷🇺 [Прочесть на русском](README.ru.md)
+
 # staticbit-xrpl-mcp
 
-XRPL toolkit for Claude Code — **исходники + три плагина в одном репо**. Содержит:
+XRPL toolkit for Claude Code — **source + three plugins in one repo**. Contains:
 
-- **C# / .NET 10 server** для XRP Ledger (cloud deploy + local stdio в одном бинаре).
-- **Offline stdio signer** с encrypted keystore (PBKDF2 + AES-256-GCM).
-- **Три плагина** для Claude Code в виде marketplace в этом же репо.
+- **C# / .NET 10 server** for the XRP Ledger (cloud deploy + local stdio in one binary).
+- **Offline stdio signer** with an encrypted keystore (PBKDF2 + AES-256-GCM).
+- **Three plugins** for Claude Code shaped as a marketplace inside the same repo.
 
-> 📖 **[INSTALL.md](INSTALL.md)** — пошаговая инструкция для конечного пользователя плагинов: от чистой Claude Code до первой подписанной XRPL-транзакции.
-> 📖 **[DEPLOY.md](DEPLOY.md)** — для админа, разворачивающего cloud-сервер на VPS.
-> 📖 **[RELEASE.md](RELEASE.md)** — для меня (релизера), как публиковать новые версии плагинов.
-> 📖 **[docs/glossary.md](docs/glossary.md)** — XRPL-термины, которые встречаются в описаниях tools.
-> 📖 **[docs/supply-chain.md](docs/supply-chain.md)** — что прикладывается к каждому release (SBOM, SLSA, опц. notarization) и как пользователю это верифицировать.
-> 📖 **[docs/tools-schema.json](docs/tools-schema.json)** — машинно-читаемый JSON-Schema каталог всех MCP-tools (74 шт), для third-party агентов.
-> 📖 **[docs/examples/](docs/examples/)** — рецепты кросс-плагинных Cowork-агентов.
+> 📖 **[INSTALL.md](INSTALL.md)** — step-by-step instructions for the end user of the plugins: from a fresh Claude Code install to the first signed XRPL transaction.
+> 📖 **[DEPLOY.md](DEPLOY.md)** — for an admin deploying the cloud server on a VPS.
+> 📖 **[RELEASE.md](RELEASE.md)** — for me (the release manager) — how to publish new plugin versions.
+> 📖 **[docs/features.md](docs/features.md)** — full feature catalogue (131 tools, 432 unit tests, 12 covered amendments).
+> 📖 **[docs/glossary.md](docs/glossary.md)** — XRPL terminology used in tool descriptions.
+> 📖 **[docs/supply-chain.md](docs/supply-chain.md)** — what ships with every release (SBOM, SLSA, optional notarization) and how to verify it.
+> 📖 **[docs/tools-schema.json](docs/tools-schema.json)** — machine-readable JSON-Schema catalogue of all MCP tools (131), for third-party agents.
+> 📖 **[docs/examples/](docs/examples/)** — recipes for cross-plugin Cowork agents.
+> 📖 **[docs/bilingual-convention.md](docs/bilingual-convention.md)** — sibling `.md` / `.ru.md` documentation convention.
 
-## Плагины marketplace
+## Marketplace plugins
 
 | Plugin | What it does | Size |
 |---|---|---|
-| [`xrpl-cloud`](plugins/xrpl-cloud/) | HTTP MCP to the StaticBit cloud server at `xrpl-mcp.staticbit.io`. Read / prepare / submit через bearer-authed HTTPS. | ~10 KB |
-| [`xrpl-local`](plugins/xrpl-local/) | Local stdio MCP — те же 21 tool, но полностью на твоей машине, WebSocket напрямую к публичным XRPL нодам. | ~260 MB (5 RIDs) |
-| [`xrpl-signer`](plugins/xrpl-signer/) | Offline stdio MCP для управления кошельками и подписания — encrypted keystore, zero network code. Парится с cloud либо local. | ~200 MB (5 RIDs) |
+| [`xrpl-cloud`](plugins/xrpl-cloud/) | HTTP MCP to the StaticBit cloud server at `xrpl-mcp.staticbit.io`. Read / prepare / submit via bearer-authed HTTPS. | ~10 KB |
+| [`xrpl-local`](plugins/xrpl-local/) | Local stdio MCP — same tools, but entirely on your machine; WebSocket directly to public XRPL nodes. | ~260 MB (5 RIDs) |
+| [`xrpl-signer`](plugins/xrpl-signer/) | Offline stdio MCP for wallet management and signing — encrypted keystore, zero network code. Pairs with cloud or local. | ~200 MB (5 RIDs) |
 
 ## How they compose
 
@@ -48,103 +52,109 @@ XRPL toolkit for Claude Code — **исходники + три плагина в
 └────────────────────────────────────────────────────────┘
 ```
 
-Signer одинаков в обоих flow — он чистая криптография, ничего не знает о prepare/submit стороне.
+The signer is identical in both flows — it's pure cryptography, knows nothing about the prepare/submit side.
 
-## Install (для пользователей плагина)
+## Install (for plugin users)
 
 ```
 /plugin marketplace add https://github.com/StaticBit-io/staticbit-xrpl-mcp
 ```
 
-Marketplace приватный; Claude Code запросит GitHub PAT (read access) при первом `marketplace add`.
+The marketplace is private; Claude Code will prompt for a GitHub PAT (read access) on first `marketplace add`.
 
-Дальше — какие плагины ставить:
+Then — pick which plugins to install:
 
 ```
-# Cloud + signer (легковесный, зависит от StaticBit VPS):
+# Cloud + signer (lightweight, depends on the StaticBit VPS):
 /plugin install xrpl-cloud@staticbit-xrpl-mcp
 /plugin install xrpl-signer@staticbit-xrpl-mcp
 
-# Local + signer (offline-first, без cloud dependency):
+# Local + signer (offline-first, no cloud dependency):
 /plugin install xrpl-local@staticbit-xrpl-mcp
 /plugin install xrpl-signer@staticbit-xrpl-mcp
 
-# Read-only через cloud (без подписи — Cowork-агенты, дашборды):
+# Read-only via cloud (no signing — Cowork agents, dashboards):
 /plugin install xrpl-cloud@staticbit-xrpl-mcp
 ```
 
-Подробная инструкция со всеми ENV-переменными — в [INSTALL.md](INSTALL.md).
+Full instructions with every ENV variable — in [INSTALL.md](INSTALL.md).
 
-## Структура репо
+## Repo layout
 
 ```
 staticbit-xrpl-mcp/
-├── .claude-plugin/marketplace.json        ← реестр плагинов
-├── .github/workflows/                     ← CI: docker, dotnet-test, release-plugin
+├── .claude-plugin/marketplace.json        ← plugin registry
+├── .github/workflows/                     ← CI: docker, dotnet-test, codeql, release-plugin, integration-tests
+├── .github/dependabot.yml                 ← weekly NuGet + actions updates
 ├── plugins/
-│   ├── xrpl-cloud/      (manifest + skill, без бинарей)
-│   ├── xrpl-local/      (+ bin/<rid>/ для 5 RIDs)
-│   └── xrpl-signer/     (+ bin/<rid>/ для 5 RIDs)
+│   ├── xrpl-cloud/      (manifest + skill, no binaries)
+│   ├── xrpl-local/      (+ bin/<rid>/ for 5 RIDs)
+│   └── xrpl-signer/     (+ bin/<rid>/ for 5 RIDs)
 ├── src/
 │   ├── StaticBit.Xrpl.Mcp.Abstractions/   ← shared models
-│   ├── StaticBit.Xrpl.Mcp.Core/           ← 21 read/prepare/submit tool
+│   ├── StaticBit.Xrpl.Mcp.Core/           ← 131 read/prepare/submit tools
 │   ├── StaticBit.Xrpl.Mcp.Server/         ← HTTP+stdio host
 │   └── StaticBit.Xrpl.Mcp.Signer/         ← offline signer
-├── tests/                                  ← Core + Server + Signer unit tests
+├── tests/                                  ← Core + Server + Signer unit tests + Integration smoke
+├── docs/                                   ← features.md, glossary, examples, supply-chain, branch-protection
 ├── Dockerfile, docker-compose.yml          ← cloud deploy
-├── build-server-binaries.sh                ← publish server для 5 RIDs
-├── build-signer-binaries.sh                ← publish signer для 5 RIDs
-├── release-plugin.sh                       ← релизер
+├── build-server-binaries.sh                ← publish server for 5 RIDs
+├── build-signer-binaries.sh                ← publish signer for 5 RIDs
+├── release-plugin.sh                       ← release manager script
 ├── INSTALL.md, DEPLOY.md, RELEASE.md
 └── StaticBitXrplMcp.sln, Directory.Build.props
 ```
 
-## Разработка
+## Development
 
 ```bash
-# Сборка + тесты
+# Build + tests
 dotnet restore
 dotnet build
 dotnet test --filter TestU
 
-# Локальный запуск cloud-сервера в stdio для отладки
+# Local cloud-server in stdio mode for debugging
 dotnet run --project src/StaticBit.Xrpl.Mcp.Server -- --transport stdio
 
-# Локальный запуск HTTP-сервера
+# Local HTTP server
 dotnet run --project src/StaticBit.Xrpl.Mcp.Server -- --transport http --urls http://localhost:5500
 
-# Self-contained publish для одного плагина (или всех)
+# Self-contained publish for one plugin (or all)
 bash build-signer-binaries.sh           # 5 RIDs
-bash build-server-binaries.sh win-x64   # одна платформа
+bash build-server-binaries.sh win-x64   # single platform
 
-# Release плагина (см. RELEASE.md)
+# Plugin release (see RELEASE.md)
 ./release-plugin.sh xrpl-signer patch --push
 
-# Регенерация docs/tools-schema.json (после добавления/изменения [McpServerTool])
+# Regenerate docs/tools-schema.json (after adding/changing a [McpServerTool])
 dotnet run --project tools/SchemaGen -- docs/tools-schema.json
 ```
 
-### Конвенция тестов
+### Test convention
 
-Суффикс `U` = **Unit** (test). Применяется в двух местах:
+Suffix `U` = **Unit** (test). Applied in two places:
 
-- **Файлы** — `*TestsU.cs` (например `CurrencyParserTestsU.cs`).
-- **Имена тест-методов** — префикс `TestU_` (например `TestU_Parse_Empty_Throws`).
+- **Files** — `*TestsU.cs` (e.g. `CurrencyParserTestsU.cs`).
+- **Test method names** — `TestU_` prefix (e.g. `TestU_Parse_Empty_Throws`).
 
-Это позволяет одной командой запустить только быстрые юнит-тесты:
+This lets you run only the fast unit tests with a single command:
 
 ```bash
 dotnet test --filter TestU
 ```
 
-`Directory.Build.props` задаёт `TargetFramework=net10.0` по умолчанию; единственное исключение — `StaticBit.Xrpl.Mcp.Abstractions`, которая пинится на `netstandard2.1` чтобы её можно было встраивать в более старые хосты (Staticbit Wallet и т.п.).
+Integration tests live as `*TestsI.cs` / `TestI_*` (in `tests/StaticBit.Xrpl.Mcp.Integration.Tests/`) and run separately (daily cron in CI, not on every PR):
 
-Интеграционные тесты против реального rippled testnet (когда появятся) будут жить как `*TestsI.cs` / `TestI_*` и крутиться отдельно (по расписанию в CI, не на каждый PR).
+```bash
+dotnet test --filter "TestCategory=Integration"
+```
 
-## История
+`Directory.Build.props` sets `TargetFramework=net10.0` by default; the sole exception is `StaticBit.Xrpl.Mcp.Abstractions`, which pins to `netstandard2.1` so it can embed into older hosts (Staticbit Wallet, etc).
 
-Этот репо объединяет то, что раньше жило в двух приватных репо:
+## History
+
+This repo merges what previously lived in two private repos:
 - `StaticBit-io/StaticBitXrplMcp` (server source, signer source, tests, Docker, cloud deploy)
-- `StaticBit-io/staticbit-plugins` (marketplace, plugin manifests, бинари)
+- `StaticBit-io/staticbit-plugins` (marketplace, plugin manifests, binaries)
 
-С момента миграции код и marketplace живут atomic'но: PR может одновременно править `src/` и `plugins/<name>/bin/`. CI авто-релиза работает в одном workflow. Старые репо архивированы для истории.
+Since the migration, code and marketplace live atomically: a single PR can touch both `src/` and `plugins/<name>/bin/`. The CI auto-release runs in one workflow. The old repos are archived for history.
