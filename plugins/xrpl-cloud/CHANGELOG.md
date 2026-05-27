@@ -1,3 +1,8 @@
+## v0.2.5 — 2026-05-27
+
+### Features
+- structured error envelopes via XrplErrorClassifier + McpException (97692e8)
+
 ## v0.2.4 — 2026-05-27
 
 ### Fixes

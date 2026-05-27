@@ -13,7 +13,7 @@
       "name": "xrpl-cloud",
       "source": "./plugins/xrpl-cloud",
       "description": "Lightweight HTTP MCP that proxies to the StaticBit cloud server at xrpl-mcp.staticbit.io. Read/prepare/submit XRPL transactions without running anything locally. Bearer-authed. ~10 KB.",
-      "version": "0.2.4",
+      "version": "0.2.5",
       "author": {
         "name": "StaticBit",
         "url": "https://github.com/StaticBit-io/staticbit-xrpl-mcp"
@@ -31,7 +31,7 @@
       "name": "xrpl-local",
       "source": "./plugins/xrpl-local",
       "description": "Local stdio MCP — the same XRPL toolkit (read/prepare/submit) running fully on the user's machine. Connects directly to public XRPL nodes (xrplcluster.com etc) over WebSocket. No bearer, no cloud dependency, no third-party observer.",
-      "version": "0.3.4",
+      "version": "0.3.5",
       "author": {
         "name": "StaticBit",
         "url": "https://github.com/StaticBit-io/staticbit-xrpl-mcp"
@@ -50,7 +50,7 @@
       "name": "xrpl-signer",
       "source": "./plugins/xrpl-signer",
       "description": "Offline stdio MCP for XRPL wallet management and transaction signing. Encrypted keystore (PBKDF2 + AES-256-GCM), per-wallet salt/IV. Zero network code path — pure crypto. Pairs with either xrpl-cloud or xrpl-local for the prepare/submit half of the flow.",
-      "version": "0.3.4",
+      "version": "0.3.5",
       "author": {
         "name": "StaticBit",
         "url": "https://github.com/StaticBit-io/staticbit-xrpl-mcp"
