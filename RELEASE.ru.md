@@ -83,7 +83,7 @@ git push
 ```bash
 # 1. Закоммитил branch в основной репо, мерджнул в main, запушил.
 # 2. ДЕПЛОЙ CLOUD-сервера — отдельная процедура (DEPLOY.md):
-ssh root@195.26.227.83 'cd /opt/StaticBitXrplMcp && git pull && docker compose up -d --build'
+ssh root@<vps> 'cd /opt/staticbit-xrpl-mcp && docker compose pull && docker compose up -d'
 # Тестируешь cloud endpoint вручную, убеждаешься что работает.
 
 # 3. Релизишь local-плагин с новым self-contained бинарём:

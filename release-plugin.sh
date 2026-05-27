@@ -506,7 +506,7 @@ if $PUSH; then
   echo "Users can update with:"
   echo "  claude plugin marketplace update staticbit-xrpl-mcp"
   for plugin in "${PLUGINS[@]}"; do
-    echo "  claude plugin update $plugin"
+    echo "  claude plugin update $plugin@staticbit-xrpl-mcp"
   done
 else
   echo

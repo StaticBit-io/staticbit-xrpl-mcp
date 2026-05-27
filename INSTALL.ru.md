@@ -602,7 +602,7 @@ Claude Code не в PATH. Найди установку и добавь `bin/`:
 
 Для cloud — попроси админа выгрузить из VPS:
 ```bash
-ssh root@<vps> 'cd /opt/StaticBitXrplMcp && docker compose logs --tail 200 xrpl-mcp'
+ssh root@<vps> 'cd /opt/staticbit-xrpl-mcp && docker compose logs --tail 200 xrpl-mcp'
 ```
 
 Для local / signer — Claude Code пишет stderr субпроцессов в свои логи. Открой `/logs` (или эквивалент в твоей версии).

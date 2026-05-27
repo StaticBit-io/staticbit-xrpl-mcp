@@ -602,7 +602,7 @@ Not a plugin bug — this is a rippled-level error:
 
 For cloud — ask the admin to dump them from the VPS:
 ```bash
-ssh root@<vps> 'cd /opt/StaticBitXrplMcp && docker compose logs --tail 200 xrpl-mcp'
+ssh root@<vps> 'cd /opt/staticbit-xrpl-mcp && docker compose logs --tail 200 xrpl-mcp'
 ```
 
 For local / signer — Claude Code writes subprocess stderr into its own logs. Open `/logs` (or the equivalent in your version).

@@ -83,7 +83,7 @@ git push
 ```bash
 # 1. Commit branch in the main repo, merged into main, pushed.
 # 2. CLOUD-SERVER DEPLOY — separate procedure (DEPLOY.md):
-ssh root@195.26.227.83 'cd /opt/StaticBitXrplMcp && git pull && docker compose up -d --build'
+ssh root@<vps> 'cd /opt/staticbit-xrpl-mcp && docker compose pull && docker compose up -d'
 # Test the cloud endpoint manually to make sure it works.
 
 # 3. Release the local plugin with the new self-contained binary:
