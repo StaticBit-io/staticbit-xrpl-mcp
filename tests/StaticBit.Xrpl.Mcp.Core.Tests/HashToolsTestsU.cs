@@ -1,4 +1,5 @@
 using System;
+using ModelContextProtocol;
 using StaticBit.Xrpl.Mcp.Core.Tools;
 
 namespace StaticBit.Xrpl.Mcp.Core.Tests;
@@ -133,7 +134,7 @@ public class HashToolsTestsU
     public void TestU_HashCredential_MissingSubject_Throws()
     {
         HashTools tool = new HashTools();
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<McpException>(() =>
             tool.HashCredential("", "rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH",
                 credentialTypePlain: "KYC"));
     }
@@ -142,37 +143,40 @@ public class HashToolsTestsU
     public void TestU_HashCredential_MissingIssuer_Throws()
     {
         HashTools tool = new HashTools();
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<McpException>(() =>
             tool.HashCredential("rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe", "",
                 credentialTypePlain: "KYC"));
     }
 
     [TestMethod]
-    public void TestU_HashCredential_InvalidSubjectChecksum_ThrowsArgument()
+    public void TestU_HashCredential_InvalidSubjectChecksum_ThrowsMcp()
     {
         // 'rfBKzgT2VK4eUJTRYBpzPJcdqnnxAGn2VK' looks like a classic address but
-        // fails base58check. Must surface as a clean ArgumentException, not a
-        // SDK-internal EncodingFormatException leaking through the MCP layer.
+        // fails base58check. Must surface as a clean McpException whose message
+        // carries the classified error envelope — never a SDK-internal
+        // EncodingFormatException leaking through.
         HashTools tool = new HashTools();
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+        McpException ex = Assert.Throws<McpException>(() =>
             tool.HashCredential(
                 "rfBKzgT2VK4eUJTRYBpzPJcdqnnxAGn2VK",
                 "rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH",
                 credentialTypePlain: "KYC"));
+        // The McpException payload is JSON — assert it contains the field name
+        // and classification hint.
         StringAssert.Contains(ex.Message, "subject", StringComparison.OrdinalIgnoreCase);
-        StringAssert.Contains(ex.Message, "base58check", StringComparison.OrdinalIgnoreCase);
+        StringAssert.Contains(ex.Message, "InvalidInput", StringComparison.Ordinal);
     }
 
     [TestMethod]
-    public void TestU_HashCredential_InvalidIssuerChecksum_ThrowsArgument()
+    public void TestU_HashCredential_InvalidIssuerChecksum_ThrowsMcp()
     {
         HashTools tool = new HashTools();
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+        McpException ex = Assert.Throws<McpException>(() =>
             tool.HashCredential(
                 "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe",
                 "rfBKzgT2VK4eUJTRYBpzPJcdqnnxAGn2VK",
                 credentialTypePlain: "KYC"));
         StringAssert.Contains(ex.Message, "issuer", StringComparison.OrdinalIgnoreCase);
-        StringAssert.Contains(ex.Message, "base58check", StringComparison.OrdinalIgnoreCase);
+        StringAssert.Contains(ex.Message, "InvalidInput", StringComparison.Ordinal);
     }
 }

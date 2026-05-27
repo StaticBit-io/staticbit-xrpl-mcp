@@ -36,23 +36,24 @@ public static class AddressValidation
     }
 
     /// <summary>
-    /// Throws <see cref="ArgumentException"/> with a clear, parameter-named
-    /// message when <paramref name="address"/> is missing or fails
-    /// base58check. Use at the top of every tool method that accepts an
-    /// address before forwarding into the SDK.
+    /// Throws an MCP-visible error (via <see cref="XrplToolError"/>) when
+    /// <paramref name="address"/> is missing or fails base58check. Use at
+    /// the top of every tool method that accepts an address before
+    /// forwarding into the SDK. The thrown McpException's message carries
+    /// the classified JSON envelope that AI agents can introspect.
     /// </summary>
     public static void AssertValid(string? address, string paramName)
     {
         if (string.IsNullOrWhiteSpace(address))
         {
-            throw new ArgumentException(
+            XrplToolError.ThrowInvalidInput(
                 $"{paramName} is required (XRPL classic address starting with 'r').",
                 paramName);
         }
 
         if (!IsValid(address))
         {
-            throw new ArgumentException(
+            XrplToolError.ThrowInvalidInput(
                 $"{paramName} is not a valid XRPL classic address (base58check failed): '{address}'.",
                 paramName);
         }
