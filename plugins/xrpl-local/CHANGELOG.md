@@ -1,3 +1,8 @@
+## v0.3.2 — 2026-05-27
+
+### Fixes
+- production polish — stale VPS paths, hardcoded IP, script output (87593ab)
+
 ## v0.3.1 — 2026-05-27
 
 ### Documentation
