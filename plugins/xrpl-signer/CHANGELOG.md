@@ -1,3 +1,8 @@
+## v0.3.4 — 2026-05-27
+
+### Fixes
+- graceful errors on invalid XRPL addresses (d682b63)
+
 ## v0.3.3 — 2026-05-27
 
 ### Build / CI
