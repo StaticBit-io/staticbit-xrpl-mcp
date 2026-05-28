@@ -3,8 +3,10 @@
     "xrpl-cloud": {
       "type": "http",
       "url": "https://xrpl-mcp.staticbit.io/mcp",
-      "headers": {
-        "Authorization": "Bearer ${XRPL_MCP_BEARER}"
+      "oauth": {
+        "authServerMetadataUrl": "https://auth.mcp.staticbit.io/.well-known/oauth-authorization-server",
+        "scopes": "xrpl",
+        "callbackPort": 8128
       }
     }
   }
