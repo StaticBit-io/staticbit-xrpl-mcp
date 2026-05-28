@@ -1,7 +1,7 @@
 {
   "name": "xrpl-cloud",
   "description": "HTTP MCP client that connects to the StaticBit cloud XRPL server at https://xrpl-mcp.staticbit.io. Read/prepare/submit transactions over HTTPS. Authenticates via OAuth 2.1 against auth.mcp.staticbit.io (run /mcp to log in once). No binaries, no local server — the cloud bears the WebSocket load. Pair with xrpl-signer for the signing half of write flows.",
-  "version": "0.2.5",
+  "version": "0.3.0",
   "author": {
     "name": "StaticBit",
     "url": "https://github.com/StaticBit-io"
