@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.RateLimiting;
 using System.Threading.Tasks;
+using Mcp.Auth.ResourceServer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
@@ -23,8 +24,6 @@ namespace StaticBit.Xrpl.Mcp.Server;
 
 internal static class Program
 {
-    private const int MinimumBearerLength = 32;
-
     public static async Task Main(string[] args)
     {
         string transport = ParseTransport(args);
@@ -78,7 +77,13 @@ internal static class Program
             .GetSection(ServerOptions.SectionName)
             .Get<ServerOptions>() ?? new ServerOptions();
 
-        ValidateBearerTokens(serverOptions);
+        // OAuth 2.1 resource server replaces the static-bearer gate. Validate the
+        // issuer/resource up front so the container exits before binding with bad config.
+        McpResourceServerOptions oauth = builder.Configuration
+            .GetSection(McpResourceServerOptions.SectionName)
+            .Get<McpResourceServerOptions>() ?? new McpResourceServerOptions();
+        ValidateOAuth(oauth);
+        builder.Services.AddMcpResourceServer(builder.Configuration);
 
         // Bind Kestrel to the configured HTTP port. Defaults to 5500 inside the container.
         builder.WebHost.UseUrls(string.Create(
@@ -223,19 +228,35 @@ internal static class Program
             app.UseMiddleware<RequestLoggingMiddleware>();
         }
 
-        // Bearer auth must run BEFORE the MCP endpoint so unauthenticated callers
-        // never reach the protocol handler. The middleware bypasses /healthz and /readyz.
-        app.UseMiddleware<BearerAuthMiddleware>();
+        // OAuth 2.1 resource server: JWT validation against the central AS replaces the
+        // static-bearer gate. Health/metrics endpoints are anonymous (no RequireAuthorization).
+        app.UseAuthentication();
+
+        // Bridge: expose the access token subject (sub) as the bearer label so the existing
+        // rate-limit partitioning / admin-alert plumbing keeps working per authenticated user.
+        app.Use(async (ctx, next) =>
+        {
+            string? sub = ctx.User?.FindFirst("sub")?.Value;
+            if (!string.IsNullOrEmpty(sub))
+            {
+                ctx.Items[BearerAuthMiddleware.BearerLabelContextKey] = sub;
+            }
+            await next(ctx);
+        });
 
         if (serverOptions.RateLimit.Enabled)
         {
-            // Rate-limiter sits AFTER bearer auth so token-based partitioning has a label
-            // available in HttpContext.Items.
+            // Rate-limiter sits AFTER the label bridge so token-based partitioning has a
+            // label available in HttpContext.Items.
             app.UseRateLimiter();
         }
 
+        app.UseAuthorization();
+
+        // RFC 9728 protected-resource metadata — anonymous; points clients at the AS.
+        app.MapMcpProtectedResourceMetadata();
         // MCP transport mounted at /mcp so /healthz and /readyz stay clean.
-        app.MapMcp("/mcp");
+        app.MapMcp("/mcp").RequireAuthorization(McpAuth.Policy);
 
         await app.RunAsync().ConfigureAwait(false);
     }
@@ -268,31 +289,18 @@ internal static class Program
         });
     }
 
-    private static void ValidateBearerTokens(ServerOptions options)
+    private static void ValidateOAuth(McpResourceServerOptions oauth)
     {
-        if (options.HttpAuth.Tokens.Count == 0)
+        if (!Uri.TryCreate(oauth.Issuer, UriKind.Absolute, out Uri? issuer) || issuer.Scheme != Uri.UriSchemeHttps)
         {
             throw new InvalidOperationException(
-                "HTTP transport requires Server:HttpAuth:Tokens to contain at least one entry. " +
-                "Generate one with: openssl rand -base64 48 | tr '/+' '_-'");
+                "OAuth:Issuer must be an absolute https URL (the authorization server), e.g. https://auth.mcp.staticbit.io.");
         }
 
-        for (int i = 0; i < options.HttpAuth.Tokens.Count; i++)
+        if (!Uri.TryCreate(oauth.Resource, UriKind.Absolute, out Uri? resource) || resource.Scheme != Uri.UriSchemeHttps)
         {
-            BearerTokenConfig token = options.HttpAuth.Tokens[i];
-            string label = string.IsNullOrEmpty(token.Label) ? "(unlabeled)" : token.Label;
-
-            if (string.IsNullOrWhiteSpace(token.Token))
-            {
-                throw new InvalidOperationException(
-                    $"Server:HttpAuth:Tokens[{i}]:Token (label='{label}') is empty.");
-            }
-
-            if (token.Token.Length < MinimumBearerLength)
-            {
-                throw new InvalidOperationException(
-                    $"Server:HttpAuth:Tokens[{i}]:Token (label='{label}') is shorter than {MinimumBearerLength} characters.");
-            }
+            throw new InvalidOperationException(
+                "OAuth:Resource must be this server's absolute https canonical URI (the token audience), e.g. https://xrpl-mcp.staticbit.io/mcp.");
         }
     }
 
