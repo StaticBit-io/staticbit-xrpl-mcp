@@ -129,10 +129,18 @@ public static class XrplToolError
     /// Throws <see cref="McpException"/> whose <c>Message</c> carries the
     /// classified, JSON-encoded error payload. Catch unhandled exceptions
     /// from a tool body and call this to produce a clean client-facing
-    /// error response.
+    /// error response. If <paramref name="exception"/> is already an
+    /// <see cref="McpException"/> (e.g. it bubbled up from an inner
+    /// validator that already produced the envelope) it is rethrown
+    /// unchanged — no double-wrapping.
     /// </summary>
     public static void ThrowMcp(Exception exception)
     {
+        if (exception is McpException)
+        {
+            throw exception;
+        }
+
         string payload = SerializeError(exception);
         throw new McpException(payload, exception);
     }

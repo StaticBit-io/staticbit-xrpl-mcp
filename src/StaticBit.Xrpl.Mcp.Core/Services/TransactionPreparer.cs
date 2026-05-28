@@ -58,45 +58,71 @@ public sealed class TransactionPreparer
     {
         if (transaction is null) throw new ArgumentNullException(nameof(transaction));
 
-        IXrplClient client = await _pool.GetAsync(network, cancellationToken).ConfigureAwait(false);
-
-        // Honor the configured LastLedgerSequenceOffset by pre-seeding the field;
-        // SDK's Autofill only fills it when absent so this overrides the SDK's hardcoded offset.
-        if (_options.LastLedgerSequenceOffset > 0 && !transaction.ContainsKey("LastLedgerSequence"))
+        // Validate the Account field up front — every XRPL transaction carries
+        // one, and an invalid base58check value would otherwise surface as a
+        // deep SDK EncodingFormatException. AssertValid throws a clean
+        // McpException envelope (via XrplToolError) naming the field.
+        if (transaction.TryGetValue("Account", out object? accountObj)
+            && accountObj is string accountStr)
         {
-            try
-            {
-                uint currentLedger = await client.GetLedgerIndex(cancellationToken).ConfigureAwait(false);
-                transaction["LastLedgerSequence"] = currentLedger + _options.LastLedgerSequenceOffset;
-            }
-            catch
-            {
-                // Fall through and let Autofill compute it with its own default.
-            }
+            AddressValidation.AssertValid(accountStr, "Account");
         }
 
-        Dictionary<string, object> filled = await client
-            .Autofill(transaction, signersCount: null, cancellationToken)
-            .ConfigureAwait(false);
-
-        ApplyFeeBump(filled);
-
-        string blobUnsigned = XrplBinaryCodec.Encode(filled);
-        string signingData = XrplBinaryCodec.EncodeForSigning(filled);
-        uint lastLedgerSequence = ExtractUInt(filled, "LastLedgerSequence");
-
-        Dictionary<string, object?> normalizedJson = NormalizeDictionary(filled);
-
-        return new PreparedTransaction
+        try
         {
-            Network = network.Value,
-            TxJson = normalizedJson,
-            TxBlobUnsigned = blobUnsigned,
-            SigningData = signingData,
-            LastLedgerSequence = lastLedgerSequence,
-            HumanSummary = humanSummary,
-            RequiresUserApproval = true,
-        };
+            IXrplClient client = await _pool.GetAsync(network, cancellationToken).ConfigureAwait(false);
+
+            // Honor the configured LastLedgerSequenceOffset by pre-seeding the field;
+            // SDK's Autofill only fills it when absent so this overrides the SDK's hardcoded offset.
+            if (_options.LastLedgerSequenceOffset > 0 && !transaction.ContainsKey("LastLedgerSequence"))
+            {
+                try
+                {
+                    uint currentLedger = await client.GetLedgerIndex(cancellationToken).ConfigureAwait(false);
+                    transaction["LastLedgerSequence"] = currentLedger + _options.LastLedgerSequenceOffset;
+                }
+                catch
+                {
+                    // Fall through and let Autofill compute it with its own default.
+                }
+            }
+
+            Dictionary<string, object> filled = await client
+                .Autofill(transaction, signersCount: null, cancellationToken)
+                .ConfigureAwait(false);
+
+            ApplyFeeBump(filled);
+
+            string blobUnsigned = XrplBinaryCodec.Encode(filled);
+            string signingData = XrplBinaryCodec.EncodeForSigning(filled);
+            uint lastLedgerSequence = ExtractUInt(filled, "LastLedgerSequence");
+
+            Dictionary<string, object?> normalizedJson = NormalizeDictionary(filled);
+
+            return new PreparedTransaction
+            {
+                Network = network.Value,
+                TxJson = normalizedJson,
+                TxBlobUnsigned = blobUnsigned,
+                SigningData = signingData,
+                LastLedgerSequence = lastLedgerSequence,
+                HumanSummary = humanSummary,
+                RequiresUserApproval = true,
+            };
+        }
+        catch (OperationCanceledException)
+        {
+            // Honour cooperative cancellation — do not reclassify as a tool error.
+            throw;
+        }
+        catch (Exception ex)
+        {
+            // RippledException (actNotFound, tecPATH_DRY, malformedAddress, etc.)
+            // and any other autofill/encode failure → structured envelope so the
+            // agent gets category / isRetryable / fieldName instead of an opaque stub.
+            XrplToolError.ThrowMcp(ex);
+            throw; // unreachable — ThrowMcp always throws.
+        }
     }
 
     /// <summary>
