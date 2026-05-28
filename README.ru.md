@@ -20,7 +20,7 @@ XRPL toolkit for Claude Code — **исходники + три плагина в
 
 | Plugin | What it does | Size |
 |---|---|---|
-| [`xrpl-cloud`](plugins/xrpl-cloud/) | HTTP MCP to the StaticBit cloud server at `xrpl-mcp.staticbit.io`. Read / prepare / submit через bearer-authed HTTPS. | ~10 KB |
+| [`xrpl-cloud`](plugins/xrpl-cloud/) | HTTP MCP to the StaticBit cloud server at `xrpl-mcp.staticbit.io`. Read / prepare / submit через OAuth 2.1-authed HTTPS. | ~10 KB |
 | [`xrpl-local`](plugins/xrpl-local/) | Local stdio MCP — те же 21 tool, но полностью на твоей машине, WebSocket напрямую к публичным XRPL нодам. | ~260 MB (5 RIDs) |
 | [`xrpl-signer`](plugins/xrpl-signer/) | Offline stdio MCP для управления кошельками и подписания — encrypted keystore, zero network code. Парится с cloud либо local. | ~200 MB (5 RIDs) |
 
