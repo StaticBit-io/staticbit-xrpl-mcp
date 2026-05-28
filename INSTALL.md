@@ -11,10 +11,10 @@ Self-contained step-by-step guide. Share a link to this file with a new user —
 3. [Getting a GitHub PAT](#3-getting-a-github-pat)
 4. [Adding the marketplace](#4-adding-the-marketplace)
 5. [Installing the plugins](#5-installing-the-plugins)
-6. [Getting secrets from the admin](#6-getting-secrets-from-the-admin)
+6. [Getting access — admin allow-list and secrets](#6-getting-access)
 7. [Setting environment variables](#7-setting-environment-variables)
 8. [Restart Claude Code](#8-restart-claude-code)
-9. [Verify the connection](#9-verify-the-connection)
+9. [Verify the connection — and OAuth login for cloud](#9-verify-the-connection)
 10. [First wallet + first transaction (testnet)](#10-first-wallet--first-transaction-testnet)
 11. [Day-two — updates, backups, rotation](#11-day-two)
 12. [Removal](#12-removal)
@@ -147,16 +147,15 @@ Every installed plugin must show `Status: ✔ enabled`.
 
 ---
 
-## 6. Getting secrets from the admin
+## 6. Getting access
 
-### 6.1 `XRPL_MCP_BEARER` — only for `xrpl-cloud`
+### 6.1 Allow-list — only for `xrpl-cloud`
 
-If you're installing `xrpl-cloud`, ask the admin of `xrpl-mcp.staticbit.io` to issue you a bearer token. Every client gets its own token (for audit). The token is a long base64-ish string like:
-```
-SGEHRvrDuBV8oj5Khr1ppHK3xkSQPK8qRXiNeFUORG1iVS6-1VcscU5x9bnAp-ab
-```
+If you're installing `xrpl-cloud`, the cloud server (`xrpl-mcp.staticbit.io`) is protected by **OAuth 2.1** against `auth.mcp.staticbit.io`. There is **no bearer token and no ENV var** to set — instead, your account must be on the server **allow-list**. Ask the admin of `xrpl-mcp.staticbit.io` to add you.
 
-Save it in your password manager. If it leaks — ask the admin to rotate (§11).
+Once you're on the allow-list, you log in interactively from Claude Code via `/mcp` (see §9) — the browser flow takes you through `auth.mcp.staticbit.io`, Claude Code performs dynamic client registration, stores the resulting token and refreshes it automatically. Nothing to copy or paste, nothing to save in a password manager.
+
+If your access is later revoked (admin disables your account), your tokens are invalidated immediately and `/mcp` will start failing — re-request access from the admin.
 
 ### 6.2 `XRPL_SIGNER_PASSPHRASE` — only for `xrpl-signer`
 
@@ -183,28 +182,23 @@ openssl rand -base64 24
 
 ## 7. Setting environment variables
 
-ENV variables are read by the plugins when Claude Code starts. After `setx` you need a **full restart of Claude Code**, not just a new PowerShell window.
+Only `xrpl-signer` needs an ENV variable — its keystore passphrase. `xrpl-cloud` needs **none**: it authenticates via OAuth at login time (§9), not through an env var. ENV variables are read by the plugins when Claude Code starts. After `setx` you need a **full restart of Claude Code**, not just a new PowerShell window.
 
 ### Windows (PowerShell)
 
 ```powershell
-# For xrpl-cloud:
-[Environment]::SetEnvironmentVariable("XRPL_MCP_BEARER", "<your-bearer>", "User")
-
 # For xrpl-signer:
 [Environment]::SetEnvironmentVariable("XRPL_SIGNER_PASSPHRASE", "<your-passphrase>", "User")
 ```
 
 ### Windows (cmd) — alternative
 ```cmd
-setx XRPL_MCP_BEARER "<your-bearer>"
 setx XRPL_SIGNER_PASSPHRASE "<your-passphrase>"
 ```
 
 ### macOS / Linux (bash or zsh)
 ```bash
 cat >> ~/.bashrc <<'EOF'
-export XRPL_MCP_BEARER="<your-bearer>"
 export XRPL_SIGNER_PASSPHRASE="<your-passphrase>"
 EOF
 source ~/.bashrc
@@ -231,11 +225,9 @@ source ~/.bashrc
 
 ### Verify
 ```powershell
-[Environment]::GetEnvironmentVariable("XRPL_MCP_BEARER", "User")
 [Environment]::GetEnvironmentVariable("XRPL_SIGNER_PASSPHRASE", "User")
 ```
 ```bash
-echo $XRPL_MCP_BEARER
 echo $XRPL_SIGNER_PASSPHRASE
 ```
 
@@ -267,12 +259,22 @@ In a new Claude Code session:
 Depending on what you installed, you'll see one or more lines:
 
 ```
-xrpl-cloud   https://xrpl-mcp.staticbit.io/mcp (HTTP)   ✓ Connected
+xrpl-cloud   https://xrpl-mcp.staticbit.io/mcp (HTTP)   ⚠ Needs login
 xrpl-local   node …/bin/server.js                       ✓ Connected
 xrpl-signer  node …/bin/signer.js                       ✓ Connected
 ```
 
-All must be `✓ Connected`. If `disconnected` or `failed` — see §13.
+### OAuth login for `xrpl-cloud`
+
+If you installed `xrpl-cloud`, the first time you'll see it asking you to authenticate. Still inside `/mcp`, pick `xrpl-cloud` and follow the login prompt — a browser window opens against `auth.mcp.staticbit.io`. Sign in there; Claude Code performs dynamic client registration, stores the token and refreshes it automatically going forward. After login `/mcp` shows:
+
+```
+xrpl-cloud   https://xrpl-mcp.staticbit.io/mcp (HTTP)   ✓ Connected
+```
+
+If login is refused, your account is not on the allow-list — ask the admin to add you (§6.1).
+
+All must end up `✓ Connected`. If `disconnected` or `failed` — see §13.
 
 ### Verify tools
 
@@ -405,18 +407,13 @@ Copy-Item "$env:USERPROFILE\.staticbit-xrpl-signer\keystore.json" "<somewhere-in
 5. Re-import every seed (`xrpl_wallet_import_seed`).
 6. Erase the temporary seed list.
 
-### 11.5 Rotating the cloud bearer
+### 11.5 Cloud access — there's no bearer to rotate
 
-If the bearer leaks — ask the admin of `xrpl-mcp.staticbit.io` to rotate it. You get a new bearer, update ENV:
-
-```powershell
-[Environment]::SetEnvironmentVariable("XRPL_MCP_BEARER", "<new-bearer>", "User")
-```
-Restart Claude Code.
+With OAuth there is no static secret to leak or rotate. Tokens are short-lived RS256 JWTs that Claude Code refreshes automatically. If you suspect a device is compromised, ask the admin to disable your account on the allow-list — that revokes your refresh tokens immediately on every device — then re-enable it and log in again via `/mcp`. You can also clear the stored token locally: `/mcp` → select `xrpl-cloud` → clear authentication, then log in again.
 
 ### 11.6 Adding another client (new MCP user)
 
-If a colleague wants to connect to the same cloud server — ask the admin to issue them a **separate** bearer (a Label of their own for audit). Each client has its own bearer; compromise of one doesn't affect others.
+If a colleague wants to connect to the same cloud server — ask the admin to add **their** account to the allow-list. Each person logs in via their own browser session at `auth.mcp.staticbit.io`; access is per-account and granted or revoked independently. There's no shared secret to hand out.
 
 ### 11.7 Installing on a second PC / migration
 
@@ -424,7 +421,7 @@ Two scenarios — pick by whether you need the **same** wallets on the new PC.
 
 #### A. New PC, new wallets (from scratch)
 
-Just walk through INSTALL.md §1–§10 on the new PC. The bearer is per-human (you can reuse the one from your first PC), the signer passphrase is new (or the same — your call), wallets are generated / imported through `xrpl-signer` separately. Each PC has an independent keystore.
+Just walk through INSTALL.md §1–§10 on the new PC. For `xrpl-cloud` you simply log in again via `/mcp` on the new machine (same allow-listed account, fresh browser login — there's no secret to copy over). The signer passphrase is new (or the same — your call), wallets are generated / imported through `xrpl-signer` separately. Each PC has an independent keystore.
 
 #### B. Migrating existing wallets (same keystore)
 
@@ -437,7 +434,7 @@ If you have wallets on the first PC (e.g. `main`, `cold`, `dex`) and want them a
 **What you do NOT migrate:**
 - ENV variables — set them again with `[Environment]::SetEnvironmentVariable(...)`.
 - The GitHub PAT — each device has its own.
-- `XRPL_MCP_BEARER` — you can reuse the same one (it's your personal bearer, not machine-tied); or ask the admin to issue a second one with a Label like `<name>-laptop` to split audit logs.
+- Cloud auth — nothing to copy. On the second PC just log in via `/mcp` against `auth.mcp.staticbit.io` with the same allow-listed account; Claude Code registers and stores a token per device.
 
 **Recipe:**
 
@@ -535,27 +532,33 @@ rm -rf ~/.staticbit-xrpl-signer
 
 ### 12.4 Delete the ENV variables
 
+Only the signer passphrase lives in ENV — `xrpl-cloud` has no env var to remove (it used OAuth, not a bearer).
+
 ```powershell
-[Environment]::SetEnvironmentVariable("XRPL_MCP_BEARER", $null, "User")
 [Environment]::SetEnvironmentVariable("XRPL_SIGNER_PASSPHRASE", $null, "User")
 ```
 ```bash
-# Remove the `export XRPL_MCP_BEARER=...` and `export XRPL_SIGNER_PASSPHRASE=...` lines from ~/.bashrc or ~/.zshrc
-unset XRPL_MCP_BEARER XRPL_SIGNER_PASSPHRASE
+# Remove the `export XRPL_SIGNER_PASSPHRASE=...` line from ~/.bashrc or ~/.zshrc
+unset XRPL_SIGNER_PASSPHRASE
 ```
+
+### 12.5 Revoke cloud access
+
+For `xrpl-cloud` there's no local secret to wipe. To fully cut access: ask the admin to disable your account on the `xrpl-mcp.staticbit.io` allow-list (this revokes your refresh tokens), and clear the token Claude Code stored — `/mcp` → select `xrpl-cloud` → clear authentication.
 
 ---
 
 ## 13. Troubleshooting
 
-### `/mcp` shows `disconnected` for xrpl-cloud
+### `/mcp` shows `disconnected` or `needs login` for xrpl-cloud
 
 | Check | Command |
 |---|---|
-| Bearer is set | `[Environment]::GetEnvironmentVariable("XRPL_MCP_BEARER", "User")` — non-empty? |
-| Bearer is correct | Ask the admin for the current value and compare (or via `claude mcp list` if registered separately through `mcp add`) |
+| Logged in via OAuth | `/mcp` → select `xrpl-cloud` → follow the browser login against `auth.mcp.staticbit.io` |
+| Account is on the allow-list | If login is refused, ask the admin of `xrpl-mcp.staticbit.io` to add (or re-enable) your account |
+| Token went stale | `/mcp` → select `xrpl-cloud` → clear authentication, then log in again |
 | Server is up | `curl https://xrpl-mcp.staticbit.io/healthz` — should return `{"status":"ok"}` |
-| Restarted Claude Code after `setx`? | Close fully and relaunch |
+| Restarted Claude Code after install | Close fully and relaunch |
 
 ### `/mcp` shows `disconnected` for xrpl-local or xrpl-signer
 

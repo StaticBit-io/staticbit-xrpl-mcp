@@ -75,24 +75,26 @@ git clone https://<GITHUB_USER>:<PAT>@github.com/StaticBit-io/staticbit-xrpl-mcp
 
 ---
 
-## Step 2 — generate bearer tokens
+## Step 2 — provision the OAuth authorization server
 
-One bearer per consumer (you, a teammate, an automated routine). Each at least 32
-characters. The Label appears in audit logs so you can see who did what.
+The MCP server no longer issues or stores per-consumer bearer tokens. Instead it
+is an **OAuth 2.1 resource server**: it validates short-lived RS256 JWTs (fetching
+the signing keys from the authorization server's JWKS) and gates `/mcp` on the
+`xrpl` scope. There are no secrets to generate here and no token list to hand out.
 
-```bash
-cd /opt/staticbit-xrpl-mcp
-OWNER_BEARER=$(openssl rand -base64 48 | tr -d '\n' | tr '/+' '_-')
-echo "owner: $OWNER_BEARER"
+What you need before continuing:
 
-# More if needed:
-ALICE_BEARER=$(openssl rand -base64 48 | tr -d '\n' | tr '/+' '_-')
-echo "alice: $ALICE_BEARER"
-```
+- A reachable **authorization server** (the StaticBit deployment uses
+  `https://auth.mcp.staticbit.io`). It must publish a JWKS endpoint, support
+  dynamic client registration, and maintain the user **allow-list** — only
+  allow-listed accounts can obtain a token, and disabling an account immediately
+  revokes its refresh tokens.
+- Its **issuer** URL, the **resource** identifier for this MCP
+  (`https://xrpl-mcp.staticbit.io/mcp`), and the required **scope** (`xrpl`).
 
-Save these somewhere safe (1Password / Bitwarden / age) and hand the right one
-to each consumer. They go on the server in `.env.xrpl-mcp`, and on each client
-in their MCP config (see Step 5).
+Standing up the authorization server itself is out of scope for this document —
+point the MCP at an existing one. You'll wire these three values into the service
+config in Step 3.
 
 ---
 
@@ -109,15 +111,16 @@ Edit `.env`:
 XRPL_MCP_HOST=xrpl-mcp.staticbit.io
 ```
 
-Edit `.env.xrpl-mcp` — replace the placeholder token with your generated `$OWNER_BEARER`:
+Edit `.env.xrpl-mcp` — point the server at your authorization server (values from Step 2):
 ```
-Server__HttpAuth__Tokens__0__Token=<OWNER_BEARER>
-Server__HttpAuth__Tokens__0__Label=owner
+Server__OAuth__Issuer=https://auth.mcp.staticbit.io
+Server__OAuth__Resource=https://xrpl-mcp.staticbit.io/mcp
+Server__OAuth__RequiredScope=xrpl
+```
 
-# Add more if needed:
-# Server__HttpAuth__Tokens__1__Token=<ALICE_BEARER>
-# Server__HttpAuth__Tokens__1__Label=alice
-```
+The server fetches the JWKS from the issuer's well-known metadata at startup and
+on a refresh interval — no signing keys live in this file. Access is managed on
+the authorization server's allow-list, not here.
 
 Lock down the files:
 ```bash
@@ -151,10 +154,11 @@ docker compose logs -f xrpl-mcp
 
 On startup you should see:
 ```
-StaticBitXrplMcp HTTP listening on port 5500, RequireHttps=True, RateLimit=60/min, BearerTokens=1
+StaticBitXrplMcp HTTP listening on port 5500, RequireHttps=True, RateLimit=60/min, OAuth=https://auth.mcp.staticbit.io (scope=xrpl)
 ```
 
-`BearerTokens=N` confirms the server picked up all configured tokens.
+The `OAuth=<issuer> (scope=...)` line confirms the server resolved the
+authorization server's metadata and loaded its JWKS.
 
 Traefik picks up the new container by its labels and starts the Let's Encrypt
 HTTP-01 challenge automatically:
@@ -170,33 +174,37 @@ Usually 10–60 seconds after `up -d`.
 
 ## Step 5 — health checks
 
-### 5.1 — no bearer → 401
+### 5.1 — no token → 401
 
 ```bash
 curl -sS -o /dev/null -w "HTTP %{http_code}\n" \
   -X POST https://xrpl-mcp.staticbit.io/mcp \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
-# Expected: HTTP 401
+# Expected: HTTP 401 (plus a WWW-Authenticate header pointing at the resource metadata)
 ```
 
-### 5.2 — wrong bearer → 401
+### 5.2 — invalid token → 401
 
 ```bash
 curl -sS -o /dev/null -w "HTTP %{http_code}\n" \
   -X POST https://xrpl-mcp.staticbit.io/mcp \
-  -H "Authorization: Bearer wrong-token-xxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Authorization: Bearer not-a-real-jwt" \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
-# Expected: HTTP 401
+# Expected: HTTP 401 (signature/issuer validation fails)
 ```
 
-### 5.3 — correct bearer + initialize → 200 + SSE
+### 5.3 — valid access token + initialize → 200 + SSE
+
+Obtain a real access token for the `xrpl` scope from the authorization server
+first (e.g. log in once via Claude Code's `/mcp` flow and copy the bearer it
+stored, or use your AS's token endpoint). Then:
 
 ```bash
-BEARER=$(grep '^Server__HttpAuth__Tokens__0__Token=' /opt/staticbit-xrpl-mcp/.env.xrpl-mcp | cut -d= -f2-)
+TOKEN=<XRPL_SCOPED_ACCESS_TOKEN>
 curl -sS -X POST https://xrpl-mcp.staticbit.io/mcp \
-  -H "Authorization: Bearer $BEARER" \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"health","version":"0.0.1"}}}'
@@ -211,7 +219,7 @@ HDR=$(mktemp)
 
 # Step 1: initialize, capture session id
 curl -sS -D "$HDR" -o /dev/null -X POST "$URL" \
-  -H "Authorization: Bearer $BEARER" \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"health","version":"0.0.1"}}}'
@@ -219,7 +227,7 @@ SESSION=$(grep -i '^mcp-session-id' "$HDR" | awk '{print $2}' | tr -d '\r\n')
 
 # Step 2: notifications/initialized
 curl -sS -o /dev/null -X POST "$URL" \
-  -H "Authorization: Bearer $BEARER" \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Mcp-Session-Id: $SESSION" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
@@ -227,7 +235,7 @@ curl -sS -o /dev/null -X POST "$URL" \
 
 # Step 3: server_info on mainnet
 curl -sS -X POST "$URL" \
-  -H "Authorization: Bearer $BEARER" \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Mcp-Session-Id: $SESSION" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
@@ -239,149 +247,91 @@ curl -sS -X POST "$URL" \
 
 ## Step 6 — register in clients (Claude Code / Cursor / Claude Desktop)
 
-The deployed URL is `https://xrpl-mcp.staticbit.io/mcp`. Each consumer registers
-this once with their personal bearer token.
+The deployed URL is `https://xrpl-mcp.staticbit.io/mcp`. There are no per-consumer
+bearer tokens to distribute, and no `Authorization` headers to bake into config
+files. Each consumer instead **logs in via OAuth** the first time they connect —
+the client performs dynamic client registration against the authorization server,
+the user signs in in the browser, and the client stores and auto-refreshes the
+resulting token. The consumer's account must be on the authorization server's
+allow-list (Step 2) or login is refused.
 
-### 6.1 Store the bearer in an environment variable (recommended)
+> Prefer installing the **`xrpl-cloud` plugin** rather than registering the
+> server by hand — its `.mcp.json` already carries the OAuth block, so the
+> consumer just runs `/mcp` and logs in. See the plugin README and INSTALL.md.
 
-Putting the bearer literally into config files (`.mcp.json`, `claude_desktop_config.json`)
-is fine for personal user-scope, but breaks the moment you want to commit a
-project-scope `.mcp.json` to git. The portable pattern is to keep an ENV
-variable `XRPL_MCP_BEARER` and reference it via `${...}` substitution.
-
-**Windows (PowerShell — persistent for the current user):**
-```powershell
-[Environment]::SetEnvironmentVariable("XRPL_MCP_BEARER", "<YOUR_BEARER>", "User")
-# Verify after opening a NEW PowerShell window:
-[Environment]::GetEnvironmentVariable("XRPL_MCP_BEARER", "User")
-```
-
-**macOS / Linux (bash or zsh):**
-```bash
-# Append to ~/.bashrc or ~/.zshrc:
-echo 'export XRPL_MCP_BEARER="<YOUR_BEARER>"' >> ~/.bashrc
-source ~/.bashrc
-```
-
-> After setting the ENV variable you MUST restart Claude Code / Cursor /
-> Claude Desktop completely — they read environment only at process start, so
-> `${XRPL_MCP_BEARER}` substitution only kicks in for a freshly launched client.
-
-If you also use TelegramMCP, set both at once and never mix them up:
-```powershell
-[Environment]::SetEnvironmentVariable("TELEGRAM_MCP_BEARER", "<TELEGRAM_BEARER>", "User")
-[Environment]::SetEnvironmentVariable("TELEGRAM_BOT_TOKEN",  "<BOT_TOKEN>",       "User")
-[Environment]::SetEnvironmentVariable("XRPL_MCP_BEARER",     "<XRPL_BEARER>",     "User")
-```
-
-### 6.2 Claude Code (user scope — available across all projects)
-
-User-scope keeps the bearer inline in `~/.claude.json` (no ENV substitution
-needed — the file is gitignored by Claude Code anyway):
+### 6.1 Claude Code (user scope — available across all projects)
 
 ```powershell
 claude mcp add xrpl-cloud https://xrpl-mcp.staticbit.io/mcp `
   --scope user `
-  --transport http `
-  -H "Authorization: Bearer <YOUR_BEARER>"
+  --transport http
 ```
 
-Verify:
+Then run `/mcp`, select `xrpl-cloud`, and complete the browser login. Verify:
 ```powershell
 claude mcp list
 # xrpl-cloud   https://xrpl-mcp.staticbit.io/mcp (HTTP) - ✓ Connected
 ```
 
-### 6.3 Claude Code (project scope — `.mcp.json` in git)
+If it shows `needs login`, finish the `/mcp` flow; if login is refused, the
+account is not on the allow-list.
 
-For a project shared between several developers — each puts their own bearer
-in their own ENV variable, the config file stays clean and commit-safe:
+### 6.2 Claude Code (project scope — `.mcp.json` in git)
 
-`.mcp.json` (committed to the repo, no secrets):
+The config is commit-safe by design — it holds no secret, only an `oauth` block.
+Each developer logs in with their own browser session; access is per-account on
+the authorization server.
+
+`.mcp.json` (committed to the repo):
 ```json
 {
   "mcpServers": {
     "xrpl-cloud": {
       "type": "http",
       "url": "https://xrpl-mcp.staticbit.io/mcp",
-      "headers": {
-        "Authorization": "Bearer ${XRPL_MCP_BEARER}"
-      }
+      "oauth": {}
     }
   }
 }
 ```
 
-If you also have TelegramMCP in the same project, two servers side by side:
-```json
-{
-  "mcpServers": {
-    "telegram-cloud": {
-      "type": "http",
-      "url": "https://telegram-mcp.staticbit.io/mcp",
-      "headers": {
-        "Authorization":        "Bearer ${TELEGRAM_MCP_BEARER}",
-        "X-Telegram-Bot-Token": "${TELEGRAM_BOT_TOKEN}"
-      }
-    },
-    "xrpl-cloud": {
-      "type": "http",
-      "url": "https://xrpl-mcp.staticbit.io/mcp",
-      "headers": {
-        "Authorization": "Bearer ${XRPL_MCP_BEARER}"
-      }
-    }
-  }
-}
-```
-
-### 6.4 Cursor — `.cursor/mcp.json`
+### 6.3 Cursor — `.cursor/mcp.json`
 
 ```json
 {
   "mcpServers": {
     "xrpl-cloud": {
       "url": "https://xrpl-mcp.staticbit.io/mcp",
-      "headers": {
-        "Authorization": "Bearer ${XRPL_MCP_BEARER}"
-      }
+      "oauth": {}
     }
   }
 }
 ```
-Restart Cursor after editing.
+Restart Cursor after editing, then complete the browser login when prompted.
 
-### 6.5 Claude Desktop — `claude_desktop_config.json`
-
-Claude Desktop reads the file on launch. ENV substitution support varies by
-version — if `${XRPL_MCP_BEARER}` is not expanded, paste the bearer literally
-(user-scope, not committed):
+### 6.4 Claude Desktop — `claude_desktop_config.json`
 
 ```json
 {
   "mcpServers": {
     "xrpl-cloud": {
       "url": "https://xrpl-mcp.staticbit.io/mcp",
-      "headers": {
-        "Authorization": "Bearer <YOUR_BEARER>"
-      }
+      "oauth": {}
     }
   }
 }
 ```
 
-Restart Claude Desktop after editing.
+Restart Claude Desktop after editing and complete the browser login.
 
-### 6.6 Rotating without editing every config
+### 6.5 Revoking and re-granting access
 
-If you rotate the server-side bearer (Step "Rotate a bearer token" below),
-all consumers just overwrite their ENV variable once:
-
-```powershell
-[Environment]::SetEnvironmentVariable("XRPL_MCP_BEARER", "<NEW_BEARER>", "User")
-```
-…and restart their client. No `.mcp.json` / `claude_desktop_config.json` /
-`.cursor/mcp.json` edits required, because all of them reference `${XRPL_MCP_BEARER}`.
+There's no shared secret to rotate. To cut a consumer off, disable their account
+on the authorization server's allow-list — that revokes their refresh tokens
+immediately, on every device, with no config edits anywhere. To grant access,
+add the account back; the consumer logs in again via `/mcp`. A consumer can also
+clear their own stored token locally: `/mcp` → select `xrpl-cloud` → clear
+authentication.
 
 ---
 
@@ -390,7 +340,7 @@ all consumers just overwrite their ENV variable once:
 When enabled, the server posts operational events to a **separate** Telegram chat
 through its own **dedicated** admin bot. Use this to learn fast about:
 
-- **AuthFailure** — someone is bruteforcing your bearer (`/mcp` with no/wrong token)
+- **AuthFailure** — a request hit `/mcp` with no token, an invalid/expired JWT, or one missing the `xrpl` scope (probes or a misconfigured client)
 - **RateLimit** — a client tripped the per-IP limit (legit spike or a buggy script)
 - **StartUp / ShutDown** — every container restart (planned or crash-loop)
 - **ToolError** — XRPL tool calls failing (future iteration; not wired yet)
@@ -436,7 +386,7 @@ StaticBitXrplMcp server started
 
 • transport: http
 • port: 5500
-• bearerTokens: 1
+• oauth: https://auth.mcp.staticbit.io (scope=xrpl)
 
 2026-05-23T...  •  StaticBitXrplMcp admin-alerts
 ```
@@ -454,7 +404,7 @@ Within ~3 seconds the admin chat should receive:
 
 ```
 🔒 AuthFailure
-Missing bearer from <YOUR_IP>
+Missing token from <YOUR_IP>
 
 • ip: <YOUR_IP>
 • path: /mcp
@@ -518,33 +468,23 @@ git pull --ff-only
 docker compose up -d --build
 ```
 
-### Rotate a bearer token
+### Revoke or rotate access
 
-```bash
-cd /opt/staticbit-xrpl-mcp
-NEW=$(openssl rand -base64 48 | tr -d '\n' | tr '/+' '_-')
-# Replace by index (find the right index by Label):
-sed -i "s|^Server__HttpAuth__Tokens__0__Token=.*|Server__HttpAuth__Tokens__0__Token=$NEW|" .env.xrpl-mcp
-docker compose restart
-echo "new owner bearer: $NEW"
-```
+There is no server-side bearer to rotate. Access is controlled entirely on the
+**authorization server's allow-list**:
 
-The old token stops working ~2 seconds after restart. Hand the new one out over
-a secure channel.
+- **Revoke a consumer** — disable their account on the authorization server. Its
+  refresh tokens are invalidated immediately and every device drops to
+  `needs login`. No change to `.env.xrpl-mcp` and no container restart.
+- **Compromise response** — same: disable the account, then re-enable it and have
+  the user log in again via `/mcp`. Access tokens are short-lived, so even an
+  already-issued one expires on its own within minutes.
 
 ### Add a new user
 
-```bash
-cd /opt/staticbit-xrpl-mcp
-NEW=$(openssl rand -base64 48 | tr -d '\n' | tr '/+' '_-')
-cat >> .env.xrpl-mcp <<EOF
-Server__HttpAuth__Tokens__2__Token=$NEW
-Server__HttpAuth__Tokens__2__Label=bob
-EOF
-docker compose restart
-echo "bearer for bob: $NEW"
-```
-(Use whatever the next free index is — count existing `__N__Token=` lines.)
+Add the account to the authorization server's allow-list. The new user then
+installs the `xrpl-cloud` plugin (or registers the URL per Step 6), runs `/mcp`,
+and completes the browser login. Nothing changes on this server.
 
 ### Tear down
 
@@ -567,8 +507,9 @@ The platform (Traefik) and other MCPs are unaffected.
 |---|---|---|
 | `Server__Transport` | `http` (in container) | `stdio` or `http` |
 | `Server__HttpPort` | `5500` | listening port inside the container |
-| `Server__HttpAuth__Tokens__N__Token` | — | bearer token (≥32 chars, required) |
-| `Server__HttpAuth__Tokens__N__Label` | — | audit label, e.g. `owner`, `alice` |
+| `Server__OAuth__Issuer` | — | authorization server issuer URL (JWKS resolved from its metadata; required) |
+| `Server__OAuth__Resource` | — | resource identifier for this MCP, e.g. `https://xrpl-mcp.staticbit.io/mcp` (required) |
+| `Server__OAuth__RequiredScope` | `xrpl` | scope a token must carry to reach `/mcp` |
 | `Server__HttpAuth__RequireHttps` | `true` | demand `X-Forwarded-Proto: https` from the proxy |
 | `Server__RateLimit__Enabled` | `true` | enable per-IP rate limiter |
 | `Server__RateLimit__PermitsPerMinute` | `60` | requests per minute per IP |
@@ -594,10 +535,11 @@ Callers then pass `"network": "hooks_v3"`.
 | Symptom | Likely cause | Fix |
 |---|---|---|
 | `docker compose up` fails: `network mcp-net not found` | Platform not deployed | `docker network create mcp-net && cd /opt/traefik && docker compose up -d` |
-| Container starts then exits with `HttpAuth:Tokens is empty` | No bearer configured | Add at least one `Tokens__0__Token` to `.env.xrpl-mcp` |
-| Container exits with `... is shorter than 32 characters` | Bearer too short | Regenerate: `openssl rand -base64 48 \| tr '/+' '_-'` |
+| Container starts then exits with `OAuth:Issuer is empty` | No authorization server configured | Set `Server__OAuth__Issuer` / `Resource` in `.env.xrpl-mcp` (Step 3) |
+| Startup fails fetching JWKS / metadata | Issuer unreachable or wrong URL | Verify `Server__OAuth__Issuer` and that `<issuer>/.well-known/...` is reachable from the container |
 | TLS cert not issued | DNS not propagated / port 80 not reachable | `dig +short xrpl-mcp.staticbit.io @1.1.1.1`; `curl -I http://xrpl-mcp.staticbit.io/` |
-| `401` even with correct bearer | Token mismatch (whitespace, wrong index) | `grep Token /opt/staticbit-xrpl-mcp/.env.xrpl-mcp`; verify length and exact value |
+| `401` even with a token | Expired/invalid JWT, wrong issuer/audience, or missing `xrpl` scope | Re-login via `/mcp`; confirm the token's `iss`/`aud`/`scope` match the server config |
+| `401` for an allow-listed user | Account disabled on the authorization server | Re-enable the account on the allow-list, then re-login |
 | `400 HTTPS required` | `RequireHttps=true` and no `X-Forwarded-Proto` header | Verify Traefik labels are correct and request reaches via HTTPS |
 | `404` on `/` | Expected — MCP is at `/mcp` | Use `/mcp` path |
 | `429 Too Many Requests` | Hit rate limit | Increase `Server__RateLimit__PermitsPerMinute` or wait one minute |
