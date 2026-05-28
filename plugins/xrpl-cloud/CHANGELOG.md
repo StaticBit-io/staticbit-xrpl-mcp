@@ -1,3 +1,8 @@
+## v0.3.0 — 2026-05-28
+
+### Changed
+- **OAuth 2.1 auth** — the cloud server (`xrpl-mcp.staticbit.io`) now authenticates via OAuth against `auth.mcp.staticbit.io` instead of a static `XRPL_MCP_BEARER`. The plugin `.mcp.json` uses an `oauth` block (dynamic client registration); run `/mcp` once to log in. **Breaking**: `XRPL_MCP_BEARER` is gone; only allow-listed accounts can log in. Plugin README updated (INSTALL.md/DEPLOY.md OAuth rewrite pending).
+
 ## v0.2.5 — 2026-05-27
 
 ### Features
