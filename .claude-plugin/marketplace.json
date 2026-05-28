@@ -31,7 +31,7 @@
       "name": "xrpl-local",
       "source": "./plugins/xrpl-local",
       "description": "Local stdio MCP — the same XRPL toolkit (read/prepare/submit) running fully on the user's machine. Connects directly to public XRPL nodes (xrplcluster.com etc) over WebSocket. No bearer, no cloud dependency, no third-party observer.",
-      "version": "0.3.5",
+      "version": "0.3.6",
       "author": {
         "name": "StaticBit",
         "url": "https://github.com/StaticBit-io/staticbit-xrpl-mcp"

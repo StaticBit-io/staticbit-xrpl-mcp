@@ -1,3 +1,22 @@
+## v0.3.6 — 2026-05-28
+
+### Features
+- structured error envelopes for all prepare-tools (f5058b7)
+- xrpl-cloud uses OAuth 2.1 instead of static bearer (e6e6ce3)
+- OAuth 2.1 resource server via Mcp.Auth.ResourceServer (0a575f8)
+
+### Fixes
+- silence System.Net.Http.HttpClient (keeps admin-bot token out of logs) (702ecef)
+
+### Documentation
+- xrpl-cloud is OAuth 2.1-authed, not static bearer (e4a1a95)
+- migrate INSTALL/DEPLOY to OAuth 2.1 (EN+RU); signer unchanged (ee36817)
+- changelog entry for v0.3.0 OAuth migration (748194e)
+
+### Other
+- Merge feat/oauth-resource-server: OAuth 2.1 for xrpl cloud server + plugin 0.3.0 (32efdf5)
+- docs+release: xrpl-cloud OAuth migration docs + version 0.3.0 (fee5574)
+
 ## v0.3.5 — 2026-05-27
 
 ### Features
