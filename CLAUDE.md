@@ -42,8 +42,20 @@ generator for XRPL transaction schemas, unrelated to tool-reference docs.)
 ## Releases
 
 Per-plugin tags `<plugin>--vX.Y.Z` drive plugin releases (`release-plugin.yml` /
-`release-plugin.sh`, with signing/SBOM/SLSA); `docker.yml` builds the cloud-server image.
-See `RELEASE.md` and per-plugin CHANGELOGs.
+`release-plugin.sh`, with signing/SBOM/SLSA). See `RELEASE.md` and per-plugin CHANGELOGs.
+
+## CI/CD — shared reusable workflows (repo `mcp-tooling`, public)
+
+Image build/publish and VPS deploy are thin callers of the shared reusable workflows in
+`mcp-tooling` (`uses: Platonenkov/mcp-tooling/.github/workflows/<file>@main`):
+- The **xrpl-cloud release builds the cloud image itself**: `release-plugin.yml` has a gated
+  downstream `docker` job (runs only for `plugin == xrpl-cloud`) calling `docker-build-push.yml`
+  with the released version. This is required because the release job's `GITHUB_TOKEN` tag push
+  can't trigger `docker.yml` (recursion guard).
+- `docker.yml` is **manual-dispatch only** — ad-hoc image republish. No per-push/PR builds.
+- `deploy.yml` → `deploy-vps.yml`: ships the image to the VPS over SSH into the forced-command
+  `deploy/deploy.sh` (no `docker login` on the host), then smoke-tests `/healthz`. Needs the
+  `DEPLOY_*` repo secrets + the forced-command key in the host `~/.ssh/authorized_keys`.
 
 ## Operational conventions
 
@@ -57,6 +69,8 @@ See `RELEASE.md` and per-plugin CHANGELOGs.
   and the Telegram admin-bot token lives in those URLs. Do not lower it.
 - **Secrets**: never commit `.env` / `*.key` / `secrets/`. Admin alerts use a shared admin bot via
   `Server__AdminAlerts__{Enabled,BotToken,ChatId}`.
-- **Deploy**: behind the shared Traefik on `mcp-net`. Prod is currently built from source on the VPS
-  under `/opt/<name>` (xrplmeta runs a loaded image); not yet on official ghcr images (needs host
-  `docker login` or public packages).
+- **Deploy**: behind the shared Traefik on `mcp-net`. Image-based deploy via `deploy.yml` (the
+  shared `deploy-vps` reusable): the runner `docker save | ssh`-pipes the ghcr image into the
+  host's forced-command `deploy/deploy.sh`, which loads it, pins `XRPL_MCP_IMAGE` +
+  `XRPL_PULL_POLICY=never` in the compose `.env`, and recreates the container. No GHCR auth on the
+  host.
