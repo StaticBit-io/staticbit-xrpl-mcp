@@ -4,7 +4,7 @@
 #
 # Wired as the *only* thing a CI deploy key may run, via ~/.ssh/authorized_keys:
 #
-#   command="/opt/xrpl-mcp/deploy.sh",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty ssh-ed25519 AAAA... ci-deploy
+#   command="/opt/staticbit-xrpl-mcp/deploy.sh",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty ssh-ed25519 AAAA... ci-deploy
 #
 # The CI job (deploy.yml -> mcp-tooling/deploy-vps.yml) ships the image as a
 # tarball on stdin and passes the tag as the original SSH command, e.g.:
@@ -20,7 +20,7 @@
 # authorized_keys above):
 set -euo pipefail
 
-APP_DIR="/opt/xrpl-mcp"                                 # dir holding docker-compose.yml + .env
+APP_DIR="/opt/staticbit-xrpl-mcp"                       # dir holding docker-compose.yml + .env
 CONTAINER="xrpl-mcp"                                    # container_name in docker-compose.yml
 IMAGE_REPO="ghcr.io/staticbit-io/staticbit-xrpl-mcp"   # must match the saved image name
 HEALTH_RETRIES=20
