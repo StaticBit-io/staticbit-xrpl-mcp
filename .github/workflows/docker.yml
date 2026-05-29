@@ -26,3 +26,13 @@ jobs:
           { "name": "staticbit-xrpl-mcp", "image_suffix": "staticbit-xrpl-mcp",
             "dockerfile": "./Dockerfile", "context": ".", "cache_scope": "staticbit-xrpl-mcp" }
         ]
+
+  cleanup:
+    needs: build-push
+    permissions:
+      contents: read
+      packages: write
+    uses: Platonenkov/mcp-tooling/.github/workflows/ghcr-cleanup.yml@main
+    with:
+      account: StaticBit-io
+      image_names: staticbit-xrpl-mcp
