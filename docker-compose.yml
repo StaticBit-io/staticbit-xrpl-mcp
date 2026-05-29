@@ -22,6 +22,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    # The tar-based deploy (deploy/deploy.sh) sets XRPL_PULL_POLICY=never and pins
+    # XRPL_MCP_IMAGE to the pre-loaded ref, so the image is used without GHCR auth
+    # on the host. Default `missing` preserves the prior build/pull behaviour.
+    pull_policy: ${XRPL_PULL_POLICY:-missing}
     container_name: xrpl-mcp
     restart: unless-stopped
     env_file:

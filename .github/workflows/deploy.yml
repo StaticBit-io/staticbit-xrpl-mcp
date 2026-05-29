@@ -1,0 +1,31 @@
+name: deploy
+
+# Thin caller of the shared reusable VPS deploy (repo mcp-tooling). Ships the
+# xrpl-cloud GHCR image to the VPS as a tarball over SSH into the forced-command
+# deploy.sh there (deploy/deploy.sh) — no registry credentials on the host —
+# then smoke-tests the public healthz endpoint.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Image tag to deploy (e.g. 0.2.0 or latest)'
+        required: true
+        type: string
+        default: latest
+
+jobs:
+  deploy:
+    permissions:
+      contents: read
+      packages: read
+    uses: Platonenkov/mcp-tooling/.github/workflows/deploy-vps.yml@main
+    with:
+      image_suffix: staticbit-xrpl-mcp
+      tag: ${{ inputs.tag }}
+      healthz_url: https://xrpl-mcp.staticbit.io/healthz
+    secrets:
+      deploy_ssh_key: ${{ secrets.DEPLOY_SSH_KEY }}
+      deploy_host: ${{ secrets.DEPLOY_HOST }}
+      deploy_user: ${{ secrets.DEPLOY_USER }}
+      deploy_known_hosts: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
