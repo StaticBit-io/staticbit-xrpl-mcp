@@ -1,4 +1,4 @@
-> 🇷🇺 [Прочесть на русском](INSTALL.ru.md)
+> 🇷🇺 [Прочесть на русском](ru/INSTALL.md)
 
 # INSTALL — installing and connecting the XRPL plugins
 
@@ -616,7 +616,7 @@ Most likely third-party scanners probing `.well-known/oauth-protected-resource/m
 
 ### macOS — "StaticBit.Xrpl.Mcp.Signer cannot be opened because the developer cannot be verified"
 
-The binary in the plugin is **not signed with an Apple Developer ID** (see [docs/supply-chain.md](docs/supply-chain.md) — signing is optional, the marketplace owner may or may not set it up). When the release workflow runs with `APPLE_*` secrets — the binary is notarized and Gatekeeper accepts it; otherwise you need to manually clear the quarantine attribute macOS attaches to downloaded files:
+The binary in the plugin is **not signed with an Apple Developer ID** (see [docs/supply-chain.md](supply-chain.md) — signing is optional, the marketplace owner may or may not set it up). When the release workflow runs with `APPLE_*` secrets — the binary is notarized and Gatekeeper accepts it; otherwise you need to manually clear the quarantine attribute macOS attaches to downloaded files:
 
 ```bash
 # Find the plugin path
@@ -694,9 +694,9 @@ Add it to `~/.bashrc` / `~/.zshrc` or to the plugin's env block to make it persi
 
 ## Related documents
 
-- [README.md](README.md) — marketplace overview and available plugins
-- [plugins/xrpl-cloud/README.md](plugins/xrpl-cloud/README.md) — cloud plugin details
-- [plugins/xrpl-local/README.md](plugins/xrpl-local/README.md) — local plugin details
-- [plugins/xrpl-signer/README.md](plugins/xrpl-signer/README.md) — signer plugin details
+- [README.md](../README.md) — marketplace overview and available plugins
+- [plugins/xrpl-cloud/README.md](../plugins/xrpl-cloud/README.md) — cloud plugin details
+- [plugins/xrpl-local/README.md](../plugins/xrpl-local/README.md) — local plugin details
+- [plugins/xrpl-signer/README.md](../plugins/xrpl-signer/README.md) — signer plugin details
 - [StaticBit-io/staticbit-xrpl-mcp](https://github.com/StaticBit-io/staticbit-xrpl-mcp) — cloud server and signer sources
-- [StaticBit-io/staticbit-xrpl-mcp/DEPLOY.md](https://github.com/StaticBit-io/staticbit-xrpl-mcp/blob/main/DEPLOY.md) — for the cloud-server admin: how to deploy your own instance
+- [StaticBit-io/staticbit-xrpl-mcp/DEPLOY.md](https://github.com/StaticBit-io/staticbit-xrpl-mcp/blob/main/docs/DEPLOY.md) — for the cloud-server admin: how to deploy your own instance

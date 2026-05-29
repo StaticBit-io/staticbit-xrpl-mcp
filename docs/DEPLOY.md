@@ -1,4 +1,4 @@
-> 🇷🇺 [Прочесть на русском](DEPLOY.ru.md)
+> 🇷🇺 [Прочесть на русском](ru/DEPLOY.md)
 
 # Deploying StaticBitXrplMcp
 

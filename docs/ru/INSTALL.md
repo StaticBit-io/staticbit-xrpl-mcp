@@ -1,4 +1,4 @@
-> 🇬🇧 [Read in English](INSTALL.md)
+> 🇬🇧 [Read in English](../INSTALL.md)
 
 # INSTALL — установка и подключение XRPL-плагинов
 
@@ -616,7 +616,7 @@ ssh root@<vps> 'cd /opt/staticbit-xrpl-mcp && docker compose logs --tail 200 xrp
 
 ### macOS — «"StaticBit.Xrpl.Mcp.Signer" cannot be opened because the developer cannot be verified»
 
-Бинарь в плагине **не подписан Apple Developer ID** (см. [docs/supply-chain.md](docs/supply-chain.md) — подпись опциональна, владелец marketplace может её настроить или нет). Когда release-workflow собран с включёнными `APPLE_*` secrets — бинарь нотаризуется и Gatekeeper его пропускает; иначе нужно вручную снять quarantine-attribute, который macOS вешает на скачанный файл:
+Бинарь в плагине **не подписан Apple Developer ID** (см. [docs/supply-chain.md](../supply-chain.md) — подпись опциональна, владелец marketplace может её настроить или нет). Когда release-workflow собран с включёнными `APPLE_*` secrets — бинарь нотаризуется и Gatekeeper его пропускает; иначе нужно вручную снять quarantine-attribute, который macOS вешает на скачанный файл:
 
 ```bash
 # Узнать путь к плагину
@@ -694,9 +694,9 @@ chmod 700 "$DOTNET_BUNDLE_EXTRACT_BASE_DIR"
 
 ## Связанные документы
 
-- [README.md](README.md) — обзор marketplace и доступных плагинов
-- [plugins/xrpl-cloud/README.md](plugins/xrpl-cloud/README.md) — детали cloud-плагина
-- [plugins/xrpl-local/README.md](plugins/xrpl-local/README.md) — детали local-плагина
-- [plugins/xrpl-signer/README.md](plugins/xrpl-signer/README.md) — детали signer-плагина
+- [README.md](../../README.md) — обзор marketplace и доступных плагинов
+- [plugins/xrpl-cloud/README.md](../../plugins/xrpl-cloud/README.md) — детали cloud-плагина
+- [plugins/xrpl-local/README.md](../../plugins/xrpl-local/README.md) — детали local-плагина
+- [plugins/xrpl-signer/README.md](../../plugins/xrpl-signer/README.md) — детали signer-плагина
 - [StaticBit-io/staticbit-xrpl-mcp](https://github.com/StaticBit-io/staticbit-xrpl-mcp) — исходники cloud-сервера и signer'а
-- [StaticBit-io/staticbit-xrpl-mcp/DEPLOY.md](https://github.com/StaticBit-io/staticbit-xrpl-mcp/blob/main/DEPLOY.md) — для админа cloud-сервера: как развернуть свой инстанс
+- [StaticBit-io/staticbit-xrpl-mcp/DEPLOY.md](https://github.com/StaticBit-io/staticbit-xrpl-mcp/blob/main/docs/DEPLOY.md) — для админа cloud-сервера: как развернуть свой инстанс

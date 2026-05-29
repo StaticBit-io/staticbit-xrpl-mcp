@@ -15,7 +15,7 @@
 - [docs/glossary.ru.md](glossary.md) — словарь XRPL-терминов, встречающихся в описаниях tool'ов.
 - [docs/supply-chain.ru.md](supply-chain.md) — что прикладывается к каждому release и как пользователю верифицировать.
 - [docs/examples/](examples/) — рецепты Cowork-агентов поверх плагинов.
-- [INSTALL.ru.md](../../INSTALL.ru.md), [DEPLOY.ru.md](../../DEPLOY.ru.md), [RELEASE.ru.md](../../RELEASE.ru.md) — установка, развёртывание VPS, релизный процесс.
+- [INSTALL.ru.md](INSTALL.md), [DEPLOY.ru.md](DEPLOY.md), [RELEASE.ru.md](../../RELEASE.ru.md) — установка, развёртывание VPS, релизный процесс.
 
 ---
 
@@ -256,7 +256,7 @@ Tool оставлен как plumbing для будущих server-side watchers
 
 ## 8. Документация
 
-- [INSTALL.ru.md](../../INSTALL.ru.md) §13 Troubleshooting — 3 подсекции для unsigned бинарей: macOS Gatekeeper (`xattr -dr com.apple.quarantine`, `spctl --add`), Windows SmartScreen/Defender (`Unblock-File`, `Add-MpPreference -ExclusionPath`), Linux SELinux/AppArmor (`ausearch`, `chcon`/`semanage`, `DOTNET_BUNDLE_EXTRACT_BASE_DIR`).
+- [INSTALL.ru.md](INSTALL.md) §13 Troubleshooting — 3 подсекции для unsigned бинарей: macOS Gatekeeper (`xattr -dr com.apple.quarantine`, `spctl --add`), Windows SmartScreen/Defender (`Unblock-File`, `Add-MpPreference -ExclusionPath`), Linux SELinux/AppArmor (`ausearch`, `chcon`/`semanage`, `DOTNET_BUNDLE_EXTRACT_BASE_DIR`).
 - **JSON-schema каталог tools** — mini-проект [`tools/SchemaGen/`](../../tools/SchemaGen/) делает reflection-проход по `[McpServerToolType]`+`[McpServerTool]` в Core и Signer сборках, эмитит [`docs/tools-schema.json`](../tools-schema.json) в MCP `tools/list` формате (name + description + JSON-Schema inputSchema, отсортировано по name). 130 tools покрыто. Регенерация: `dotnet run --project tools/SchemaGen -- docs/tools-schema.json`.
 - **Cowork-агент рецепты** — [`docs/examples/`](examples/) содержит **12 готовых workflow'ов**, каждый перекрёстно сверен с integration-тестом upstream-проекта [XrplCSharp](https://github.com/StaticBit-io/XrplCSharp/tree/release/Tests/Xrpl.Tests/Integration/transactions). Индекс — [`docs/examples/README.ru.md`](examples/README.md). Покрытые сценарии:
   - **Read + polling**: monitor-balance-telegram.

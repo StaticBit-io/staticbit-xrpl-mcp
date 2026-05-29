@@ -8,8 +8,9 @@ XRPL toolkit for Claude Code — **source + three plugins in one repo**. Contain
 - **Offline stdio signer** with an encrypted keystore (PBKDF2 + AES-256-GCM).
 - **Three plugins** for Claude Code shaped as a marketplace inside the same repo.
 
-> 📖 **[INSTALL.md](INSTALL.md)** — step-by-step instructions for the end user of the plugins: from a fresh Claude Code install to the first signed XRPL transaction.
-> 📖 **[DEPLOY.md](DEPLOY.md)** — for an admin deploying the cloud server on a VPS.
+> 📖 **[INSTALL.md](docs/INSTALL.md)** — step-by-step instructions for the end user of the plugins: from a fresh Claude Code install to the first signed XRPL transaction.
+> 📖 **[DEPLOY.md](docs/DEPLOY.md)** — for an admin deploying the cloud server on a VPS.
+> 📖 **[OPERATIONS.md](docs/OPERATIONS.md)** — day-two runbook for the cloud server: deploy, rollback, health, secrets.
 > 📖 **[RELEASE.md](RELEASE.md)** — for me (the release manager) — how to publish new plugin versions.
 > 📖 **[docs/features.md](docs/features.md)** — full feature catalogue (131 tools, 432 unit tests, 12 covered amendments).
 > 📖 **[docs/glossary.md](docs/glossary.md)** — XRPL terminology used in tool descriptions.
@@ -77,7 +78,7 @@ Then — pick which plugins to install:
 /plugin install xrpl-cloud@staticbit-xrpl-mcp
 ```
 
-Full instructions with every ENV variable — in [INSTALL.md](INSTALL.md).
+Full instructions with every ENV variable — in [INSTALL.md](docs/INSTALL.md).
 
 ## Repo layout
 

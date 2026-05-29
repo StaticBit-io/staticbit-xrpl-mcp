@@ -16,7 +16,7 @@ Related documents:
 - [docs/supply-chain.md](supply-chain.md) — release artifacts and verification.
 - [docs/examples/](examples/) — Cowork-agent recipes on top of the plugins.
 - [docs/branch-protection.md](branch-protection.md) — recommended `main` branch protection settings.
-- [INSTALL.md](../INSTALL.md), [DEPLOY.md](../DEPLOY.md), [RELEASE.md](../RELEASE.md) — installation, VPS deployment, release process.
+- [INSTALL.md](INSTALL.md), [DEPLOY.md](DEPLOY.md), [RELEASE.md](../RELEASE.md) — installation, VPS deployment, release process.
 
 ---
 
@@ -260,7 +260,7 @@ Full summary + setup guide: [docs/supply-chain.md](supply-chain.md).
 
 ## 8. Documentation
 
-- [INSTALL.md](../INSTALL.md) §13 Troubleshooting — 3 sub-sections for unsigned binaries: macOS Gatekeeper (`xattr -dr com.apple.quarantine`, `spctl --add`), Windows SmartScreen/Defender (`Unblock-File`, `Add-MpPreference -ExclusionPath`), Linux SELinux/AppArmor (`ausearch`, `chcon`/`semanage`, `DOTNET_BUNDLE_EXTRACT_BASE_DIR`).
+- [INSTALL.md](INSTALL.md) §13 Troubleshooting — 3 sub-sections for unsigned binaries: macOS Gatekeeper (`xattr -dr com.apple.quarantine`, `spctl --add`), Windows SmartScreen/Defender (`Unblock-File`, `Add-MpPreference -ExclusionPath`), Linux SELinux/AppArmor (`ausearch`, `chcon`/`semanage`, `DOTNET_BUNDLE_EXTRACT_BASE_DIR`).
 - **JSON-schema tools catalogue** — the mini-project [`tools/SchemaGen/`](../tools/SchemaGen/) reflects over `[McpServerToolType]`+`[McpServerTool]` in the Core and Signer assemblies, emits [`docs/tools-schema.json`](tools-schema.json) in MCP `tools/list` format (name + description + JSON-Schema inputSchema, sorted by name). **131 tools covered.** Regenerate: `dotnet run --project tools/SchemaGen -- docs/tools-schema.json`.
 - **Cowork agent recipes** — [`docs/examples/`](examples/) contains **12 ready-made workflows**, each cross-checked against an integration test from the upstream [XrplCSharp](https://github.com/StaticBit-io/XrplCSharp/tree/release/Tests/Xrpl.Tests/Integration/transactions) project. Index: [`docs/examples/README.md`](examples/README.md). Covered scenarios:
   - **Read + polling**: monitor-balance-telegram.
