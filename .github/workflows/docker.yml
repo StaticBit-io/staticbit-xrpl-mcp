@@ -1,11 +1,11 @@
 name: docker
 
-# Thin caller of the shared reusable build+push workflow (repo mcp-tooling).
-# Publishes the cloud-server image to ghcr.io on a vX.Y.Z tag or manual dispatch.
+# Manual ad-hoc publish of the cloud-server image via the shared reusable
+# build+push workflow (repo mcp-tooling). The normal path is automatic: an
+# xrpl-cloud release builds the image as a job inside release-plugin.yml.
+# Use this only to republish an image without cutting a plugin release.
 
 on:
-  push:
-    tags: ['v*.*.*']
   workflow_dispatch:
     inputs:
       version:
@@ -20,7 +20,7 @@ jobs:
       packages: write
     uses: Platonenkov/mcp-tooling/.github/workflows/docker-build-push.yml@main
     with:
-      version: ${{ github.event.inputs.version || github.ref_name }}
+      version: ${{ inputs.version }}
       images: |
         [
           { "name": "staticbit-xrpl-mcp", "image_suffix": "staticbit-xrpl-mcp",

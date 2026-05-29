@@ -43,6 +43,9 @@ jobs:
       contents: write          # push commits + tags + GitHub Release
       id-token: write          # SLSA build-provenance attestation (OIDC)
       attestations: write      # write attestations into the GitHub attestation store
+    outputs:
+      new_version: ${{ steps.release.outputs.new_version }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -304,3 +307,22 @@ jobs:
             --notes "$NOTES" \
             --target main \
             "${ASSETS[@]}"
+
+  # xrpl-cloud is the HTTP server behind xrpl-mcp.staticbit.io; a cloud release must
+  # also (re)publish its ghcr.io image. The release job's tag push can't trigger
+  # docker.yml on its own (a GITHUB_TOKEN push doesn't start new workflow runs), so
+  # we build the image here in the same run via the shared reusable workflow.
+  docker:
+    needs: release
+    if: ${{ inputs.dry_run != true && inputs.plugin == 'xrpl-cloud' }}
+    permissions:
+      contents: read
+      packages: write
+    uses: Platonenkov/mcp-tooling/.github/workflows/docker-build-push.yml@main
+    with:
+      version: ${{ needs.release.outputs.new_version }}
+      images: |
+        [
+          { "name": "staticbit-xrpl-mcp", "image_suffix": "staticbit-xrpl-mcp",
+            "dockerfile": "./Dockerfile", "context": ".", "cache_scope": "staticbit-xrpl-mcp" }
+        ]
