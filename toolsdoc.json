@@ -1,0 +1,17 @@
+{
+  "servers": [
+    {
+      "id": "xrpl",
+      "displayName": "xrpl",
+      "toolsDir": "src/StaticBit.Xrpl.Mcp.Core/Tools",
+      "blurb": "XRPL MCP — read/prepare/submit ledger, account, AMM, DEX, NFT, vault and more."
+    },
+    {
+      "id": "xrpl-signer",
+      "displayName": "xrpl-signer",
+      "toolsDir": "src/StaticBit.Xrpl.Mcp.Signer/Tools",
+      "blurb": "Offline signer — wallet management and transaction signing (encrypted keystore)."
+    }
+  ],
+  "generatedOutput": "docs/TOOLS.generated.md"
+}

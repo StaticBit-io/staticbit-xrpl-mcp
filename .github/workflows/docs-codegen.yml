@@ -1,0 +1,23 @@
+name: docs-codegen
+
+# Fails if docs/TOOLS.generated.md drifts from the [McpServerTool] attributes.
+# Regenerate locally:  dotnet tool restore && dotnet tool run mcp-toolsdoc
+
+on:
+  push:
+    branches: [main]
+    paths: ['src/**', 'toolsdoc.json', '.config/dotnet-tools.json', '.github/workflows/docs-codegen.yml']
+  pull_request:
+    branches: [main]
+    paths: ['src/**', 'toolsdoc.json', '.config/dotnet-tools.json', '.github/workflows/docs-codegen.yml']
+
+jobs:
+  toolsdoc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet tool restore
+      - run: dotnet tool run mcp-toolsdoc -- --check
