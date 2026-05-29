@@ -7,6 +7,12 @@
       "commands": [
         "mcp-toolsdoc"
       ]
+    },
+    "mcp.i18ncheck": {
+      "version": "0.1.0",
+      "commands": [
+        "mcp-i18ncheck"
+      ]
     }
   }
 }
