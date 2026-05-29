@@ -1,4 +1,4 @@
-> 🇬🇧 [Read in English](atomic-batch-payment.md)
+>  🌐 **Язык**: [English](../../examples/atomic-batch-payment.md) | **Русский**
 
 # Пример: Atomic Batch payment (XLS-56)
 

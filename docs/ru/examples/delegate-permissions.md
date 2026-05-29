@@ -1,4 +1,4 @@
-> 🇬🇧 [Read in English](delegate-permissions.md)
+>  🌐 **Язык**: [English](../../examples/delegate-permissions.md) | **Русский**
 
 # Пример: Account permission delegation (XLS-75)
 

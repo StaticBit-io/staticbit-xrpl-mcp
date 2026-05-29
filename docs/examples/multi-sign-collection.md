@@ -1,4 +1,4 @@
-> 🇷🇺 [Прочесть на русском](multi-sign-collection.ru.md)
+>  🌐 **Language**: **English** | [Русский](../ru/examples/multi-sign-collection.md)
 
 # Example: Multi-sign signature collection workflow
 

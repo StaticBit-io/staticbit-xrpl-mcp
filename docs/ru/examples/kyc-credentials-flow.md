@@ -1,4 +1,4 @@
-> 🇬🇧 [Read in English](kyc-credentials-flow.md)
+>  🌐 **Язык**: [English](../../examples/kyc-credentials-flow.md) | **Русский**
 
 # Пример: KYC credentials flow (XLS-70)
 

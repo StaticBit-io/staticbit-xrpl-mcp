@@ -1,4 +1,4 @@
-> 🇬🇧 [Read in English](features.md)
+>  🌐 **Язык**: [English](../features.md) | **Русский**
 
 # Возможности StaticBit XRPL MCP
 
@@ -6,16 +6,16 @@
 
 **Текущие цифры**:
 
-- **131 MCP-tools** (полный машинно-читаемый JSON-Schema каталог: [docs/tools-schema.json](tools-schema.json)).
+- **131 MCP-tools** (полный машинно-читаемый JSON-Schema каталог: [docs/tools-schema.json](../tools-schema.json)).
 - **432 unit-теста** (Core: 357, Server: 47, Signer: 28) + **34 integration smoke** против testnet (23 ещё ignore'нуты за draft-amendments Vault / XChain / Loan).
 - Все 4 проекта (Abstractions, Core, Server, Signer) + 4 тестовых проекта + утилита `tools/SchemaGen` + плагин-маркетплейс на 3 плагина (`xrpl-cloud`, `xrpl-local`, `xrpl-signer`).
 
 Связанные документы:
 
-- [docs/glossary.ru.md](glossary.ru.md) — словарь XRPL-терминов, встречающихся в описаниях tool'ов.
-- [docs/supply-chain.ru.md](supply-chain.ru.md) — что прикладывается к каждому release и как пользователю верифицировать.
+- [docs/glossary.ru.md](glossary.md) — словарь XRPL-терминов, встречающихся в описаниях tool'ов.
+- [docs/supply-chain.ru.md](supply-chain.md) — что прикладывается к каждому release и как пользователю верифицировать.
 - [docs/examples/](examples/) — рецепты Cowork-агентов поверх плагинов.
-- [INSTALL.ru.md](../INSTALL.ru.md), [DEPLOY.ru.md](../DEPLOY.ru.md), [RELEASE.ru.md](../RELEASE.ru.md) — установка, развёртывание VPS, релизный процесс.
+- [INSTALL.ru.md](../../INSTALL.ru.md), [DEPLOY.ru.md](../../DEPLOY.ru.md), [RELEASE.ru.md](../../RELEASE.ru.md) — установка, развёртывание VPS, релизный процесс.
 
 ---
 
@@ -144,14 +144,14 @@ Cross-chain bridge flow между locking и issuing chains через door-acc
 
 Bleeding-edge DeFi lending: LoanBroker сидит поверх Vault и управляет пулом займов с cover capital (first-loss). Все 9 prepare-tool'ов опираются на 64-hex hash IDs (LoanBrokerID, LoanID).
 
-**LoanBroker write-flow** ([LoanBrokerTools.cs](src/StaticBit.Xrpl.Mcp.Core/Tools/LoanBrokerTools.cs)):
+**LoanBroker write-flow** ([LoanBrokerTools.cs](../../src/StaticBit.Xrpl.Mcp.Core/Tools/LoanBrokerTools.cs)):
 
 - `xrpl_loan_broker_set_prepare` — create (omit `loanBrokerId`) / modify. Параметры: `vaultId`, `coverRateMinimum` / `coverRateLiquidation` (1/100th bp, 0..100000; liquidation ≤ minimum), `managementFeeRate` (1/10th bp, 0..10000), `debtMaximum` (STNumber), `dataHex` (≤512 hex).
 - `xrpl_loan_broker_delete_prepare` — только при пустом брокере.
 - `xrpl_loan_broker_cover_deposit_prepare` / `_cover_withdraw_prepare` — first-loss capital deposit/withdraw, asset должен совпадать с vault'ом.
 - `xrpl_loan_broker_cover_clawback_prepare` — issuer claw-back. Минимум один из `loanBrokerId` или `(amountValue + assetCurrency)`. XRP не clawback'ится.
 
-**Loan write-flow** ([LoanTools.cs](src/StaticBit.Xrpl.Mcp.Core/Tools/LoanTools.cs)):
+**Loan write-flow** ([LoanTools.cs](../../src/StaticBit.Xrpl.Mcp.Core/Tools/LoanTools.cs)):
 
 - `xrpl_loan_set_prepare` — оригинация. Lender ≠ borrower. Все 5 rate-полей (interest/late/close/overpayment/overpayment-fee) проверяются ≤100000. Optional fee fields (STNumber): origination/service/late/close. `paymentTotal` / `paymentInterval` / `gracePeriod` (defaults 1/60/60 в SDK). `allowOverpayment=true` → tfLoanOverpayment.
 - `xrpl_loan_manage_prepare` — `action` ∈ {`default`, `impair`, `unimpair`} (mutually exclusive flags `tfLoanDefault=0x10000` / `tfLoanImpair=0x20000` / `tfLoanUnimpair=0x40000`).
@@ -227,7 +227,7 @@ Tool оставлен как plumbing для будущих server-side watchers
   - **Prepare-smoke** (20 active): MPT (4), Batch, Oracle (2), Ticket, Delegate (2), NFTokenModify (2), Credentials (3), PermissionedDomains (2), DID (2), AMMClawback. Каждый round-trip'ит autofill + binary encoding + summary без подписи/submit. Общий helper `PrepareSmokeAssert.Standard` проверяет `TxBlobUnsigned` непустой, `Sequence`/`Fee`/`LastLedgerSequence` autofilled, `TransactionType` совпадает.
   - **[Ignore]'нуты** (23): Vault (XLS-65, 6 tests), XChain (XLS-38, 8 tests, sidechain-only), LoanBroker / Loan (XLS-66, 9 tests) — все три amendments в draft статусе и не активированы на стандартном rippletest.net. Снять `[Ignore]` при тестировании против узла с активными amendment'ами.
   - **`[DoNotParallelize]`** на каждом классе — SDK `RequestManager` имеет ID-race при concurrent-запросах через один WebSocket; разные классы (со своими pool'ами) идут параллельно, внутри класса — последовательно.
-  - Workflow [.github/workflows/integration-tests.yml](../.github/workflows/integration-tests.yml) — daily cron + workflow_dispatch с override URL. Переопределение endpoint через `XRPL_TESTNET_WS`.
+  - Workflow [.github/workflows/integration-tests.yml](../../.github/workflows/integration-tests.yml) — daily cron + workflow_dispatch с override URL. Переопределение endpoint через `XRPL_TESTNET_WS`.
 
 ---
 
@@ -242,23 +242,23 @@ Tool оставлен как plumbing для будущих server-side watchers
 
 ## 7. Дистрибуция и supply chain
 
-Полная сводка + setup-гайд: [docs/supply-chain.ru.md](supply-chain.ru.md).
+Полная сводка + setup-гайд: [docs/supply-chain.ru.md](supply-chain.md).
 
 - **Автогенерация GitHub release notes** — `release-plugin.sh::group_by_conventional_commit` парсит conventional commits (feat/fix/perf/refactor/docs/test/build/ci/chore) между тегами и группирует под подзаголовки `### Features` / `### Fixes` / ... `### Other`.
 - **SBOM (CycloneDX)** — `dotnet CycloneDX` в release workflow генерит `<plugin>-v<X>.cdx.json` для `xrpl-signer` и `xrpl-local` (для `xrpl-cloud` пропускается — у него нет shipped бинарей). Аттачится к Release.
 - **SLSA build provenance attestation** — `actions/attest-build-provenance@v2` через GitHub OIDC. Без секретов. Верифицируется `gh attestation verify`.
 - **Per-RID tarballs + SHA-256 sidecars** — каждый `plugins/<name>/bin/<rid>/` бандлится в `<plugin>-v<X>-<rid>.tar.gz` + `.sha256` рядом.
 - **Reproducible builds** — `Deterministic=true` всегда, `ContinuousIntegrationBuild=true` при `CI=true`/`GITHUB_ACTIONS=true`. Bit-identity для managed-сборок между запусками одного коммита на одной версии SDK.
-- **Notarization macOS бинарей signer** — workflow использует `rcodesign` (pure-Rust, на Linux runner'е без macOS-хоста). Условно skipped если `APPLE_*` секреты не настроены. Required secrets описаны в [docs/supply-chain.ru.md](supply-chain.ru.md).
-- **Authenticode Windows бинарей** — workflow использует `osslsigncode` на Linux runner'е. Условно skipped если `WINDOWS_PFX*` не настроен. Required secrets описаны в [docs/supply-chain.ru.md](supply-chain.ru.md).
+- **Notarization macOS бинарей signer** — workflow использует `rcodesign` (pure-Rust, на Linux runner'е без macOS-хоста). Условно skipped если `APPLE_*` секреты не настроены. Required secrets описаны в [docs/supply-chain.ru.md](supply-chain.md).
+- **Authenticode Windows бинарей** — workflow использует `osslsigncode` на Linux runner'е. Условно skipped если `WINDOWS_PFX*` не настроен. Required secrets описаны в [docs/supply-chain.ru.md](supply-chain.md).
 
 ---
 
 ## 8. Документация
 
-- [INSTALL.ru.md](../INSTALL.ru.md) §13 Troubleshooting — 3 подсекции для unsigned бинарей: macOS Gatekeeper (`xattr -dr com.apple.quarantine`, `spctl --add`), Windows SmartScreen/Defender (`Unblock-File`, `Add-MpPreference -ExclusionPath`), Linux SELinux/AppArmor (`ausearch`, `chcon`/`semanage`, `DOTNET_BUNDLE_EXTRACT_BASE_DIR`).
-- **JSON-schema каталог tools** — mini-проект [`tools/SchemaGen/`](../tools/SchemaGen/) делает reflection-проход по `[McpServerToolType]`+`[McpServerTool]` в Core и Signer сборках, эмитит [`docs/tools-schema.json`](tools-schema.json) в MCP `tools/list` формате (name + description + JSON-Schema inputSchema, отсортировано по name). 130 tools покрыто. Регенерация: `dotnet run --project tools/SchemaGen -- docs/tools-schema.json`.
-- **Cowork-агент рецепты** — [`docs/examples/`](examples/) содержит **12 готовых workflow'ов**, каждый перекрёстно сверен с integration-тестом upstream-проекта [XrplCSharp](https://github.com/StaticBit-io/XrplCSharp/tree/release/Tests/Xrpl.Tests/Integration/transactions). Индекс — [`docs/examples/README.ru.md`](examples/README.ru.md). Покрытые сценарии:
+- [INSTALL.ru.md](../../INSTALL.ru.md) §13 Troubleshooting — 3 подсекции для unsigned бинарей: macOS Gatekeeper (`xattr -dr com.apple.quarantine`, `spctl --add`), Windows SmartScreen/Defender (`Unblock-File`, `Add-MpPreference -ExclusionPath`), Linux SELinux/AppArmor (`ausearch`, `chcon`/`semanage`, `DOTNET_BUNDLE_EXTRACT_BASE_DIR`).
+- **JSON-schema каталог tools** — mini-проект [`tools/SchemaGen/`](../../tools/SchemaGen/) делает reflection-проход по `[McpServerToolType]`+`[McpServerTool]` в Core и Signer сборках, эмитит [`docs/tools-schema.json`](../tools-schema.json) в MCP `tools/list` формате (name + description + JSON-Schema inputSchema, отсортировано по name). 130 tools покрыто. Регенерация: `dotnet run --project tools/SchemaGen -- docs/tools-schema.json`.
+- **Cowork-агент рецепты** — [`docs/examples/`](examples/) содержит **12 готовых workflow'ов**, каждый перекрёстно сверен с integration-тестом upstream-проекта [XrplCSharp](https://github.com/StaticBit-io/XrplCSharp/tree/release/Tests/Xrpl.Tests/Integration/transactions). Индекс — [`docs/examples/README.ru.md`](examples/README.md). Покрытые сценарии:
   - **Read + polling**: monitor-balance-telegram.
   - **MPT (XLS-33)**: controlled-mpt-issuance.
   - **Batch (XLS-56)**: atomic-batch-payment (pending BatchV1_1 — amendment removed in rippled v3.1.1).
@@ -271,5 +271,5 @@ Tool оставлен как plumbing для будущих server-side watchers
   - **DelegateSet (XLS-75)**: delegate-permissions (per-tx-type delegation, bot acts on owner's behalf).
   - **Vault (XLS-65, draft)**: vault-deposit-redeem.
   Все рецепты следуют единой структуре (use-case → tools → arch → pre-req → промт → step-by-step → verification → gotchas → use-cases → extensions). Обнаружены 2 feature-gap'а в текущем MCP API (`credentialIdsJson` в `xrpl_payment_prepare` и `xrpl_hash_credential` tool) — документированы в `examples/README.md` для следующих спринтов.
-- Глоссарий XRPL-терминов — [`docs/glossary.ru.md`](glossary.ru.md): drops, reserve (base+owner), Sequence, LastLedgerSequence, Ripple epoch, ledger states, trust lines (NoRipple/DefaultRipple/Freeze), engine results (tec/tef/tem/ter/tes), DEX, AMM, Regular Key, Signer List, DepositAuth, Clawback, Escrow, Payment Channel, Check, NFT.
-- [docs/supply-chain.ru.md](supply-chain.ru.md) — что прикладывается к каждому release, как пользователю верифицировать, какие secrets нужно настроить для опциональной macOS notarization / Windows Authenticode.
+- Глоссарий XRPL-терминов — [`docs/glossary.ru.md`](glossary.md): drops, reserve (base+owner), Sequence, LastLedgerSequence, Ripple epoch, ledger states, trust lines (NoRipple/DefaultRipple/Freeze), engine results (tec/tef/tem/ter/tes), DEX, AMM, Regular Key, Signer List, DepositAuth, Clawback, Escrow, Payment Channel, Check, NFT.
+- [docs/supply-chain.ru.md](supply-chain.md) — что прикладывается к каждому release, как пользователю верифицировать, какие secrets нужно настроить для опциональной macOS notarization / Windows Authenticode.

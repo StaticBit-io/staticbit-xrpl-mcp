@@ -1,80 +1,93 @@
+>  🌐 **Language**: **English** | [Русский](ru/bilingual-convention.md)
+
 # Bilingual documentation convention
 
-The project ships documentation in **two languages** — English (default) and Russian. We use the *parallel-file* convention popularized by the upstream [XrplCSharp](https://github.com/StaticBit-io/XrplCSharp/tree/release/DocFx) repo.
+The project ships documentation in **two languages** — English (the canonical/default source-of-truth) and Russian (a faithful mirror). The layout is unified across **all** StaticBit MCP repositories and is enforced in CI by `scripts/check-translations.sh` (workflow `.github/workflows/docs-i18n.yml`).
 
-## File naming
+## File layout
+
+There are two placement rules depending on whether the file lives under `docs/`.
+
+### Inside `docs/` — mirror subtree
+
+English is canonical at its natural path; the Russian translation mirrors the same relative path under `docs/ru/`:
 
 ```
-docs/features.md           # English — primary, what GitHub shows by default
-docs/features.ru.md        # Russian sibling
-docs/examples/foo.md       # English
-docs/examples/foo.ru.md    # Russian
+docs/features.md                 # English (canonical)
+docs/ru/features.md              # Russian mirror
+
+docs/examples/amm-clawback.md    # English (canonical)
+docs/ru/examples/amm-clawback.md # Russian mirror
 ```
 
-Always two files per logical document. **English is the source-of-truth** for cross-references from code, integration tests, and CI commit messages — it's what an international audience reaches first.
+So `docs/<path>.md` ⇄ `docs/ru/<path>.md`. The `docs/ru/` subtree contains **only** translations — every file in it must have an English source at the corresponding `docs/<path>.md`, and every English page under `docs/` (outside `docs/ru/`) must have its mirror.
+
+### Outside `docs/` — suffix sibling
+
+For files at the repo root and under `plugins/*`, `examples/*`, `servers/*`, and `infra/`, the Russian translation is a `.ru.md` sibling next to the English `.md`:
+
+```
+README.md                        # English (canonical)
+README.ru.md                     # Russian sibling
+
+plugins/xrpl-cloud/README.md     # English (canonical)
+plugins/xrpl-cloud/README.ru.md  # Russian sibling
+```
+
+So `<dir>/X.md` ⇄ `<dir>/X.ru.md`.
+
+**English is the source-of-truth** for cross-references from code, integration tests, and CI commit messages — it's what an international audience reaches first.
 
 ## Language-switcher banner
 
-Every page opens with a one-line banner that points to its sibling:
+Every page opens with a one-line banner that points to its counterpart. Place it as the **first line** of the file, before the H1 heading.
 
 **On English pages:**
 ```markdown
-> 🇷🇺 [Прочесть на русском](filename.ru.md)
+>  🌐 **Language**: **English** | [Русский](<relative-path-to-russian>)
 ```
 
 **On Russian pages:**
 ```markdown
-> 🇬🇧 [Read in English](filename.md)
+>  🌐 **Язык**: [English](<relative-path-to-english>) | **Русский**
 ```
 
-Place it as the **first line** of the file, before the H1 heading. Renders as a soft quote block at the top of the rendered page on GitHub.
+The relative target depends on depth. For a page under `docs/`, the Russian mirror sits one level deeper, e.g. from `docs/features.md` it is `ru/features.md`; from `docs/ru/features.md` the English source is `../features.md`. For `docs/ru/examples/x.md` the English source is `../../examples/x.md`. For suffix pairs the counterpart is a sibling in the same directory (`README.md` ⇄ `README.ru.md`).
 
 ## What to translate / what to keep
 
-- **Document body**: full translation. Both sides should be functionally equivalent — same sections, same tables, same code snippets.
-- **Code examples**: keep identical between languages — they reference the same XRPL/MCP tool names.
-- **Tool names** (e.g. `xrpl_payment_prepare`) and **MCP-level error codes** (`tecNO_PERMISSION`): never translate.
-- **Markdown anchors and cross-page links**: keep relative paths consistent — `[features](features.md)` on EN side, `[features](features.ru.md)` on RU side. Linkcheck via grep before commit.
-- **Code comments**: keep in English (per global C# style rules) — both EN and RU docs reference the same code.
+- **Document body**: full translation. Both sides must be functionally equivalent — same sections, same tables, same code snippets.
+- **Code blocks / commands / paths / URLs / config keys**: keep **byte-identical** between languages — they reference the same XRPL/MCP entities.
+- **Tool names** (e.g. `xrpl_payment_prepare`) and **engine result codes** (`tecNO_PERMISSION`): never translate.
+- **Markdown cross-page links**: recompute relative paths for the file's location. From `docs/ru/<x>.md` a sibling translation is `<y>.md` (same `docs/ru/` subtree), the English source is `../<x>.md`, and a repo-root file is `../../<file>`.
+- **Code comments**: keep in English (per global C# style rules).
 
-## When the two versions drift
+## The CI gate
 
-If you update one side and not the other, mark the stale side with a banner directly under the language switcher:
+`scripts/check-translations.sh` (run locally with `bash scripts/check-translations.sh`) verifies that:
 
-```markdown
-> 🇬🇧 [Read in English](features.md)
->
-> ⚠️ Эта страница может отставать от английской версии — последние изменения см. в EN.
-```
+1. Every `docs/**/*.md` (excluding `docs/ru/`) has a `docs/ru/<rel>.md` mirror, and every `docs/ru/**/*.md` has an English source — no orphans.
+2. Every suffix-zone `X.md` has an `X.ru.md` sibling.
+3. Each Russian counterpart is **non-stub** (≥ 200 bytes).
 
-The expectation is parity. Drift is a TODO to close in the next sync.
+### `.i18nignore`
+
+English-only, generated, or agent-instruction files (e.g. `CHANGELOG.md`, generated catalogues, `CLAUDE.md` agent files) are exempted by listing their repo-relative path in the repo-root `.i18nignore` (one path per line; blank lines and `#` comments allowed). Do **not** translate agent-instruction `CLAUDE.md` files — exempt them instead.
+
+### `.i18npairs` (optional)
+
+For documents that live outside the conventional locations, an explicit `en-path:ru-path` mapping can be added to a repo-root `.i18npairs` file (one pair per line; `#` comments allowed).
 
 ## Adding a new document
 
-1. Write the English `.md` first.
+1. Write the English file first (`docs/<path>.md` or `<dir>/X.md`).
 2. Add the language-switcher banner at the top.
-3. Translate to `.ru.md` (or mark as "translation pending" until done).
-4. Add the **English** filename to the parent TOC / index.
-5. Cross-reference: the RU sibling is reachable via the banner — no separate TOC needed.
-
-## Renaming an existing Russian doc
-
-When porting historical RU docs into the bilingual convention:
-
-```bash
-git mv docs/features.md docs/features.ru.md
-# Now write docs/features.md as the English version.
-# Add the banner to both files.
-```
-
-## Tools that follow the same convention
-
-- [XrplCSharp/DocFx](https://github.com/StaticBit-io/XrplCSharp/tree/release/DocFx) — primary reference.
-- Most open-source .NET projects with non-English maintainers (CefSharp, NLog, …).
+3. Create the Russian counterpart: `docs/ru/<path>.md` for docs, or `<dir>/X.ru.md` for the suffix zone.
+4. Reference the **English** filename from the parent TOC / index.
+5. Run `bash scripts/check-translations.sh` until it prints `OK: bilingual docs check passed.`
 
 ## Out-of-scope
 
 - **In-code XML doc-comments**: stay English-only (matches global C# style rules).
-- **Commit messages**: English.
-- **PR descriptions**: prefer English (auditable by international reviewers); Russian acceptable for tactical PRs.
-- **Issue templates / labels**: English-only.
+- **Commit messages / PR descriptions / issue templates**: English.
+- **Generated files and agent `CLAUDE.md` instructions**: not translated — exempt via `.i18nignore`.

@@ -16,7 +16,7 @@ XRPL toolkit for Claude Code — **source + three plugins in one repo**. Contain
 > 📖 **[docs/supply-chain.md](docs/supply-chain.md)** — what ships with every release (SBOM, SLSA, optional notarization) and how to verify it.
 > 📖 **[docs/tools-schema.json](docs/tools-schema.json)** — machine-readable JSON-Schema catalogue of all MCP tools (131), for third-party agents.
 > 📖 **[docs/examples/](docs/examples/)** — recipes for cross-plugin Cowork agents.
-> 📖 **[docs/bilingual-convention.md](docs/bilingual-convention.md)** — sibling `.md` / `.ru.md` documentation convention.
+> 📖 **[docs/bilingual-convention.md](docs/bilingual-convention.md)** — bilingual documentation convention (`docs/ru/` mirror subtree + `.ru.md` suffix outside `docs/`).
 
 ## Marketplace plugins
 

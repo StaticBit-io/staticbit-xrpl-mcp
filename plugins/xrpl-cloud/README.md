@@ -1,33 +1,35 @@
+>  🌐 **Language**: **English** | [Русский](README.ru.md)
+
 # xrpl-cloud plugin
 
-Лёгкий HTTP MCP-клиент к нашему cloud XRPL-серверу на `xrpl-mcp.staticbit.io`. Никаких бинарей, никаких локальных процессов — Claude Code аутентифицируется к серверу через **OAuth 2.1** (выполни `/mcp` один раз для входа).
+A lightweight HTTP MCP client for our cloud XRPL server at `xrpl-mcp.staticbit.io`. No binaries, no local processes — Claude Code authenticates to the server via **OAuth 2.1** (run `/mcp` once to sign in).
 
-## Когда выбирать этот плагин
+## When to choose this plugin
 
-- **Cowork / 24/7 routines** — серверный агент должен работать без зависимости от твоей машины.
-- **Mobile / lightweight** — не хочешь скачивать ~100 MB local-сервера.
-- **Multi-device** — вход через OAuth на каждом устройстве; одна XRPL-конфигурация на сервере.
+- **Cowork / 24/7 routines** — a server-side agent must run without depending on your machine.
+- **Mobile / lightweight** — you don't want to download a ~100 MB local server.
+- **Multi-device** — sign in via OAuth on each device; a single XRPL configuration lives on the server.
 
-Если ты privacy-sensitive (не хочешь чтобы админ cloud-сервера видел traffic к XRPL нодам), смотри в сторону `xrpl-local`.
+If you are privacy-sensitive (you don't want the cloud server admin to see traffic to XRPL nodes), look at `xrpl-local` instead.
 
-## Установка
+## Installation
 
 ```
 /plugin marketplace add https://github.com/StaticBit-io/staticbit-xrpl-mcp
 /plugin install xrpl-cloud@staticbit-xrpl-mcp
 ```
 
-### Аутентификация (OAuth 2.1)
+### Authentication (OAuth 2.1)
 
-Сервер защищён OAuth; войти могут только аккаунты из **allow-list** — попроси админа `xrpl-mcp.staticbit.io` добавить твой аккаунт. Никаких bearer/ENV задавать не нужно. Затем в Claude Code:
+The server is protected by OAuth; only accounts on the **allow-list** can sign in — ask the `xrpl-mcp.staticbit.io` admin to add your account. No bearer/ENV needs to be set. Then, in Claude Code:
 
 ```
 /mcp
 ```
 
-Пройди вход в браузере к `auth.mcp.staticbit.io` — Claude Code сделает dynamic client registration, сохранит токен и будет обновлять его автоматически.
+Complete the browser sign-in to `auth.mcp.staticbit.io` — Claude Code will perform dynamic client registration, store the token, and refresh it automatically.
 
-## Проверка
+## Verification
 
 ```
 /mcp
@@ -36,23 +38,23 @@
 xrpl-cloud  https://xrpl-mcp.staticbit.io/mcp (HTTP)  ✓ Connected
 ```
 
-Все 21 tool доступны как `mcp__plugin_xrpl-cloud_xrpl-cloud__*`:
+All 21 tools are available as `mcp__plugin_xrpl-cloud_xrpl-cloud__*`:
 - read: server_info, fee, ledger, tx_lookup, account_{info,lines,tx,offers,objects}, xrp_balance, book_offers, amm_info
 - prepare: payment, trustset, offer_create, offer_cancel, amm_deposit, amm_withdraw
 - submit/utils: tx_submit_signed, tx_decode_blob, tx_prepare_generic
 
-## Подписание транзакций
+## Signing transactions
 
-Этот плагин **только** проксирует к серверу, **не** имеет ключей. Чтобы реально отправлять транзакции, поставь рядом `xrpl-signer`:
+This plugin **only** proxies to the server and holds **no** keys. To actually submit transactions, install `xrpl-signer` alongside it:
 
 ```
 /plugin install xrpl-signer@staticbit-xrpl-mcp
 ```
 
-Cloud делает `prepare` → signer (локально) делает `sign` → cloud делает `submit_signed`. Подробности — в README каждого плагина и в их skills.
+Cloud does `prepare` → signer (locally) does `sign` → cloud does `submit_signed`. See each plugin's README and their skills for details.
 
-## Безопасность
+## Security
 
-- Cloud-сервер **никогда** не получает seed/private key — все write-tools принимают только подписанный blob.
-- Аутентификация — OAuth 2.1: сервер валидирует короткоживущие JWT от `auth.mcp.staticbit.io`; войти могут только аккаунты из allow-list. Неудачные попытки летят в Telegram админу VPS.
+- The cloud server **never** receives a seed/private key — all write tools accept only a signed blob.
+- Authentication is OAuth 2.1: the server validates short-lived JWTs from `auth.mcp.staticbit.io`; only allow-listed accounts can sign in. Failed attempts are sent to the VPS admin via Telegram.
 - HTTPS-only.

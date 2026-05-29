@@ -1,4 +1,4 @@
-> 🇷🇺 [Прочесть на русском](README.ru.md)
+>  🌐 **Language**: **English** | [Русский](../ru/examples/README.md)
 
 # Cowork-agent recipes for StaticBit XRPL MCP
 
@@ -96,4 +96,4 @@ If you find a bug in a recipe or want to add a new use-case:
 1. Check the upstream integration test in [XrplCSharp/Tests/Xrpl.Tests/Integration/transactions/](https://github.com/StaticBit-io/XrplCSharp/tree/release/Tests/Xrpl.Tests/Integration/transactions).
 2. If the sequence works in the integration test — port it into a recipe.
 3. Run our smoke tests against testnet: `dotnet test --filter "TestCategory=Integration"`.
-4. Submit a PR with the new `.md` file (+ `.ru.md` sibling) and an updated entry in this index.
+4. Submit a PR with the new English `.md` file (+ its `docs/ru/examples/<name>.md` mirror) and an updated entry in this index.

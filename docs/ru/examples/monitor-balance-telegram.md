@@ -1,4 +1,4 @@
-> 🇬🇧 [Read in English](monitor-balance-telegram.md)
+>  🌐 **Язык**: [English](../../examples/monitor-balance-telegram.md) | **Русский**
 
 # Пример: Cowork-агент «monitor balance, notify in Telegram»
 

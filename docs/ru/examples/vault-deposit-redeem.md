@@ -1,4 +1,4 @@
-> 🇬🇧 [Read in English](vault-deposit-redeem.md)
+>  🌐 **Язык**: [English](../../examples/vault-deposit-redeem.md) | **Русский**
 
 # Пример: Single-Asset Vault — deposit / redeem (XLS-65, advanced)
 
@@ -286,4 +286,4 @@ agent ← {"step":"delete","owner":"rOwner...","vaultId":"<...>"}
 
 ## Текущие integration-тесты
 
-Наши smoke-тесты в [tests/StaticBit.Xrpl.Mcp.Integration.Tests/MptBatchVaultOracleTestsI.cs](../../tests/StaticBit.Xrpl.Mcp.Integration.Tests/MptBatchVaultOracleTestsI.cs) для Vault'а `[Ignore]`'нуты с пометкой "XLS-65 Vault amendment is draft and not active on standard testnet". Когда amendment активируется — снять `[Ignore]` и тесты заработают.
+Наши smoke-тесты в [tests/StaticBit.Xrpl.Mcp.Integration.Tests/MptBatchVaultOracleTestsI.cs](../../../tests/StaticBit.Xrpl.Mcp.Integration.Tests/MptBatchVaultOracleTestsI.cs) для Vault'а `[Ignore]`'нуты с пометкой "XLS-65 Vault amendment is draft and not active on standard testnet". Когда amendment активируется — снять `[Ignore]` и тесты заработают.

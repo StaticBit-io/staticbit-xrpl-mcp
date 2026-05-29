@@ -1,4 +1,4 @@
-> 🇬🇧 [Read in English](amm-clawback.md)
+>  🌐 **Язык**: [English](../../examples/amm-clawback.md) | **Русский**
 
 # Пример: AMM Clawback (XLS-37)
 

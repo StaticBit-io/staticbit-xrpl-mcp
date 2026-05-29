@@ -1,4 +1,4 @@
-> 🇬🇧 [Read in English](supply-chain.md)
+>  🌐 **Язык**: [English](../supply-chain.md) | **Русский**
 
 # Supply chain — release artifacts и верификация
 
@@ -8,7 +8,7 @@
 
 ## Что прикладывается к каждому Release
 
-Создаётся [`.github/workflows/release-plugin.yml`](../.github/workflows/release-plugin.yml) → шаги последовательно:
+Создаётся [`.github/workflows/release-plugin.yml`](../../.github/workflows/release-plugin.yml) → шаги последовательно:
 
 | Артефакт | Когда | Как верифицировать |
 |---|---|---|
@@ -32,7 +32,7 @@ GitHub Attestations API доступен только для:
 
 ## Reproducible builds
 
-[`Directory.Build.props`](../Directory.Build.props) включает:
+[`Directory.Build.props`](../../Directory.Build.props) включает:
 
 - `<Deterministic>true</Deterministic>` — C# компилятор эмитит байт-идентичные сборки для идентичных входов (без эмбеддед timestamps, без GUID'ов из PE-метаданных).
 - `<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>` (когда `CI=true`/`GITHUB_ACTIONS=true`) — нормализует пути в PDB'ах (не утечёт `C:\Users\runner\…` в Source Link).
@@ -114,7 +114,7 @@ EV-сертификаты обычно требуют HSM-токен (USB Smart 
    #                                     → WINDOWS_PFX_PASSWORD
    ```
 
-Workflow использует `osslsigncode` на Linux runner'е с SHA-256 digest и DigiCert timestamp server (`http://timestamp.digicert.com`). Если выбран другой CA — поменять URL в [release-plugin.yml](../.github/workflows/release-plugin.yml).
+Workflow использует `osslsigncode` на Linux runner'е с SHA-256 digest и DigiCert timestamp server (`http://timestamp.digicert.com`). Если выбран другой CA — поменять URL в [release-plugin.yml](../../.github/workflows/release-plugin.yml).
 
 ## Что ещё не реализовано
 

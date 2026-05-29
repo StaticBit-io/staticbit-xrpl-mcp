@@ -1,4 +1,4 @@
-> 🇷🇺 [Прочесть на русском](tickets-parallel-submit.ru.md)
+>  🌐 **Language**: **English** | [Русский](../ru/examples/tickets-parallel-submit.md)
 
 # Example: Tickets for parallel tx submission
 

@@ -11,10 +11,11 @@ XRPL toolkit for Claude Code — **исходники + три плагина в
 > 📖 **[INSTALL.ru.md](INSTALL.ru.md)** — пошаговая инструкция для конечного пользователя плагинов: от чистой Claude Code до первой подписанной XRPL-транзакции.
 > 📖 **[DEPLOY.ru.md](DEPLOY.ru.md)** — для админа, разворачивающего cloud-сервер на VPS.
 > 📖 **[RELEASE.ru.md](RELEASE.ru.md)** — для меня (релизера), как публиковать новые версии плагинов.
-> 📖 **[docs/glossary.ru.md](docs/glossary.ru.md)** — XRPL-термины, которые встречаются в описаниях tools.
-> 📖 **[docs/supply-chain.ru.md](docs/supply-chain.ru.md)** — что прикладывается к каждому release (SBOM, SLSA, опц. notarization) и как пользователю это верифицировать.
+> 📖 **[docs/glossary.ru.md](docs/ru/glossary.md)** — XRPL-термины, которые встречаются в описаниях tools.
+> 📖 **[docs/supply-chain.ru.md](docs/ru/supply-chain.md)** — что прикладывается к каждому release (SBOM, SLSA, опц. notarization) и как пользователю это верифицировать.
 > 📖 **[docs/tools-schema.json](docs/tools-schema.json)** — машинно-читаемый JSON-Schema каталог всех MCP-tools (131 шт), для third-party агентов.
-> 📖 **[docs/examples/](docs/examples/)** — рецепты кросс-плагинных Cowork-агентов.
+> 📖 **[docs/examples/](docs/ru/examples/)** — рецепты кросс-плагинных Cowork-агентов.
+> 📖 **[docs/bilingual-convention.ru.md](docs/ru/bilingual-convention.md)** — соглашение о двуязычной документации (зеркало `docs/ru/` + суффикс `.ru.md` вне `docs/`).
 
 ## Плагины marketplace
 

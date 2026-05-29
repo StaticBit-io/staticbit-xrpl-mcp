@@ -1,4 +1,4 @@
-> 🇷🇺 [Прочесть на русском](oracle-price-feed.ru.md)
+>  🌐 **Language**: **English** | [Русский](../ru/examples/oracle-price-feed.md)
 
 # Example: Oracle price feed publisher (XLS-47)
 

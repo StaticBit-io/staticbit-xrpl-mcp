@@ -1,4 +1,4 @@
-> 🇷🇺 [Прочесть на русском](features.ru.md)
+>  🌐 **Language**: **English** | [Русский](ru/features.md)
 
 # StaticBit XRPL MCP — Features
 

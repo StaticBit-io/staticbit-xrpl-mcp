@@ -1,4 +1,4 @@
-> 🇬🇧 [Read in English](permissioned-domain-and-did.md)
+>  🌐 **Язык**: [English](../../examples/permissioned-domain-and-did.md) | **Русский**
 
 # Пример: PermissionedDomain + DID identity (XLS-80 + XLS-40)
 

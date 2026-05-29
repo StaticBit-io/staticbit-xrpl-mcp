@@ -1,0 +1,7 @@
+# English-only / generated docs exempt from the bilingual-docs gate.
+# One repo-relative path per line; blank lines and #-comments allowed.
+
+# Per-plugin changelogs are generated from release notes (English canonical).
+plugins/xrpl-cloud/CHANGELOG.md
+plugins/xrpl-local/CHANGELOG.md
+plugins/xrpl-signer/CHANGELOG.md

@@ -1,4 +1,4 @@
-> 🇷🇺 [Прочесть на русском](vault-deposit-redeem.ru.md)
+>  🌐 **Language**: **English** | [Русский](../ru/examples/vault-deposit-redeem.md)
 
 # Example: Single-Asset Vault — deposit / redeem (XLS-65, advanced)
 

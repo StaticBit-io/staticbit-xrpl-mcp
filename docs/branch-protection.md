@@ -1,4 +1,4 @@
-> 🇷🇺 [Прочесть на русском](branch-protection.ru.md)
+>  🌐 **Language**: **English** | [Русский](ru/branch-protection.md)
 
 # Branch protection — recommended settings
 

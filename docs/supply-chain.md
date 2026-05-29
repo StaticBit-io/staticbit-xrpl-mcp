@@ -1,4 +1,4 @@
-> 🇷🇺 [Прочесть на русском](supply-chain.ru.md)
+>  🌐 **Language**: **English** | [Русский](ru/supply-chain.md)
 
 # Supply chain — release artifacts and verification
 

@@ -1,44 +1,46 @@
+>  🌐 **Language**: **English** | [Русский](README.ru.md)
+
 # xrpl-local plugin
 
-Локальный stdio MCP с тем же набором из 21 XRPL-tool, что и `xrpl-cloud`, но запущенный **полностью у тебя на машине**. WebSocket к публичным XRPL нодам (`xrplcluster.com`, `s.altnet.rippletest.net` и т.д.) идёт из твоего процесса напрямую — никакого посредника.
+A local stdio MCP with the same set of 21 XRPL tools as `xrpl-cloud`, but running **entirely on your machine**. The WebSocket to public XRPL nodes (`xrplcluster.com`, `s.altnet.rippletest.net`, etc.) goes directly from your process — no intermediary.
 
-## Когда выбирать этот плагин
+## When to choose this plugin
 
-- **Privacy-sensitive** — не хочешь чтобы админ cloud-сервера видел traffic к XRPL нодам.
-- **No-server-dependency** — наш VPS упал? Local продолжает работать.
-- **Кастомные ноды** — хочешь ходить в свой rippled, в Hooks testnet v3, в Sidechain — задаёшь URL через ENV.
-- **Air-gapped (almost)** — нужны только публичные XRPL-ноды; никакой централизованной точки в нашей инфраструктуре.
+- **Privacy-sensitive** — you don't want the cloud server admin to see traffic to XRPL nodes.
+- **No-server-dependency** — our VPS went down? Local keeps working.
+- **Custom nodes** — you want to reach your own rippled, the Hooks testnet v3, or a Sidechain — set the URL via ENV.
+- **Air-gapped (almost)** — only public XRPL nodes are needed; no centralized point in our infrastructure.
 
-Если тебе нужны Cowork-агенты, мобильный доступ или ты не хочешь скачивать ~110 MB бинарь — смотри `xrpl-cloud`.
+If you need Cowork agents, mobile access, or you don't want to download a ~110 MB binary — see `xrpl-cloud`.
 
-## Установка
+## Installation
 
 ```
 /plugin marketplace add https://github.com/StaticBit-io/staticbit-xrpl-mcp
 /plugin install xrpl-local@staticbit-xrpl-mcp
 ```
 
-Без bearer-токенов, без cloud-зависимости. Просто работает.
+No bearer tokens, no cloud dependency. It just works.
 
-### Опциональная конфигурация через ENV
+### Optional configuration via ENV
 
-| Переменная | Default | Что |
+| Variable | Default | What |
 |---|---|---|
-| `XRPL_LOCAL_DEFAULT_NETWORK` | `mainnet` | сеть когда caller не указал |
+| `XRPL_LOCAL_DEFAULT_NETWORK` | `mainnet` | network when the caller didn't specify one |
 | `XRPL_LOCAL_MAINNET_URL` | `wss://xrplcluster.com` | mainnet WS endpoint |
 | `XRPL_LOCAL_TESTNET_URL` | `wss://s.altnet.rippletest.net:51233` | testnet WS endpoint |
 | `XRPL_LOCAL_DEVNET_URL` | `wss://s.devnet.rippletest.net:51233` | devnet WS endpoint |
-| `XRPL_LOCAL_REQUEST_TIMEOUT` | `30` | таймаут одного rippled-запроса (сек) |
+| `XRPL_LOCAL_REQUEST_TIMEOUT` | `30` | timeout for a single rippled request (sec) |
 
-Например, переключить mainnet на Ripple-провайдера:
+For example, to switch mainnet to the Ripple provider:
 
 ```powershell
 [Environment]::SetEnvironmentVariable("XRPL_LOCAL_MAINNET_URL", "wss://s1.ripple.com", "User")
 ```
 
-После изменения — рестарт Claude Code.
+After changing it — restart Claude Code.
 
-## Проверка
+## Verification
 
 ```
 /mcp
@@ -47,31 +49,31 @@
 xrpl-local  node bin/server.js  ✓ Connected
 ```
 
-Tools зарегистрированы как `mcp__plugin_xrpl-local_xrpl-local__*` — то же имя `xrpl_*`, просто другой префикс. Если у тебя одновременно установлены `xrpl-cloud` и `xrpl-local`, агент видит оба набора и может вызвать любой; различение через namespace плагинов.
+Tools are registered as `mcp__plugin_xrpl-local_xrpl-local__*` — the same `xrpl_*` names, just a different prefix. If you have both `xrpl-cloud` and `xrpl-local` installed at the same time, the agent sees both sets and can call either; they are distinguished by the plugin namespace.
 
-## Подписание транзакций
+## Signing transactions
 
-Этот плагин **не** имеет ключей. Чтобы подписывать — рядом ставь `xrpl-signer`:
+This plugin holds **no** keys. To sign — install `xrpl-signer` alongside it:
 
 ```
 /plugin install xrpl-signer@staticbit-xrpl-mcp
 ```
 
-Local делает `prepare` → signer (offline, локально) делает `sign` → local делает `submit_signed`. Никакого внешнего сервиса в цепочке.
+Local does `prepare` → signer (offline, locally) does `sign` → local does `submit_signed`. No external service in the chain.
 
-## Платформы
+## Platforms
 
-В плагине лежат self-contained .NET бинарники для:
+The plugin ships self-contained .NET binaries for:
 - `win-x64` (~111 MB)
 - `linux-x64` (~108 MB)
 - `linux-arm64` (~119 MB)
 - `osx-x64` (~108 MB)
 - `osx-arm64` (~118 MB)
 
-Node.js launcher `bin/server.js` выбирает нужный по `os.platform()/os.arch()`.
+The Node.js launcher `bin/server.js` picks the right one by `os.platform()/os.arch()`.
 
-## Безопасность
+## Security
 
-- Никакой сетевой коммуникации с нашим VPS — Claude Code запускает локальный subprocess.
-- WebSocket идёт только к публичным XRPL нодам, чьи URL ты контролируешь через ENV.
-- Никаких ключей — write-tools принимают только подписанный blob (тот же контракт что у cloud).
+- No network communication with our VPS — Claude Code launches a local subprocess.
+- The WebSocket goes only to public XRPL nodes whose URLs you control via ENV.
+- No keys — write tools accept only a signed blob (the same contract as the cloud).

@@ -1,4 +1,4 @@
-> 🇬🇧 [Read in English](branch-protection.md)
+>  🌐 **Язык**: [English](../branch-protection.md) | **Русский**
 
 # Branch protection — рекомендуемые настройки
 
@@ -30,8 +30,8 @@
 
 | Check | Workflow | Что проверяет |
 |---|---|---|
-| `test` | [dotnet-test.yml](../.github/workflows/dotnet-test.yml) | Сборка + unit-тесты (Core/Server/Signer, `--filter TestU`). |
-| `Analyze (csharp)` | [codeql.yml](../.github/workflows/codeql.yml) | CodeQL security scan. |
+| `test` | [dotnet-test.yml](../../.github/workflows/dotnet-test.yml) | Сборка + unit-тесты (Core/Server/Signer, `--filter TestU`). |
+| `Analyze (csharp)` | [codeql.yml](../../.github/workflows/codeql.yml) | CodeQL security scan. |
 
 **Не включать** в required:
 - `integration-tests` — он на cron (daily), а не на PR. Может временно factor'нуться на testnet flakiness.
@@ -59,7 +59,7 @@
 - **Dependency graph** — ✅ Enabled (бесплатно для всех репозиториев).
 - **Dependabot alerts** — ✅ Enabled (бесплатно). Бьёт алертами на vulnerabilities в зависимостях из NuGet.
 - **Dependabot security updates** — ✅ Enabled. Auto-PR для critical CVE.
-- **CodeQL analysis** — ✅ настроен через [codeql.yml](../.github/workflows/codeql.yml).
+- **CodeQL analysis** — ✅ настроен через [codeql.yml](../../.github/workflows/codeql.yml).
 - **Secret scanning** — ✅ Enabled. Сканирует на leaked secrets (API keys, tokens). Бесплатно для public, paid для private (но GitHub раздаёт free credits).
 - **Push protection for secrets** — ✅ Enabled. Блокирует push если в коммите detect'нут secret pattern.
 
@@ -78,7 +78,7 @@
 
 ## Связанные документы
 
-- [supply-chain.ru.md](supply-chain.ru.md) — supply-chain hardening (SBOM, SLSA, signing).
-- [features.ru.md](features.ru.md) §7 — что прикладывается к каждому релизу.
-- [.github/dependabot.yml](../.github/dependabot.yml) — конфигурация Dependabot updates.
-- [.github/workflows/codeql.yml](../.github/workflows/codeql.yml) — CodeQL workflow.
+- [supply-chain.ru.md](supply-chain.md) — supply-chain hardening (SBOM, SLSA, signing).
+- [features.ru.md](features.md) §7 — что прикладывается к каждому релизу.
+- [.github/dependabot.yml](../../.github/dependabot.yml) — конфигурация Dependabot updates.
+- [.github/workflows/codeql.yml](../../.github/workflows/codeql.yml) — CodeQL workflow.

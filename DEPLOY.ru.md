@@ -10,7 +10,7 @@
 - **Initial setup** — клонирование репо, конфигурация ENV-переменных (OAuth: `Server__OAuth__Issuer`, `Server__OAuth__Resource`, `Server__OAuth__RequiredScope`, плюс `XRPL_NETWORK_MAINNET_URL`, etc.).
 - **Docker build & run** — `docker-compose up -d` на основе [docker-compose.yml](docker-compose.yml).
 - **TLS termination** — nginx с Let's Encrypt сертификатом, HTTP→HTTPS redirect, X-Forwarded-Proto.
-- **Hardening** — systemd unit, OAuth 2.1 для MCP-вызовов (валидация короткоживущих RS256 JWT через JWKS authorization-сервера, gating `/mcp` по scope `xrpl`), rate-limit per IP (см. [features.md §5](docs/features.ru.md#5-server-инфраструктура)). Требуется отдельный authorization-сервер.
+- **Hardening** — systemd unit, OAuth 2.1 для MCP-вызовов (валидация короткоживущих RS256 JWT через JWKS authorization-сервера, gating `/mcp` по scope `xrpl`), rate-limit per IP (см. [features.md §5](docs/ru/features.md#5-server-инфраструктура)). Требуется отдельный authorization-сервер.
 - **Monitoring** — Prometheus scrape endpoint `/metrics`, AdminAlerter для security events.
 - **Backup / rollback** — что бэкапить (volumes), как rollback'нуть на предыдущую версию.
 

@@ -1,4 +1,4 @@
-> 🇬🇧 [Read in English](controlled-mpt-issuance.md)
+>  🌐 **Язык**: [English](../../examples/controlled-mpt-issuance.md) | **Русский**
 
 # Пример: Controlled MPT issuance (XLS-33)
 

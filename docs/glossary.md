@@ -1,4 +1,4 @@
-> 🇷🇺 [Прочесть на русском](glossary.ru.md)
+>  🌐 **Language**: **English** | [Русский](ru/glossary.md)
 
 # XRPL glossary
 

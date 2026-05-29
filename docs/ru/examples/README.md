@@ -1,4 +1,4 @@
-> 🇬🇧 [Read in English](README.md)
+>  🌐 **Язык**: [English](../../examples/README.md) | **Русский**
 
 # Cowork-агент рецепты для StaticBit XRPL MCP
 
@@ -8,18 +8,18 @@
 
 | Файл | Use-case | Amendment(s) | Статус на mainnet/testnet |
 |---|---|---|---|
-| [monitor-balance-telegram.md](monitor-balance-telegram.ru.md) | Polling watcher для tx на адрес + Telegram уведомления | базовое read API + polling | ✅ работает on standard testnet |
-| [controlled-mpt-issuance.md](controlled-mpt-issuance.ru.md) | MPT lifecycle с RequireAuth + CanClawback (regulated issuance) | XLS-33 | ✅ активирован |
-| [atomic-batch-payment.md](atomic-batch-payment.ru.md) | Atomic 3-way swap через Batch | XLS-56 | ⚠️ pending BatchV1_1 (removed v3.1.1) |
-| [kyc-credentials-flow.md](kyc-credentials-flow.ru.md) | End-to-end KYC через XLS-70 Credentials + DepositPreauth | XLS-70 | ✅ активирован, drop-in |
-| [permissioned-domain-and-did.md](permissioned-domain-and-did.ru.md) | DID identity + PermissionedDomain gating | XLS-40 + XLS-80 | ✅ активированы |
-| [oracle-price-feed.md](oracle-price-feed.ru.md) | Periodic off-chain price publisher (CoinGecko → OracleSet) | XLS-47 | ✅ активирован |
-| [tickets-parallel-submit.md](tickets-parallel-submit.ru.md) | Tickets для параллельной отправки tx без head-of-line blocking | TicketCreate (давно активирован) | ✅ |
-| [nft-mutable-uri.md](nft-mutable-uri.ru.md) | Dynamic NFT с обновляемой URI (gaming, badges, RWA) | XLS-46 | ✅ активирован |
-| [multi-sign-collection.md](multi-sign-collection.ru.md) | Multi-sign signature collection workflow (treasury, DAO) | базовый SignerListSet (XRPL core) | ✅ |
-| [amm-clawback.md](amm-clawback.ru.md) | Issuer возвращает tokens из AMM-пула (compliance) | XLS-37 | ✅ активирован |
-| [delegate-permissions.md](delegate-permissions.ru.md) | Per-tx-type delegation (bot acts on owner's behalf) | XLS-75 | ✅ активирован |
-| [vault-deposit-redeem.md](vault-deposit-redeem.ru.md) | Single-asset vault lifecycle (deposit/withdraw/clawback) | XLS-65 | ⚠️ draft, на стандартном testnet `temDISABLED` |
+| [monitor-balance-telegram.md](monitor-balance-telegram.md) | Polling watcher для tx на адрес + Telegram уведомления | базовое read API + polling | ✅ работает on standard testnet |
+| [controlled-mpt-issuance.md](controlled-mpt-issuance.md) | MPT lifecycle с RequireAuth + CanClawback (regulated issuance) | XLS-33 | ✅ активирован |
+| [atomic-batch-payment.md](atomic-batch-payment.md) | Atomic 3-way swap через Batch | XLS-56 | ⚠️ pending BatchV1_1 (removed v3.1.1) |
+| [kyc-credentials-flow.md](kyc-credentials-flow.md) | End-to-end KYC через XLS-70 Credentials + DepositPreauth | XLS-70 | ✅ активирован, drop-in |
+| [permissioned-domain-and-did.md](permissioned-domain-and-did.md) | DID identity + PermissionedDomain gating | XLS-40 + XLS-80 | ✅ активированы |
+| [oracle-price-feed.md](oracle-price-feed.md) | Periodic off-chain price publisher (CoinGecko → OracleSet) | XLS-47 | ✅ активирован |
+| [tickets-parallel-submit.md](tickets-parallel-submit.md) | Tickets для параллельной отправки tx без head-of-line blocking | TicketCreate (давно активирован) | ✅ |
+| [nft-mutable-uri.md](nft-mutable-uri.md) | Dynamic NFT с обновляемой URI (gaming, badges, RWA) | XLS-46 | ✅ активирован |
+| [multi-sign-collection.md](multi-sign-collection.md) | Multi-sign signature collection workflow (treasury, DAO) | базовый SignerListSet (XRPL core) | ✅ |
+| [amm-clawback.md](amm-clawback.md) | Issuer возвращает tokens из AMM-пула (compliance) | XLS-37 | ✅ активирован |
+| [delegate-permissions.md](delegate-permissions.md) | Per-tx-type delegation (bot acts on owner's behalf) | XLS-75 | ✅ активирован |
+| [vault-deposit-redeem.md](vault-deposit-redeem.md) | Single-asset vault lifecycle (deposit/withdraw/clawback) | XLS-65 | ⚠️ draft, на стандартном testnet `temDISABLED` |
 
 ## Структура каждого рецепта
 
@@ -96,4 +96,4 @@ Combine с `/loop` или `/schedule`:
 1. Проверьте upstream integration-тест в [XrplCSharp/Tests/Xrpl.Tests/Integration/transactions/](https://github.com/StaticBit-io/XrplCSharp/tree/release/Tests/Xrpl.Tests/Integration/transactions).
 2. Если sequence работает в integration-тесте — копируйте его в рецепт.
 3. Запустите наш smoke-test против testnet: `dotnet test --filter "TestCategory=Integration"`.
-4. Submit PR с новым `.md` файлом (+ `.ru.md` siblingом) и обновлением этого index'а.
+4. Submit PR с новым английским `.md` файлом (+ зеркалом `docs/ru/examples/<name>.md`) и обновлением этого index'а.

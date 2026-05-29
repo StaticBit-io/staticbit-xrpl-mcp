@@ -1,4 +1,4 @@
-> 🇷🇺 [Прочесть на русском](nft-mutable-uri.ru.md)
+>  🌐 **Language**: **English** | [Русский](../ru/examples/nft-mutable-uri.md)
 
 # Example: Mutable NFT URI (XLS-46)
 
