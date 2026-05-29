@@ -5,3 +5,6 @@
 plugins/xrpl-cloud/CHANGELOG.md
 plugins/xrpl-local/CHANGELOG.md
 plugins/xrpl-signer/CHANGELOG.md
+
+# Agent-instruction file (not user documentation).
+CLAUDE.md
