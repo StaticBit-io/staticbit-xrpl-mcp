@@ -73,4 +73,7 @@ Image build/publish and VPS deploy are thin callers of the shared reusable workf
   shared `deploy-vps` reusable): the runner `docker save | ssh`-pipes the ghcr image into the
   host's forced-command `deploy/deploy.sh`, which loads it, pins `XRPL_MCP_IMAGE` +
   `XRPL_PULL_POLICY=never` in the compose `.env`, and recreates the container. No GHCR auth on the
-  host.
+  host. **Live:** prod runs the official ghcr image. On the VPS a root forced-command CI key
+  (`/root/.ssh/authorized_keys`) is locked to `/opt/staticbit-xrpl-mcp/deploy.sh`, the repo's
+  `DEPLOY_*` secrets are set, and the host compose is image-based (`*.bak.pre-cd` backup kept).
+  Deploy via **Actions → deploy** (tag) or an `xrpl-cloud` release.

@@ -13,5 +13,11 @@
 - **Hardening** — systemd unit, OAuth 2.1 для MCP-вызовов (валидация короткоживущих RS256 JWT через JWKS authorization-сервера, gating `/mcp` по scope `xrpl`), rate-limit per IP (см. [features.md §5](docs/ru/features.md#5-server-инфраструктура)). Требуется отдельный authorization-сервер.
 - **Monitoring** — Prometheus scrape endpoint `/metrics`, AdminAlerter для security events.
 - **Backup / rollback** — что бэкапить (volumes), как rollback'нуть на предыдущую версию.
+- **CI/CD деплой** — рутинные деплои автоматизированы через общие reusable-workflow в
+  [`mcp-tooling`](https://github.com/Platonenkov/mcp-tooling): образ собирается при релизе
+  `xrpl-cloud` (внутри `release-plugin.yml`), доставка на VPS — **Actions → deploy**
+  (`deploy.yml`): `docker save | ssh` в forced-command `deploy/deploy.sh` (без логина в GHCR на
+  хосте), пин `XRPL_MCP_IMAGE` + `XRPL_PULL_POLICY=never`, пересоздание контейнера, healthz-smoke.
+  Прод работает на официальном ghcr-образе.
 
 См. полную инструкцию в [DEPLOY.md](DEPLOY.md) (на английском).

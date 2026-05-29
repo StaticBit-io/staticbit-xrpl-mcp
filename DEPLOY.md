@@ -29,9 +29,32 @@ All services join an **external Docker network `mcp-net`**. Traefik scans it and
 picks up new containers automatically via labels — no Traefik config changes
 are required when adding a new MCP.
 
-The container image is auto-published to
-`ghcr.io/staticbit-io/staticbit-xrpl-mcp:latest` on every push to `main`
-([`.github/workflows/docker.yml`](.github/workflows/docker.yml)).
+The container image is published to `ghcr.io/staticbit-io/staticbit-xrpl-mcp` by an `xrpl-cloud`
+release (built inside [`release-plugin.yml`](.github/workflows/release-plugin.yml) via the shared
+reusable workflow), or ad-hoc through **Actions → docker**
+([`docker.yml`](.github/workflows/docker.yml), workflow_dispatch).
+
+---
+
+## CI/CD deploy (the fast path)
+
+Once the host is bootstrapped (sections below), routine deploys are **automated** through the
+shared reusable workflows in [`mcp-tooling`](https://github.com/Platonenkov/mcp-tooling) — you
+don't run docker by hand:
+
+- **Build / publish**: an `xrpl-cloud` release (`release-plugin.yml`) builds and pushes the
+  multi-arch image via the reusable `docker-build-push.yml`. Ad-hoc: **Actions → docker**
+  (workflow_dispatch, `version`).
+- **Deploy**: **Actions → deploy** (`deploy.yml`, `tag` = `latest` or a semver). The runner pulls
+  the image, `docker save | ssh`-pipes the tarball into the forced-command `deploy/deploy.sh` on
+  the VPS (**no GHCR login on the host**), which loads it, pins `XRPL_MCP_IMAGE` +
+  `XRPL_PULL_POLICY=never` in `/opt/staticbit-xrpl-mcp/.env`, recreates the container, and
+  smoke-tests `https://xrpl-mcp.staticbit.io/healthz`.
+
+One-time host wiring this depends on: `deploy/deploy.sh` copied to `/opt/staticbit-xrpl-mcp/`; a
+**root forced-command** CI key in `/root/.ssh/authorized_keys` locked to it; and the repo secrets
+`DEPLOY_SSH_KEY` / `DEPLOY_HOST` / `DEPLOY_USER` / `DEPLOY_KNOWN_HOSTS`. The manual sections below
+remain the bootstrap reference and the fallback path.
 
 ---
 
