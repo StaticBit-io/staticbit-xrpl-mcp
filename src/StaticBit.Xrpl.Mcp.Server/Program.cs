@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Threading.RateLimiting;
 using System.Threading.Tasks;
 using Mcp.Auth.ResourceServer;
@@ -24,6 +25,12 @@ namespace StaticBit.Xrpl.Mcp.Server;
 
 internal static class Program
 {
+    /// <summary>
+    /// Build version stamped into the assembly at publish time (CI passes the released
+    /// tag via the <c>APP_VERSION</c> Docker build-arg). Surfaced on <c>/healthz</c>.
+    /// </summary>
+    private static readonly string AppVersion = ResolveAppVersion();
+
     public static async Task Main(string[] args)
     {
         string transport = ParseTransport(args);
@@ -203,8 +210,8 @@ internal static class Program
         // Health endpoints — used by Docker HEALTHCHECK and reverse proxies.
         // Kept on dedicated paths so they never collide with the MCP transport.
         // The auth middleware lets them through without a bearer.
-        app.MapGet("/healthz", () => Results.Ok(new { status = "ok" }));
-        app.MapGet("/readyz", () => Results.Ok(new { status = "ready" }));
+        app.MapGet("/healthz", () => Results.Ok(new { status = "ok", version = AppVersion }));
+        app.MapGet("/readyz", () => Results.Ok(new { status = "ready", version = AppVersion }));
 
         // Prometheus scrape endpoint — opt-in via ServerOptions.Metrics.Enabled.
         // The auth middleware also bypasses this path (see BearerAuthMiddleware
@@ -331,6 +338,24 @@ internal static class Program
             "both" => (label ?? "noauth") + "|" + ip,
             _ => ip,
         };
+    }
+
+    private static string ResolveAppVersion()
+    {
+        Assembly? entry = Assembly.GetEntryAssembly();
+        if (entry is null)
+        {
+            return "unknown";
+        }
+
+        string? informational = entry.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        if (!string.IsNullOrWhiteSpace(informational))
+        {
+            int plus = informational.IndexOf('+', StringComparison.Ordinal);
+            return plus > 0 ? informational[..plus] : informational;
+        }
+
+        return entry.GetName().Version?.ToString() ?? "unknown";
     }
 
     private static string ParseTransport(string[] args)

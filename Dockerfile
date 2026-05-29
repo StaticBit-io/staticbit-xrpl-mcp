@@ -16,12 +16,18 @@ COPY ["src/StaticBit.Xrpl.Mcp.Server/StaticBit.Xrpl.Mcp.Server.csproj",         
 RUN dotnet restore "src/StaticBit.Xrpl.Mcp.Server/StaticBit.Xrpl.Mcp.Server.csproj" --runtime linux-x64
 
 COPY src/ src/
+
+# Stamped into the assembly so /healthz can report it. CI passes the released
+# tag (leading v stripped) via the shared docker-build-push workflow.
+ARG APP_VERSION=0.0.0-dev
+
 RUN dotnet publish "src/StaticBit.Xrpl.Mcp.Server/StaticBit.Xrpl.Mcp.Server.csproj" \
     -c Release \
     -o /app/publish \
     --no-restore \
     --runtime linux-x64 \
     --self-contained false \
+    -p:InformationalVersion=$APP_VERSION \
     /p:UseAppHost=false
 
 # ─────────────────────────────────────────────────────────────────────────────
