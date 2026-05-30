@@ -5,7 +5,7 @@ description: Use this skill when the user wants to query XRPL state (balances, t
 
 # XRPL operations via cloud MCP
 
-The `xrpl-cloud` plugin exposes the same 21 tools as `xrpl-local`, but routes them through the StaticBit-hosted HTTP server at `xrpl-mcp.staticbit.io`. Tool prefix: `mcp__plugin_xrpl-cloud_xrpl-cloud__xrpl_*`.
+The `xrpl-cloud` plugin exposes the same <!-- toolcount:xrpl -->116<!-- /toolcount:xrpl --> tools as `xrpl-local`, but routes them through the StaticBit-hosted HTTP server at `xrpl-mcp.staticbit.io`. Tool prefix: `mcp__plugin_xrpl-cloud_xrpl-cloud__xrpl_*`.
 
 ## Read-only operations (no signing needed)
 

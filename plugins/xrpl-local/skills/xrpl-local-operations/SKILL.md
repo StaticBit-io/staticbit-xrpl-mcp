@@ -5,7 +5,7 @@ description: Use this skill when the user wants XRPL operations to run fully on 
 
 # XRPL operations via local stdio MCP
 
-The `xrpl-local` plugin runs the same 21 tools as `xrpl-cloud`, but on a subprocess launched by Claude Code on the user's machine. The WebSocket to public XRPL nodes (`xrplcluster.com`, `s.altnet.rippletest.net`, or whatever the user configured) is established from the user's process. **There is no StaticBit-hosted middleman.**
+The `xrpl-local` plugin runs the same <!-- toolcount:xrpl -->116<!-- /toolcount:xrpl --> tools as `xrpl-cloud`, but on a subprocess launched by Claude Code on the user's machine. The WebSocket to public XRPL nodes (`xrplcluster.com`, `s.altnet.rippletest.net`, or whatever the user configured) is established from the user's process. **There is no StaticBit-hosted middleman.**
 
 Tool prefix: `mcp__plugin_xrpl-local_xrpl-local__xrpl_*`.
 
@@ -26,7 +26,7 @@ Same as cloud — see `xrpl-cloud-operations` skill for the tool catalog and the
 |---|---|
 | `mcp__plugin_xrpl-cloud_xrpl-cloud__xrpl_payment_prepare` | `mcp__plugin_xrpl-local_xrpl-local__xrpl_payment_prepare` |
 | `mcp__plugin_xrpl-cloud_xrpl-cloud__xrpl_tx_submit_signed` | `mcp__plugin_xrpl-local_xrpl-local__xrpl_tx_submit_signed` |
-| … (same 21 tools) | … (same 21 tools) |
+| … (same <!-- toolcount:xrpl -->116<!-- /toolcount:xrpl --> tools) | … (same <!-- toolcount:xrpl -->116<!-- /toolcount:xrpl --> tools) |
 
 Signing path is identical — both flows use `mcp__plugin_xrpl-signer_xrpl-signer__xrpl_sign`.
 

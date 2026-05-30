@@ -13,5 +13,10 @@
       "blurb": "Offline signer — wallet management and transaction signing (encrypted keystore)."
     }
   ],
-  "generatedOutput": "docs/TOOLS.generated.md"
+  "generatedOutput": "docs/TOOLS.generated.md",
+  "markerFiles": [
+    "plugins/xrpl-cloud/skills/xrpl-cloud-operations/SKILL.md",
+    "plugins/xrpl-local/skills/xrpl-local-operations/SKILL.md",
+    "plugins/xrpl-signer/skills/xrpl-wallet-operations/SKILL.md"
+  ]
 }
