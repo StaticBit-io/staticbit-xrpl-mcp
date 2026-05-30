@@ -20,6 +20,7 @@ Each recipe is a ready-made workflow for a Cowork agent covering one use-case th
 | [amm-clawback.md](amm-clawback.md) | Issuer reclaims tokens from an AMM pool (compliance) | XLS-37 | ✅ activated |
 | [delegate-permissions.md](delegate-permissions.md) | Per-tx-type delegation (bot acts on owner's behalf) | XLS-75 | ✅ activated |
 | [vault-deposit-redeem.md](vault-deposit-redeem.md) | Single-asset vault lifecycle (deposit/withdraw/clawback) | XLS-65 | ⚠️ draft, `temDISABLED` on standard testnet |
+| [payment-workflows.md](payment-workflows.md) | Three Payment scenarios — XRP drops, cross-currency with pathfinding, credential-gated via PermissionedDomain | base Payment + XLS-70 + XLS-80 | ✅ activated |
 
 ## Recipe structure
 
@@ -60,6 +61,7 @@ Every recipe is cross-checked against an integration test in the upstream repo:
 | amm-clawback | `TestIAMMClawback` |
 | delegate-permissions | `TestIDelegateSet` |
 | vault-deposit-redeem | `TestIVault`, `TestIVaultBase` |
+| payment-workflows | `TestIPayment`, `TestIPathFind`, `TestICredential.TestCredential_EndToEnd_DepositPreauthAndPayment` |
 
 ## How to use the recipes
 
