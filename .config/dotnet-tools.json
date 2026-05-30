@@ -13,6 +13,12 @@
       "commands": [
         "mcp-i18ncheck"
       ]
+    },
+    "mcp.linkcheck": {
+      "version": "0.1.1",
+      "commands": [
+        "mcp-linkcheck"
+      ]
     }
   }
 }
