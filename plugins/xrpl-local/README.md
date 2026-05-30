@@ -2,7 +2,7 @@
 
 # xrpl-local plugin
 
-A local stdio MCP with the same set of 21 XRPL tools as `xrpl-cloud`, but running **entirely on your machine**. The WebSocket to public XRPL nodes (`xrplcluster.com`, `s.altnet.rippletest.net`, etc.) goes directly from your process — no intermediary.
+A local stdio MCP with the same set of <!-- toolcount:xrpl -->116<!-- /toolcount:xrpl --> XRPL tools as `xrpl-cloud`, but running **entirely on your machine**. The WebSocket to public XRPL nodes (`xrplcluster.com`, `s.altnet.rippletest.net`, etc.) goes directly from your process — no intermediary. Full reference: [`docs/TOOLS.generated.md`](../../docs/TOOLS.generated.md); category overview is in `xrpl-cloud`'s [`plugins/xrpl-cloud/README.md`](../xrpl-cloud/README.md).
 
 ## When to choose this plugin
 

@@ -2,7 +2,7 @@
 
 # xrpl-local plugin
 
-Локальный stdio MCP с тем же набором из 21 XRPL-tool, что и `xrpl-cloud`, но запущенный **полностью у тебя на машине**. WebSocket к публичным XRPL нодам (`xrplcluster.com`, `s.altnet.rippletest.net` и т.д.) идёт из твоего процесса напрямую — никакого посредника.
+Локальный stdio MCP с тем же набором из <!-- toolcount:xrpl -->116<!-- /toolcount:xrpl --> XRPL-tools, что и `xrpl-cloud`, но запущенный **полностью у тебя на машине**. WebSocket к публичным XRPL нодам (`xrplcluster.com`, `s.altnet.rippletest.net` и т.д.) идёт из твоего процесса напрямую — никакого посредника. Полный reference — [`docs/TOOLS.generated.md`](../../docs/TOOLS.generated.md); обзор категорий — в [`plugins/xrpl-cloud/README.ru.md`](../xrpl-cloud/README.ru.md).
 
 ## Когда выбирать этот плагин
 

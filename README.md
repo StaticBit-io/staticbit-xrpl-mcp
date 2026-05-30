@@ -12,10 +12,10 @@ XRPL toolkit for Claude Code — **source + three plugins in one repo**. Contain
 > 📖 **[DEPLOY.md](docs/DEPLOY.md)** — for an admin deploying the cloud server on a VPS.
 > 📖 **[OPERATIONS.md](docs/OPERATIONS.md)** — day-two runbook for the cloud server: deploy, rollback, health, secrets.
 > 📖 **[RELEASE.md](RELEASE.md)** — for me (the release manager) — how to publish new plugin versions.
-> 📖 **[docs/features.md](docs/features.md)** — full feature catalogue (131 tools, 432 unit tests, 12 covered amendments).
+> 📖 **[docs/features.md](docs/features.md)** — full feature catalogue (<!-- toolcount:total -->131<!-- /toolcount:total --> tools, 432 unit tests, 12 covered amendments).
 > 📖 **[docs/glossary.md](docs/glossary.md)** — XRPL terminology used in tool descriptions.
 > 📖 **[docs/supply-chain.md](docs/supply-chain.md)** — what ships with every release (SBOM, SLSA, optional notarization) and how to verify it.
-> 📖 **[docs/tools-schema.json](docs/tools-schema.json)** — machine-readable JSON-Schema catalogue of all MCP tools (131), for third-party agents.
+> 📖 **[docs/tools-schema.json](docs/tools-schema.json)** — machine-readable JSON-Schema catalogue of all MCP tools (<!-- toolcount:total -->131<!-- /toolcount:total -->), for third-party agents.
 > 📖 **[docs/examples/](docs/examples/)** — recipes for cross-plugin Cowork agents.
 > 📖 **[docs/bilingual-convention.md](docs/bilingual-convention.md)** — bilingual documentation convention (`docs/ru/` mirror subtree + `.ru.md` suffix outside `docs/`).
 
@@ -93,7 +93,7 @@ staticbit-xrpl-mcp/
 │   └── xrpl-signer/     (+ bin/<rid>/ for 5 RIDs)
 ├── src/
 │   ├── StaticBit.Xrpl.Mcp.Abstractions/   ← shared models
-│   ├── StaticBit.Xrpl.Mcp.Core/           ← 131 read/prepare/submit tools
+│   ├── StaticBit.Xrpl.Mcp.Core/           ← <!-- toolcount:xrpl -->116<!-- /toolcount:xrpl --> read/prepare/submit tools
 │   ├── StaticBit.Xrpl.Mcp.Server/         ← HTTP+stdio host
 │   └── StaticBit.Xrpl.Mcp.Signer/         ← offline signer
 ├── tests/                                  ← Core + Server + Signer unit tests + Integration smoke

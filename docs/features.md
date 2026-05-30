@@ -6,7 +6,7 @@ Catalogue of implemented functionality. Not a roadmap — only features that alr
 
 **Current numbers**:
 
-- **131 MCP tools** (machine-readable JSON-Schema catalogue: [docs/tools-schema.json](tools-schema.json)).
+- **<!-- toolcount:total -->131<!-- /toolcount:total --> MCP tools** (machine-readable JSON-Schema catalogue: [docs/tools-schema.json](tools-schema.json)).
 - **432 unit tests** (Core: 357, Server: 47, Signer: 28) + **34 integration smoke** tests against testnet (23 more `[Ignore]`'d for draft amendments — Vault / XChain / Loan).
 - All 4 projects (Abstractions, Core, Server, Signer) + 4 test projects + the `tools/SchemaGen` utility + plugin marketplace with 3 plugins (`xrpl-cloud`, `xrpl-local`, `xrpl-signer`).
 
@@ -261,7 +261,7 @@ Full summary + setup guide: [docs/supply-chain.md](supply-chain.md).
 ## 8. Documentation
 
 - [INSTALL.md](INSTALL.md) §13 Troubleshooting — 3 sub-sections for unsigned binaries: macOS Gatekeeper (`xattr -dr com.apple.quarantine`, `spctl --add`), Windows SmartScreen/Defender (`Unblock-File`, `Add-MpPreference -ExclusionPath`), Linux SELinux/AppArmor (`ausearch`, `chcon`/`semanage`, `DOTNET_BUNDLE_EXTRACT_BASE_DIR`).
-- **JSON-schema tools catalogue** — the mini-project [`tools/SchemaGen/`](../tools/SchemaGen/) reflects over `[McpServerToolType]`+`[McpServerTool]` in the Core and Signer assemblies, emits [`docs/tools-schema.json`](tools-schema.json) in MCP `tools/list` format (name + description + JSON-Schema inputSchema, sorted by name). **131 tools covered.** Regenerate: `dotnet run --project tools/SchemaGen -- docs/tools-schema.json`.
+- **JSON-schema tools catalogue** — the mini-project [`tools/SchemaGen/`](../tools/SchemaGen/) reflects over `[McpServerToolType]`+`[McpServerTool]` in the Core and Signer assemblies, emits [`docs/tools-schema.json`](tools-schema.json) in MCP `tools/list` format (name + description + JSON-Schema inputSchema, sorted by name). **<!-- toolcount:total -->131<!-- /toolcount:total --> tools covered.** Regenerate: `dotnet run --project tools/SchemaGen -- docs/tools-schema.json`.
 - **Cowork agent recipes** — [`docs/examples/`](examples/) contains **12 ready-made workflows**, each cross-checked against an integration test from the upstream [XrplCSharp](https://github.com/StaticBit-io/XrplCSharp/tree/release/Tests/Xrpl.Tests/Integration/transactions) project. Index: [`docs/examples/README.md`](examples/README.md). Covered scenarios:
   - **Read + polling**: monitor-balance-telegram.
   - **MPT (XLS-33)**: controlled-mpt-issuance.
