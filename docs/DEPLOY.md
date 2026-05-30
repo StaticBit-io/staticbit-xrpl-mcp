@@ -30,9 +30,9 @@ picks up new containers automatically via labels — no Traefik config changes
 are required when adding a new MCP.
 
 The container image is published to `ghcr.io/staticbit-io/staticbit-xrpl-mcp` by an `xrpl-cloud`
-release (built inside [`release-plugin.yml`](.github/workflows/release-plugin.yml) via the shared
+release (built inside [`release-plugin.yml`](../.github/workflows/release-plugin.yml) via the shared
 reusable workflow), or ad-hoc through **Actions → docker**
-([`docker.yml`](.github/workflows/docker.yml), workflow_dispatch).
+([`docker.yml`](../.github/workflows/docker.yml), workflow_dispatch).
 
 ---
 

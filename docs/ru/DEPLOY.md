@@ -30,9 +30,9 @@ Let's Encrypt и host-based маршрутизацией. У каждого MCP 
 добавлении нового MCP не нужно.
 
 Образ контейнера публикуется в `ghcr.io/staticbit-io/staticbit-xrpl-mcp` релизом `xrpl-cloud`
-(собирается внутри [`release-plugin.yml`](.github/workflows/release-plugin.yml) через общий
+(собирается внутри [`release-plugin.yml`](../../.github/workflows/release-plugin.yml) через общий
 reusable-workflow) либо ad-hoc через **Actions → docker**
-([`docker.yml`](.github/workflows/docker.yml), workflow_dispatch).
+([`docker.yml`](../../.github/workflows/docker.yml), workflow_dispatch).
 
 ---
 

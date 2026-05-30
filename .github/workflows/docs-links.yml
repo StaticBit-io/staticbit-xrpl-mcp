@@ -1,0 +1,17 @@
+name: docs-links
+
+# Markdown link integrity gate via the shared `Mcp.LinkCheck` dotnet tool. Thin caller of
+# the reusable workflow in `mcp-tooling`. Catches broken `[..](relative/path)` links and
+# mis-typed `[..](path#anchor)` slugs in any committed .md.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  linkcheck:
+    uses: Platonenkov/mcp-tooling/.github/workflows/docs-links.yml@main
