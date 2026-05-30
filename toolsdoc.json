@@ -17,6 +17,8 @@
   "markerFiles": [
     "README.md",
     "README.ru.md",
+    "docs/INSTALL.md",
+    "docs/ru/INSTALL.md",
     "docs/features.md",
     "docs/ru/features.md",
     "plugins/xrpl-cloud/README.md",
