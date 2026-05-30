@@ -20,6 +20,7 @@
 | [amm-clawback.md](amm-clawback.md) | Issuer возвращает tokens из AMM-пула (compliance) | XLS-37 | ✅ активирован |
 | [delegate-permissions.md](delegate-permissions.md) | Per-tx-type delegation (bot acts on owner's behalf) | XLS-75 | ✅ активирован |
 | [vault-deposit-redeem.md](vault-deposit-redeem.md) | Single-asset vault lifecycle (deposit/withdraw/clawback) | XLS-65 | ⚠️ draft, на стандартном testnet `temDISABLED` |
+| [payment-workflows.md](payment-workflows.md) | Три сценария Payment — XRP в drops, cross-currency с pathfinding'ом, credential-gated через PermissionedDomain | базовый Payment + XLS-70 + XLS-80 | ✅ активированы |
 
 ## Структура каждого рецепта
 
@@ -60,6 +61,7 @@
 | amm-clawback | `TestIAMMClawback` |
 | delegate-permissions | `TestIDelegateSet` |
 | vault-deposit-redeem | `TestIVault`, `TestIVaultBase` |
+| payment-workflows | `TestIPayment`, `TestIPathFind`, `TestICredential.TestCredential_EndToEnd_DepositPreauthAndPayment` |
 
 ## Как использовать рецепты
 
