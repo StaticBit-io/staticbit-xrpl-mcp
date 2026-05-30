@@ -15,6 +15,14 @@
   ],
   "generatedOutput": "docs/TOOLS.generated.md",
   "markerFiles": [
+    "README.md",
+    "README.ru.md",
+    "docs/features.md",
+    "docs/ru/features.md",
+    "plugins/xrpl-cloud/README.md",
+    "plugins/xrpl-cloud/README.ru.md",
+    "plugins/xrpl-local/README.md",
+    "plugins/xrpl-local/README.ru.md",
     "plugins/xrpl-cloud/skills/xrpl-cloud-operations/SKILL.md",
     "plugins/xrpl-local/skills/xrpl-local-operations/SKILL.md",
     "plugins/xrpl-signer/skills/xrpl-wallet-operations/SKILL.md"

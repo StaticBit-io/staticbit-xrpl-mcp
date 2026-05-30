@@ -14,7 +14,7 @@ XRPL toolkit for Claude Code — **исходники + три плагина в
 > 📖 **[RELEASE.ru.md](RELEASE.ru.md)** — для меня (релизера), как публиковать новые версии плагинов.
 > 📖 **[docs/glossary.ru.md](docs/ru/glossary.md)** — XRPL-термины, которые встречаются в описаниях tools.
 > 📖 **[docs/supply-chain.ru.md](docs/ru/supply-chain.md)** — что прикладывается к каждому release (SBOM, SLSA, опц. notarization) и как пользователю это верифицировать.
-> 📖 **[docs/tools-schema.json](docs/tools-schema.json)** — машинно-читаемый JSON-Schema каталог всех MCP-tools (131 шт), для third-party агентов.
+> 📖 **[docs/tools-schema.json](docs/tools-schema.json)** — машинно-читаемый JSON-Schema каталог всех MCP-tools (<!-- toolcount:total -->131<!-- /toolcount:total --> шт), для third-party агентов.
 > 📖 **[docs/examples/](docs/ru/examples/)** — рецепты кросс-плагинных Cowork-агентов.
 > 📖 **[docs/bilingual-convention.ru.md](docs/ru/bilingual-convention.md)** — соглашение о двуязычной документации (зеркало `docs/ru/` + суффикс `.ru.md` вне `docs/`).
 
@@ -23,7 +23,7 @@ XRPL toolkit for Claude Code — **исходники + три плагина в
 | Plugin | What it does | Size |
 |---|---|---|
 | [`xrpl-cloud`](plugins/xrpl-cloud/) | HTTP MCP to the StaticBit cloud server at `xrpl-mcp.staticbit.io`. Read / prepare / submit через OAuth 2.1-authed HTTPS. | ~10 KB |
-| [`xrpl-local`](plugins/xrpl-local/) | Local stdio MCP — те же 21 tool, но полностью на твоей машине, WebSocket напрямую к публичным XRPL нодам. | ~260 MB (5 RIDs) |
+| [`xrpl-local`](plugins/xrpl-local/) | Local stdio MCP — те же <!-- toolcount:xrpl -->116<!-- /toolcount:xrpl --> tools, но полностью на твоей машине, WebSocket напрямую к публичным XRPL нодам. | ~260 MB (5 RIDs) |
 | [`xrpl-signer`](plugins/xrpl-signer/) | Offline stdio MCP для управления кошельками и подписания — encrypted keystore, zero network code. Парится с cloud либо local. | ~200 MB (5 RIDs) |
 
 ## How they compose
@@ -91,7 +91,7 @@ staticbit-xrpl-mcp/
 │   └── xrpl-signer/     (+ bin/<rid>/ для 5 RIDs)
 ├── src/
 │   ├── StaticBit.Xrpl.Mcp.Abstractions/   ← shared models
-│   ├── StaticBit.Xrpl.Mcp.Core/           ← 21 read/prepare/submit tool
+│   ├── StaticBit.Xrpl.Mcp.Core/           ← <!-- toolcount:xrpl -->116<!-- /toolcount:xrpl --> read/prepare/submit tools
 │   ├── StaticBit.Xrpl.Mcp.Server/         ← HTTP+stdio host
 │   └── StaticBit.Xrpl.Mcp.Signer/         ← offline signer
 ├── tests/                                  ← Core + Server + Signer unit tests
