@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Mcp.Auth.ResourceServer;
 using ModelContextProtocol.Server;
 using StaticBit.Xrpl.Mcp.Core.Services;
 using Xrpl.BinaryCodec;
@@ -39,7 +40,7 @@ public sealed class ExplainTools
             ["humanSummary"] = summary,
             ["txJson"] = tx,
         };
-        return result.ToJsonString();
+        return UntrustedContent.Wrap(result.ToJsonString(), "xrpl:tx_explain");
     }
 
     private static JsonNode DecodeBlobToNode(string blobHex)

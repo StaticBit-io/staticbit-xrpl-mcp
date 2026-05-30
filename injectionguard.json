@@ -1,0 +1,21 @@
+{
+  "exempt": [
+    "HashCredential",
+    "SubmitSignedAsync",
+    "Sign",
+    "SignMulti",
+    "SignCombine",
+    "Generate",
+    "ImportSeed",
+    "ImportXumm",
+    "ImportText",
+    "GenerateMnemonic",
+    "ImportMnemonic",
+    "DeriveAddress",
+    "List",
+    "Address",
+    "Remove",
+    "Export",
+    "ExportIndex"
+  ]
+}

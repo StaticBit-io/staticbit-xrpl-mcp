@@ -25,6 +25,12 @@
       "commands": [
         "mcp-fleetlint"
       ]
+    },
+    "mcp.injectionguard": {
+      "version": "0.1.0",
+      "commands": [
+        "mcp-injectionguard"
+      ]
     }
   }
 }

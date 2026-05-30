@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Mcp.Auth.ResourceServer;
 using ModelContextProtocol.Server;
 using StaticBit.Xrpl.Mcp.Abstractions;
 using StaticBit.Xrpl.Mcp.Core.Services;
@@ -58,7 +59,7 @@ public sealed class PathTools
         };
 
         RipplePathFindResponse response = await client.RipplePathFind(request, cancellationToken).ConfigureAwait(false);
-        return XrplJson.Serialize(response);
+        return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:ripple_path_find:{network}:{sourceAccount}->{destinationAccount}");
     }
 
     [McpServerTool(Name = "xrpl_path_find_create")]
@@ -81,7 +82,7 @@ public sealed class PathTools
         };
 
         PathFindResponse response = await client.PathFind(request, cancellationToken).ConfigureAwait(false);
-        return XrplJson.Serialize(response);
+        return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:path_find_create:{network}:{sourceAccount}->{destinationAccount}");
     }
 
     [McpServerTool(Name = "xrpl_path_find_status")]
@@ -92,7 +93,7 @@ public sealed class PathTools
     {
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
         PathFindResponse response = await client.PathFindStatus(new PathFindStatusRequest(), cancellationToken).ConfigureAwait(false);
-        return XrplJson.Serialize(response);
+        return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:path_find_status:{network}");
     }
 
     [McpServerTool(Name = "xrpl_path_find_close")]
@@ -103,7 +104,7 @@ public sealed class PathTools
     {
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
         PathFindResponse response = await client.PathFindClose(new PathFindCloseRequest(), cancellationToken).ConfigureAwait(false);
-        return XrplJson.Serialize(response);
+        return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:path_find_close:{network}");
     }
 
     internal static List<SourceCurrency>? ParseSourceCurrencies(string? json)
