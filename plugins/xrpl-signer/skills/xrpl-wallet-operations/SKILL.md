@@ -5,7 +5,7 @@ description: Use this skill when the user wants to manage XRPL wallets (create, 
 
 # XRPL wallet & signing — local, offline, keystore-backed
 
-The `xrpl-signer` plugin runs a stdio subprocess that does **only** cryptography — no network at all. It holds an encrypted keystore (PBKDF2 + AES-256-GCM) of XRPL seeds and exposes 12 tools for managing them and signing transactions.
+The `xrpl-signer` plugin runs a stdio subprocess that does **only** cryptography — no network at all. It holds an encrypted keystore (PBKDF2 + AES-256-GCM) of XRPL seeds and exposes <!-- toolcount:xrpl-signer -->15<!-- /toolcount:xrpl-signer --> tools for managing them and signing transactions.
 
 Tool prefix: `mcp__plugin_xrpl-signer_xrpl-signer__xrpl_*`.
 
