@@ -31,6 +31,12 @@
       "commands": [
         "mcp-injectionguard"
       ]
+    },
+    "mcp.skilllint": {
+      "version": "0.1.0",
+      "commands": [
+        "mcp-skilllint"
+      ]
     }
   }
 }
