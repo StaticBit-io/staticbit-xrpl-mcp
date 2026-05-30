@@ -53,6 +53,32 @@ The marketplace contains **three independent** plugins. You can install them in 
 
 The cloud server **never** accepts a seed or a private key — all write tools require an already-signed hex blob. Signing happens **only** in `xrpl-signer` on your machine, through a passphrase-encrypted keystore. This is an architectural invariant, not a scenario.
 
+### What the tools cover (at a glance)
+
+The walkthrough below uses the basic `xrpl_fee` / `xrpl_payment_prepare` / `xrpl_sign` / `xrpl_tx_submit_signed` tools as a hello-world, but the surface is much bigger — **<!-- toolcount:total -->131<!-- /toolcount:total --> tools** across `xrpl-cloud` / `xrpl-local` (<!-- toolcount:xrpl -->116<!-- /toolcount:xrpl -->) and `xrpl-signer` (<!-- toolcount:xrpl-signer -->15<!-- /toolcount:xrpl-signer -->). Categories you can reach with the same `prepare → sign → submit` flow:
+
+| Domain | Representative tools |
+|---|---|
+| **Payments & DEX** | `payment_prepare`, `offer_create_prepare`, `offer_cancel_prepare`, `trustset_prepare`, `book_offers`, `ripple_path_find` |
+| **AMM** | `amm_create_prepare`, `amm_deposit_prepare`, `amm_withdraw_prepare`, `amm_vote_prepare`, `amm_bid_prepare`, `amm_clawback_prepare`, `amm_delete_prepare`, `amm_info` |
+| **NFT** | `nft_mint_prepare`, `nft_burn_prepare`, `nft_modify_prepare`, `nft_create_offer_prepare`, `nft_accept_offer_prepare`, `nft_cancel_offer_prepare`, `nft_buy_offers`, `nft_sell_offers` |
+| **Vault** (XLS-65) | `vault_create_prepare`, `vault_set_prepare`, `vault_deposit_prepare`, `vault_withdraw_prepare`, `vault_clawback_prepare`, `vault_delete_prepare` |
+| **MPT** (XLS-33) | `mpt_issuance_{create,destroy,set}_prepare`, `mpt_authorize_prepare`, `account_mpts`, `account_mpt_issuances` |
+| **Loan / Loan Broker** | `loan_set_prepare`, `loan_manage_prepare`, `loan_pay_prepare`, `loan_delete_prepare`, `loan_broker_*_prepare` |
+| **Credentials** (XLS-70) | `credential_{create,accept,delete}_prepare`, `hash_credential` |
+| **DID** (XLS-40) | `did_set_prepare`, `did_delete_prepare` |
+| **Oracle** (XLS-47) | `oracle_set_prepare`, `oracle_delete_prepare` |
+| **Permissioned Domains** | `permissioned_domain_set_prepare`, `permissioned_domain_delete_prepare`, `deposit_preauth_prepare` |
+| **Escrow / Checks / PayChan** | `escrow_{create,finish,cancel}_prepare`, `check_{create,cash,cancel}_prepare`, `payment_channel_{create,fund,claim}_prepare` |
+| **xChain bridges** (XLS-38) | `xchain_{create_bridge,modify_bridge,commit,claim,create_claim_id,account_create_commit,add_account_create_attestation,add_claim_attestation}_prepare` |
+| **Account admin** | `account_set_prepare`, `set_regular_key_prepare`, `signer_list_set_prepare`, `ticket_create_prepare`, `account_delete_prepare`, `delegate_set_prepare`, `clawback_prepare`, `trustline_freeze_prepare` |
+| **Batch** | `batch_prepare`, `tx_prepare_generic` |
+| **Reads** (XLS-aware) | `account_{info,lines,tx,objects,nfts,mpts,vaults,credentials,permissioned_domains,escrows,bridges,did,loans,loan_brokers}`, `server_{info,state,definitions}`, `manifest`, `ledger`, `gateway_balances`, `tx_{lookup,simulate,preflight,decode_blob,explain}` |
+| **Subscriptions** | `subscribe`, `unsubscribe`, `path_find_{create,status,close}` |
+| **Signer / wallet** | `wallet_{generate,generate_mnemonic,import_seed,import_mnemonic,import_text,import_xumm,export,export_index,address,derive_address,list,remove}`, `sign`, `sign_multi`, `sign_combine` |
+
+Full per-parameter reference is auto-generated: [`docs/TOOLS.generated.md`](TOOLS.generated.md). Category breakdown with usage notes lives in [`plugins/xrpl-cloud/README.md`](../plugins/xrpl-cloud/README.md). The agent picks the right tool from `xrpl-cloud-operations` / `xrpl-local-operations` / `xrpl-wallet-operations` skills — you describe the intent in natural language, the skill maps it to a tool.
+
 ---
 
 ## 3. Getting a GitHub PAT
