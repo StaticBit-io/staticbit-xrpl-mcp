@@ -1,0 +1,95 @@
+{
+  "sharedTriggers": [
+    {
+      "trigger": "create AMM pool",
+      "plugins": [
+        "xrpl-cloud",
+        "xrpl-local"
+      ]
+    },
+    {
+      "trigger": "mint NFT",
+      "plugins": [
+        "xrpl-cloud",
+        "xrpl-local"
+      ]
+    },
+    {
+      "trigger": "deposit to vault",
+      "plugins": [
+        "xrpl-cloud",
+        "xrpl-local"
+      ]
+    },
+    {
+      "trigger": "issue credential",
+      "plugins": [
+        "xrpl-cloud",
+        "xrpl-local"
+      ]
+    },
+    {
+      "trigger": "set up xchain bridge",
+      "plugins": [
+        "xrpl-cloud",
+        "xrpl-local"
+      ]
+    },
+    {
+      "trigger": "set DID",
+      "plugins": [
+        "xrpl-cloud",
+        "xrpl-local"
+      ]
+    },
+    {
+      "trigger": "create MPT issuance",
+      "plugins": [
+        "xrpl-cloud",
+        "xrpl-local"
+      ]
+    },
+    {
+      "trigger": "сколько XRP у адреса",
+      "plugins": [
+        "xrpl-cloud",
+        "xrpl-local"
+      ]
+    },
+    {
+      "trigger": "создай AMM пул",
+      "plugins": [
+        "xrpl-cloud",
+        "xrpl-local"
+      ]
+    },
+    {
+      "trigger": "выпусти NFT",
+      "plugins": [
+        "xrpl-cloud",
+        "xrpl-local"
+      ]
+    },
+    {
+      "trigger": "положи в vault",
+      "plugins": [
+        "xrpl-cloud",
+        "xrpl-local"
+      ]
+    },
+    {
+      "trigger": "выдай credential",
+      "plugins": [
+        "xrpl-cloud",
+        "xrpl-local"
+      ]
+    },
+    {
+      "trigger": "настрой xchain мост",
+      "plugins": [
+        "xrpl-cloud",
+        "xrpl-local"
+      ]
+    }
+  ]
+}

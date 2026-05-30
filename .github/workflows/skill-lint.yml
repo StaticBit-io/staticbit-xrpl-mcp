@@ -1,0 +1,12 @@
+name: skill-lint
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  skilllint:
+    uses: Platonenkov/mcp-tooling/.github/workflows/skill-lint.yml@main
