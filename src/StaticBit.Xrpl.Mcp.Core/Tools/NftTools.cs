@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Mcp.Auth.ResourceServer;
 using ModelContextProtocol.Server;
 using StaticBit.Xrpl.Mcp.Abstractions;
 using StaticBit.Xrpl.Mcp.Core.Services;
@@ -296,7 +297,7 @@ public sealed class NftTools
         };
 
         AccountNFTs response = await client.AccountNFTs(request, cancellationToken).ConfigureAwait(false);
-        return XrplJson.Serialize(response);
+        return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:account_nfts:{network}:{account}");
     }
 
     [McpServerTool(Name = "xrpl_nft_buy_offers")]
@@ -310,7 +311,7 @@ public sealed class NftTools
 
         NFTBuyOffersRequest request = new NFTBuyOffersRequest(nfTokenId);
         NFTBuyOffers response = await client.NFTBuyOffers(request, cancellationToken).ConfigureAwait(false);
-        return XrplJson.Serialize(response);
+        return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:nft_buy_offers:{network}:{nfTokenId}");
     }
 
     [McpServerTool(Name = "xrpl_nft_sell_offers")]
@@ -324,7 +325,7 @@ public sealed class NftTools
 
         NFTSellOffersRequest request = new NFTSellOffersRequest(nfTokenId);
         NFTSellOffers response = await client.NFTSellOffers(request, cancellationToken).ConfigureAwait(false);
-        return XrplJson.Serialize(response);
+        return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:nft_sell_offers:{network}:{nfTokenId}");
     }
 
     internal static string[] SplitOffers(string raw)

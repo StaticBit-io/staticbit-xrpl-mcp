@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using Mcp.Auth.ResourceServer;
 using ModelContextProtocol.Server;
 using StaticBit.Xrpl.Mcp.Abstractions;
 using StaticBit.Xrpl.Mcp.Core.Services;
@@ -41,7 +42,7 @@ public sealed class PreflightTools
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
 
         PreflightReport report = await BuildReportAsync(client, tx, cancellationToken).ConfigureAwait(false);
-        return report.ToJson().ToJsonString();
+        return UntrustedContent.Wrap(report.ToJson().ToJsonString(), $"xrpl:tx_preflight:{network}");
     }
 
     [McpServerTool(Name = "xrpl_tx_simulate")]
@@ -119,7 +120,7 @@ public sealed class PreflightTools
             ["recommendedLastLedgerSequence"] = currentValidatedLedger == 0 ? null : (JsonNode)(currentValidatedLedger + 20u),
             ["suggestedPathfind"] = suggestedPath,
         };
-        return result.ToJsonString();
+        return UntrustedContent.Wrap(result.ToJsonString(), $"xrpl:tx_simulate:{network}");
     }
 
     private async Task<PreflightReport> BuildReportAsync(IXrplClient client, JsonNode tx, CancellationToken cancellationToken)

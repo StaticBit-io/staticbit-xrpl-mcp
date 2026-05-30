@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
+using Mcp.Auth.ResourceServer;
 using ModelContextProtocol.Server;
 using StaticBit.Xrpl.Mcp.Abstractions;
 using StaticBit.Xrpl.Mcp.Core.Services;
@@ -59,7 +60,7 @@ public sealed class AmmTools
         }
 
         AMMInfoResponse response = await client.AmmInfo(request, cancellationToken).ConfigureAwait(false);
-        return XrplJson.Serialize(response);
+        return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:amm_info:{network}:{ammAccount ?? $"{asset1Currency}/{asset2Currency}"}");
     }
 
     private static IssuedCurrency BuildAsset(string currency, string? issuer)

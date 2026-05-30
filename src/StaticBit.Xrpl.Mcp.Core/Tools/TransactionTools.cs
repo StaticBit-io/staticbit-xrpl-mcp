@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using Mcp.Auth.ResourceServer;
 using ModelContextProtocol.Server;
 using StaticBit.Xrpl.Mcp.Abstractions;
 using StaticBit.Xrpl.Mcp.Core.Services;
@@ -178,7 +179,7 @@ public sealed class TransactionTools
                 nameof(txBlob));
         }
 
-        return decoded.ToJsonString();
+        return UntrustedContent.Wrap(decoded.ToJsonString(), "xrpl:tx_decode_blob");
     }
 
     [McpServerTool(Name = "xrpl_tx_prepare_generic")]

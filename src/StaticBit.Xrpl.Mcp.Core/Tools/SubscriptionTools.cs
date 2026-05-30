@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Mcp.Auth.ResourceServer;
 using ModelContextProtocol.Server;
 using StaticBit.Xrpl.Mcp.Abstractions;
 using StaticBit.Xrpl.Mcp.Core.Services;
@@ -57,7 +58,7 @@ public sealed class SubscriptionTools
 
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
         object response = await client.Subscribe(request, cancellationToken).ConfigureAwait(false);
-        return XrplJson.Serialize(response);
+        return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:subscription:{network}");
     }
 
     [McpServerTool(Name = "xrpl_unsubscribe")]
@@ -78,7 +79,7 @@ public sealed class SubscriptionTools
 
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
         object response = await client.Unsubscribe(request, cancellationToken).ConfigureAwait(false);
-        return XrplJson.Serialize(response);
+        return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:subscription:{network}");
     }
 
     [McpServerTool(Name = "xrpl_account_tx_since")]
@@ -109,7 +110,7 @@ public sealed class SubscriptionTools
         };
 
         AccountTransactions response = await client.AccountTransactions(request, cancellationToken).ConfigureAwait(false);
-        return XrplJson.Serialize(response);
+        return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:account_tx_since:{network}:{account}");
     }
 
     internal static List<StreamType>? ParseStreams(string? csv)

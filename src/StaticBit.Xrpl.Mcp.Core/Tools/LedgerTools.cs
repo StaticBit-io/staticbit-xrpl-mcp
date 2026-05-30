@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using Mcp.Auth.ResourceServer;
 using ModelContextProtocol.Server;
 using StaticBit.Xrpl.Mcp.Abstractions;
 using StaticBit.Xrpl.Mcp.Core.Services;
@@ -36,7 +37,7 @@ public sealed class LedgerTools
     {
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
         ServerInfo response = await client.ServerInfo(new ServerInfoRequest(), cancellationToken).ConfigureAwait(false);
-        return XrplJson.Serialize(response);
+        return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:server_info:{network}");
     }
 
     [McpServerTool(Name = "xrpl_server_state")]
@@ -47,7 +48,7 @@ public sealed class LedgerTools
     {
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
         ServerState response = await client.ServerState(new ServerStateRequest(), cancellationToken).ConfigureAwait(false);
-        return XrplJson.Serialize(response);
+        return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:server_state:{network}");
     }
 
     [McpServerTool(Name = "xrpl_server_definitions")]
@@ -61,7 +62,7 @@ public sealed class LedgerTools
         ServerDefinitionsResponse response = await client
             .ServerDefinitions(new ServerDefinitionsRequest { Hash = hash }, cancellationToken)
             .ConfigureAwait(false);
-        return XrplJson.Serialize(response);
+        return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:server_definitions:{network}");
     }
 
     [McpServerTool(Name = "xrpl_manifest")]
@@ -81,7 +82,7 @@ public sealed class LedgerTools
         JsonNode? response = await client
             .GRequest<JsonNode, ManifestRequest>(request, cancellationToken)
             .ConfigureAwait(false);
-        return response?.ToJsonString() ?? "null";
+        return UntrustedContent.Wrap(response?.ToJsonString() ?? "null", $"xrpl:manifest:{network}:{publicKey}");
     }
 
     [McpServerTool(Name = "xrpl_fee")]
@@ -92,7 +93,7 @@ public sealed class LedgerTools
     {
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
         Fee response = await client.Fee(cancellationToken).ConfigureAwait(false);
-        return XrplJson.Serialize(response);
+        return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:fee:{network}");
     }
 
     [McpServerTool(Name = "xrpl_ledger")]
@@ -114,7 +115,7 @@ public sealed class LedgerTools
         };
 
         LOLedger response = await client.Ledger(request, cancellationToken).ConfigureAwait(false);
-        return XrplJson.Serialize(response);
+        return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:ledger:{network}:{ledgerIndex ?? "validated"}");
     }
 
     [McpServerTool(Name = "xrpl_tx_lookup")]
@@ -133,7 +134,7 @@ public sealed class LedgerTools
         };
 
         TransactionResponse response = await client.Tx(request, cancellationToken).ConfigureAwait(false);
-        return XrplJson.Serialize(response);
+        return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:tx:{network}:{txHash}");
     }
 }
 

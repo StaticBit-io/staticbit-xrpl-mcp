@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
+using Mcp.Auth.ResourceServer;
 using ModelContextProtocol.Server;
 using StaticBit.Xrpl.Mcp.Abstractions;
 using StaticBit.Xrpl.Mcp.Core.Services;
@@ -47,7 +48,7 @@ public sealed class AccountTools
         };
 
         AccountInfo response = await client.AccountInfo(request, cancellationToken).ConfigureAwait(false);
-        return XrplJson.Serialize(response);
+        return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:account_info:{network}:{account}");
     }
 
     [McpServerTool(Name = "xrpl_account_lines")]
@@ -77,7 +78,7 @@ public sealed class AccountTools
         };
 
         AccountLines response = await client.AccountLines(request, cancellationToken).ConfigureAwait(false);
-        return XrplJson.Serialize(response);
+        return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:account_lines:{network}:{account}");
     }
 
     [McpServerTool(Name = "xrpl_account_tx")]
@@ -107,7 +108,7 @@ public sealed class AccountTools
         };
 
         AccountTransactions response = await client.AccountTransactions(request, cancellationToken).ConfigureAwait(false);
-        return XrplJson.Serialize(response);
+        return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:account_tx:{network}:{account}");
     }
 
     [McpServerTool(Name = "xrpl_account_offers")]
@@ -131,7 +132,7 @@ public sealed class AccountTools
         };
 
         AccountOffers response = await client.AccountOffers(request, cancellationToken).ConfigureAwait(false);
-        return XrplJson.Serialize(response);
+        return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:account_offers:{network}:{account}");
     }
 
     [McpServerTool(Name = "xrpl_account_objects")]
@@ -172,7 +173,7 @@ public sealed class AccountTools
         };
 
         AccountObjects response = await client.AccountObjects(request, cancellationToken).ConfigureAwait(false);
-        return XrplJson.Serialize(response);
+        return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:account_objects:{network}:{account}");
     }
 
     [McpServerTool(Name = "xrpl_gateway_balances")]
@@ -196,7 +197,7 @@ public sealed class AccountTools
         };
 
         GatewayBalancesResponse response = await client.GatewayBalances(request, cancellationToken).ConfigureAwait(false);
-        return XrplJson.Serialize(response);
+        return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:gateway_balances:{network}:{account}");
     }
 
     internal static object? ParseHotwallets(string? json)
@@ -241,6 +242,6 @@ public sealed class AccountTools
         AddressValidation.AssertValid(account, nameof(account));
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
         string balance = await client.GetXrpBalance(account, cancellationToken).ConfigureAwait(false);
-        return XrplJson.Serialize(new { account, balanceXrp = balance });
+        return UntrustedContent.Wrap(XrplJson.Serialize(new { account, balanceXrp = balance }), $"xrpl:xrp_balance:{network}:{account}");
     }
 }

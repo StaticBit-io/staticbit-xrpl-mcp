@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using Mcp.Auth.ResourceServer;
 using ModelContextProtocol.Server;
 using StaticBit.Xrpl.Mcp.Abstractions;
 using StaticBit.Xrpl.Mcp.Core.Services;
@@ -114,7 +115,7 @@ public sealed class AccountObjectsHelperTools
             ["ledgerIndex"] = response.LedgerIndex,
             ["validated"] = response.Validated,
         };
-        return result.ToJsonString();
+        return UntrustedContent.Wrap(result.ToJsonString(), $"xrpl:account_escrows:{network}:{account}");
     }
 
     [McpServerTool(Name = "xrpl_signer_list_status")]
@@ -149,7 +150,7 @@ public sealed class AccountObjectsHelperTools
                 ["hasSignerList"] = false,
                 ["message"] = "Account has no SignerList — multi-sign is not enabled.",
             };
-            return empty.ToJsonString();
+            return UntrustedContent.Wrap(empty.ToJsonString(), $"xrpl:signer_list_status:{network}:{account}");
         }
 
         HashSet<string> already = ParseAlreadySigned(alreadySignedAccountsCsv);
@@ -209,7 +210,7 @@ public sealed class AccountObjectsHelperTools
             ["ledgerIndex"] = response.LedgerIndex,
             ["validated"] = response.Validated,
         };
-        return result.ToJsonString();
+        return UntrustedContent.Wrap(result.ToJsonString(), $"xrpl:signer_list_status:{network}:{account}");
     }
 
     [McpServerTool(Name = "xrpl_account_mpt_issuances")]
@@ -274,7 +275,7 @@ public sealed class AccountObjectsHelperTools
             ["ledgerIndex"] = response.LedgerIndex,
             ["validated"] = response.Validated,
         };
-        return result.ToJsonString();
+        return UntrustedContent.Wrap(result.ToJsonString(), $"xrpl:account_mpt_issuances:{network}:{account}");
     }
 
     [McpServerTool(Name = "xrpl_account_mpts")]
@@ -336,7 +337,7 @@ public sealed class AccountObjectsHelperTools
             ["ledgerIndex"] = response.LedgerIndex,
             ["validated"] = response.Validated,
         };
-        return result.ToJsonString();
+        return UntrustedContent.Wrap(result.ToJsonString(), $"xrpl:account_mpts:{network}:{account}");
     }
 
     [McpServerTool(Name = "xrpl_account_credentials")]
@@ -414,7 +415,7 @@ public sealed class AccountObjectsHelperTools
             ["ledgerIndex"] = response.LedgerIndex,
             ["validated"] = response.Validated,
         };
-        return result.ToJsonString();
+        return UntrustedContent.Wrap(result.ToJsonString(), $"xrpl:account_credentials:{network}:{account}");
     }
 
     [McpServerTool(Name = "xrpl_account_did")]
@@ -440,14 +441,14 @@ public sealed class AccountObjectsHelperTools
 
         if (did is null)
         {
-            return new JsonObject
+            return UntrustedContent.Wrap(new JsonObject
             {
                 ["account"] = account,
                 ["hasDid"] = false,
                 ["ledgerHash"] = response.LedgerHash,
                 ["ledgerIndex"] = response.LedgerIndex,
                 ["validated"] = response.Validated,
-            }.ToJsonString();
+            }.ToJsonString(), $"xrpl:account_did:{network}:{account}");
         }
 
         JsonObject result = new JsonObject
@@ -467,7 +468,7 @@ public sealed class AccountObjectsHelperTools
             ["ledgerIndex"] = response.LedgerIndex,
             ["validated"] = response.Validated,
         };
-        return result.ToJsonString();
+        return UntrustedContent.Wrap(result.ToJsonString(), $"xrpl:account_did:{network}:{account}");
     }
 
     [McpServerTool(Name = "xrpl_account_permissioned_domains")]
@@ -539,7 +540,7 @@ public sealed class AccountObjectsHelperTools
             ["ledgerIndex"] = response.LedgerIndex,
             ["validated"] = response.Validated,
         };
-        return result.ToJsonString();
+        return UntrustedContent.Wrap(result.ToJsonString(), $"xrpl:account_permissioned_domains:{network}:{account}");
     }
 
     [McpServerTool(Name = "xrpl_account_vaults")]
@@ -607,7 +608,7 @@ public sealed class AccountObjectsHelperTools
             ["ledgerIndex"] = response.LedgerIndex,
             ["validated"] = response.Validated,
         };
-        return result.ToJsonString();
+        return UntrustedContent.Wrap(result.ToJsonString(), $"xrpl:account_vaults:{network}:{account}");
     }
 
     [McpServerTool(Name = "xrpl_account_bridges")]
@@ -666,7 +667,7 @@ public sealed class AccountObjectsHelperTools
             ["ledgerIndex"] = response.LedgerIndex,
             ["validated"] = response.Validated,
         };
-        return result.ToJsonString();
+        return UntrustedContent.Wrap(result.ToJsonString(), $"xrpl:account_bridges:{network}:{account}");
     }
 
     [McpServerTool(Name = "xrpl_account_loan_brokers")]
@@ -733,7 +734,7 @@ public sealed class AccountObjectsHelperTools
             ["ledgerIndex"] = response.LedgerIndex,
             ["validated"] = response.Validated,
         };
-        return result.ToJsonString();
+        return UntrustedContent.Wrap(result.ToJsonString(), $"xrpl:account_loan_brokers:{network}:{account}");
     }
 
     [McpServerTool(Name = "xrpl_account_loans")]
@@ -810,7 +811,7 @@ public sealed class AccountObjectsHelperTools
             ["ledgerIndex"] = response.LedgerIndex,
             ["validated"] = response.Validated,
         };
-        return result.ToJsonString();
+        return UntrustedContent.Wrap(result.ToJsonString(), $"xrpl:account_loans:{network}:{account}");
     }
 
     internal static string? HexToUtf8(string? hex)

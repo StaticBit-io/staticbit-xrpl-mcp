@@ -1,0 +1,12 @@
+name: injection-guard
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  injectionguard:
+    uses: Platonenkov/mcp-tooling/.github/workflows/injection-guard.yml@main
