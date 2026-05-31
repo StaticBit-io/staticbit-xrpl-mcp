@@ -1,3 +1,56 @@
+## v0.3.6 — 2026-05-31
+
+### Features
+- apply UntrustedContent.Wrap to external-content tools + SECURITY.md + canary tests (Phase 4.4 Stage C) (#17) (5e9a202)
+- report build version on /healthz and /readyz (2b88f23)
+- structured error envelopes for all prepare-tools (f5058b7)
+- xrpl-cloud uses OAuth 2.1 instead of static bearer (e6e6ce3)
+- OAuth 2.1 resource server via Mcp.Auth.ResourceServer (0a575f8)
+
+### Fixes
+- point deploy.sh APP_DIR at the real host path /opt/staticbit-xrpl-mcp (182bb85)
+- silence System.Net.Http.HttpClient (keeps admin-bot token out of logs) (702ecef)
+
+### Documentation
+- add Payment workflows end-to-end example (#16) (f70d10f)
+- add 'What the tools cover' overview for 116-tool surface (#12) (1b7a51c)
+- fix all 12 findings from cross-repo audit (2026-05-30) (77361c6)
+- rewrite xrpl-cloud / xrpl-local SKILL.md bodies for the 116-tool surface (be88fe4)
+- wire SKILL.md tool-count under mcp-toolsdoc markerFiles (25b66f6)
+- full Russian translation of docs/DEPLOY.md (was a summary stub) (98b4b2d)
+- standardize base docs under docs/ (DEPLOY/INSTALL) + add OPERATIONS (e09b5b6)
+- document the live image-based CI/CD deploy (0d8f70e)
+- document shared CI/CD reusable workflows in CLAUDE.md (6084274)
+- add CLAUDE.md (doc conventions + tool-gen); ignore in i18n gate (2a4427a)
+- xrpl-cloud is OAuth 2.1-authed, not static bearer (e4a1a95)
+- migrate INSTALL/DEPLOY to OAuth 2.1 (EN+RU); signer unchanged (ee36817)
+- changelog entry for v0.3.0 OAuth migration (748194e)
+
+### Tests
+- regression guard for cloud-server config pipeline (#15) (adc8f1f)
+
+### Build / CI
+- wire downstream SKILL.md trigger validation (backlog 1) (#18) (d008348)
+- wire Mcp.FleetLint cross-repo consistency gate (Sprint 2) (#14) (4fda249)
+- wire Mcp.LinkCheck markdown link integrity gate (#13) (59e6a7f)
+- prune old GHCR versions after build (keep 5) (efa88b1)
+- bump actions/checkout to v5 for Node.js 24 (81952a9)
+- add reusable VPS deploy (deploy.yml + forced-command deploy.sh) (f3f1f3c)
+- build cloud image inside the xrpl-cloud release (4550737)
+- convert docker.yml to shared reusable build-push caller (36fce13)
+- switch docs-i18n gate to shared Mcp.I18nCheck tool (c158120)
+- wire shared Mcp.ToolsDoc — config + manifest + docs-codegen gate + TOOLS.generated.md (131 tools: xrpl + xrpl-signer) (c23377c)
+- unify layout (docs/*.ru.md→docs/ru/) + bilingual plugin READMEs + unified gate (e598eca)
+
+### Other
+- release: xrpl-local v0.3.7 (c5fcb2b)
+- release: xrpl-cloud v0.3.1 (d535155)
+- deps: bump Mcp.Auth.ResourceServer 0.2.0 → 0.3.0 + Mcp.FleetLint 0.1.0 → 0.2.0 (#19) (4b972d9)
+- chore(tools): bump mcp.toolsdoc 0.1.0 -> 0.1.1 (Windows EOL fix) (#10) (20f65af)
+- release: xrpl-local v0.3.6 (0ecb6a5)
+- Merge feat/oauth-resource-server: OAuth 2.1 for xrpl cloud server + plugin 0.3.0 (32efdf5)
+- docs+release: xrpl-cloud OAuth migration docs + version 0.3.0 (fee5574)
+
 ## v0.3.5 — 2026-05-27
 
 ### Features
