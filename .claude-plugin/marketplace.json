@@ -13,7 +13,7 @@
       "name": "xrpl-cloud",
       "source": "./plugins/xrpl-cloud",
       "description": "Lightweight HTTP MCP that proxies to the StaticBit cloud server at xrpl-mcp.staticbit.io. Read/prepare/submit XRPL transactions without running anything locally. OAuth 2.1 auth (run /mcp to log in). ~10 KB.",
-      "version": "0.3.0",
+      "version": "0.3.1",
       "author": {
         "name": "StaticBit",
         "url": "https://github.com/StaticBit-io/staticbit-xrpl-mcp"
