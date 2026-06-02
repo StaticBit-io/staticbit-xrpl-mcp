@@ -42,8 +42,14 @@ jobs:
         env:
           AS_REGISTER_URL: ${{ vars.AS_REGISTER_URL }}
           AS_SERVICE_TOKEN: ${{ secrets.AS_REGISTRY_ADMIN_TOKEN }}
+          MCP_PUBLIC_HOST: ${{ vars.MCP_PUBLIC_HOST }}
         run: |
+          if [ -n "$MCP_PUBLIC_HOST" ]; then
+            jq --arg res "https://$MCP_PUBLIC_HOST/mcp" '.resource = $res' .mcp-registry.json > /tmp/reg.json
+          else
+            cp .mcp-registry.json /tmp/reg.json
+          fi
           curl -fsS -X PUT "$AS_REGISTER_URL" \
             -H "X-Service-Token: $AS_SERVICE_TOKEN" \
             -H "Content-Type: application/json" \
-            --data-binary @.mcp-registry.json
+            --data-binary @/tmp/reg.json

@@ -30,6 +30,12 @@ services:
     restart: unless-stopped
     env_file:
       - ./.env.xrpl-mcp
+    # OAuth audience/issuer derived from the SAME host used by the Traefik route
+    # below, so the resource server validates tokens for the actual public host.
+    # Override OAUTH_ISSUER to point at a self-hosted Authorization Server.
+    environment:
+      - OAuth__Resource=https://${XRPL_MCP_HOST:?XRPL_MCP_HOST is required}/mcp
+      - OAuth__Issuer=${OAUTH_ISSUER:-https://auth.mcp.staticbit.io}
     networks:
       - mcp-net
     labels:
