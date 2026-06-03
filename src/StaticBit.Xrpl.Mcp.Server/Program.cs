@@ -276,19 +276,18 @@ internal static class Program
         lifetime.ApplicationStarted.Register(() =>
         {
             alerter.Alert(AlertKind.StartUp,
-                "StaticBitXrplMcp server started",
+                "xrpl-mcp server started",
                 new Dictionary<string, string>
                 {
                     ["transport"] = server.Transport,
-                    ["port"] = server.HttpPort.ToString(CultureInfo.InvariantCulture),
-                    ["bearerTokens"] = server.HttpAuth.Tokens.Count.ToString(CultureInfo.InvariantCulture),
+                    ["auth"] = "oauth",
                 });
         });
 
         lifetime.ApplicationStopping.Register(() =>
         {
             alerter.Alert(AlertKind.ShutDown,
-                "StaticBitXrplMcp server stopping",
+                "xrpl-mcp server stopping",
                 new Dictionary<string, string>
                 {
                     ["transport"] = server.Transport,
