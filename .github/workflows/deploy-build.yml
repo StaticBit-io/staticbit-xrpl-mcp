@@ -59,6 +59,10 @@ jobs:
             "$SSH_USER@$SERVER_IP" 'mkdir -p ~/xrpl && tar -x -C ~/xrpl'
 
       - name: Write .env (from GitHub config)
+        env:
+          AA_ENABLED: ${{ vars.SERVER__ADMINALERTS__ENABLED }}
+          AA_BOTTOKEN: ${{ secrets.SERVER__ADMINALERTS__BOTTOKEN }}
+          AA_CHATID: ${{ vars.SERVER__ADMINALERTS__CHATID }}
         run: |
           SSHC="ssh -i ~/.ssh/id_d -o StrictHostKeyChecking=accept-new $SSH_USER@$SERVER_IP"
           # Values come from the step env; piped over stdin (never on argv).
@@ -72,6 +76,9 @@ jobs:
           {
             printf '%s\n' '# Cloud OAuth-only deploy - per-user auth via the AS (no static bearer).'
             printf 'Server__HttpAuth__RequireHttps=true\n'
+            printf 'Server__AdminAlerts__Enabled=%s\n' "$AA_ENABLED"
+            printf 'Server__AdminAlerts__BotToken=%s\n' "$AA_BOTTOKEN"
+            printf 'Server__AdminAlerts__ChatId=%s\n' "$AA_CHATID"
           } | $SSHC 'umask 077; cat > ~/xrpl/.env.xrpl-mcp'
 
       - name: Build + start
