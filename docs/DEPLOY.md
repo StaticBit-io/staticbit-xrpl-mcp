@@ -401,13 +401,12 @@ After the restart you should see in the admin chat:
 
 ```
 🟢 StartUp
-StaticBitXrplMcp server started
+xrpl-mcp server started
 
 • transport: http
-• port: 5500
-• oauth: https://auth.mcp.staticbit.ai (scope=xrpl)
+• auth: oauth
 
-2026-05-23T...  •  StaticBitXrplMcp admin-alerts
+2026-05-23T...  •  xrpl-mcp admin-alerts
 ```
 
 ### 7.3 Live-test (1 minute)
