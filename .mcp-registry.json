@@ -1,0 +1,6 @@
+{
+  "scope": "xrpl",
+  "resource": "https://xrpl-mcp.staticbit.io/mcp",
+  "displayName": "XRPL MCP",
+  "secrets": []
+}

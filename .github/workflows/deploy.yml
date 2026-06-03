@@ -29,3 +29,27 @@ jobs:
       deploy_host: ${{ secrets.DEPLOY_HOST }}
       deploy_user: ${{ secrets.DEPLOY_USER }}
       deploy_known_hosts: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+
+  # Push this MCP's self-registration (scope + resource + secret schema) to the
+  # Authorization Server after a successful deploy. Body is .mcp-registry.json
+  # (schema only, no secret values); auth via the X-Service-Token header.
+  register:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Register with Authorization Server
+        env:
+          AS_REGISTER_URL: ${{ vars.AS_REGISTER_URL }}
+          AS_SERVICE_TOKEN: ${{ secrets.AS_REGISTRY_ADMIN_TOKEN }}
+          MCP_PUBLIC_HOST: ${{ vars.MCP_PUBLIC_HOST }}
+        run: |
+          if [ -n "$MCP_PUBLIC_HOST" ]; then
+            jq --arg res "https://$MCP_PUBLIC_HOST/mcp" '.resource = $res' .mcp-registry.json > /tmp/reg.json
+          else
+            cp .mcp-registry.json /tmp/reg.json
+          fi
+          curl -fsS -X PUT "$AS_REGISTER_URL" \
+            -H "X-Service-Token: $AS_SERVICE_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data-binary @/tmp/reg.json
