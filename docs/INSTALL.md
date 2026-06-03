@@ -177,9 +177,9 @@ Every installed plugin must show `Status: ✔ enabled`.
 
 ### 6.1 Allow-list — only for `xrpl-cloud`
 
-If you're installing `xrpl-cloud`, the cloud server (`xrpl-mcp.staticbit.io`) is protected by **OAuth 2.1** against `auth.mcp.staticbit.io`. There is **no bearer token and no ENV var** to set — instead, your account must be on the server **allow-list**. Ask the admin of `xrpl-mcp.staticbit.io` to add you.
+If you're installing `xrpl-cloud`, the cloud server (`xrpl.mcp.staticbit.ai`) is protected by **OAuth 2.1** against `auth.mcp.staticbit.ai`. There is **no bearer token and no ENV var** to set — instead, your account must be on the server **allow-list**. Ask the admin of `xrpl.mcp.staticbit.ai` to add you.
 
-Once you're on the allow-list, you log in interactively from Claude Code via `/mcp` (see §9) — the browser flow takes you through `auth.mcp.staticbit.io`, Claude Code performs dynamic client registration, stores the resulting token and refreshes it automatically. Nothing to copy or paste, nothing to save in a password manager.
+Once you're on the allow-list, you log in interactively from Claude Code via `/mcp` (see §9) — the browser flow takes you through `auth.mcp.staticbit.ai`, Claude Code performs dynamic client registration, stores the resulting token and refreshes it automatically. Nothing to copy or paste, nothing to save in a password manager.
 
 If your access is later revoked (admin disables your account), your tokens are invalidated immediately and `/mcp` will start failing — re-request access from the admin.
 
@@ -285,17 +285,17 @@ In a new Claude Code session:
 Depending on what you installed, you'll see one or more lines:
 
 ```
-xrpl-cloud   https://xrpl-mcp.staticbit.io/mcp (HTTP)   ⚠ Needs login
+xrpl-cloud   https://xrpl.mcp.staticbit.ai/mcp (HTTP)   ⚠ Needs login
 xrpl-local   node …/bin/server.js                       ✓ Connected
 xrpl-signer  node …/bin/signer.js                       ✓ Connected
 ```
 
 ### OAuth login for `xrpl-cloud`
 
-If you installed `xrpl-cloud`, the first time you'll see it asking you to authenticate. Still inside `/mcp`, pick `xrpl-cloud` and follow the login prompt — a browser window opens against `auth.mcp.staticbit.io`. Sign in there; Claude Code performs dynamic client registration, stores the token and refreshes it automatically going forward. After login `/mcp` shows:
+If you installed `xrpl-cloud`, the first time you'll see it asking you to authenticate. Still inside `/mcp`, pick `xrpl-cloud` and follow the login prompt — a browser window opens against `auth.mcp.staticbit.ai`. Sign in there; Claude Code performs dynamic client registration, stores the token and refreshes it automatically going forward. After login `/mcp` shows:
 
 ```
-xrpl-cloud   https://xrpl-mcp.staticbit.io/mcp (HTTP)   ✓ Connected
+xrpl-cloud   https://xrpl.mcp.staticbit.ai/mcp (HTTP)   ✓ Connected
 ```
 
 If login is refused, your account is not on the allow-list — ask the admin to add you (§6.1).
@@ -439,7 +439,7 @@ With OAuth there is no static secret to leak or rotate. Tokens are short-lived R
 
 ### 11.6 Adding another client (new MCP user)
 
-If a colleague wants to connect to the same cloud server — ask the admin to add **their** account to the allow-list. Each person logs in via their own browser session at `auth.mcp.staticbit.io`; access is per-account and granted or revoked independently. There's no shared secret to hand out.
+If a colleague wants to connect to the same cloud server — ask the admin to add **their** account to the allow-list. Each person logs in via their own browser session at `auth.mcp.staticbit.ai`; access is per-account and granted or revoked independently. There's no shared secret to hand out.
 
 ### 11.7 Installing on a second PC / migration
 
@@ -460,7 +460,7 @@ If you have wallets on the first PC (e.g. `main`, `cold`, `dex`) and want them a
 **What you do NOT migrate:**
 - ENV variables — set them again with `[Environment]::SetEnvironmentVariable(...)`.
 - The GitHub PAT — each device has its own.
-- Cloud auth — nothing to copy. On the second PC just log in via `/mcp` against `auth.mcp.staticbit.io` with the same allow-listed account; Claude Code registers and stores a token per device.
+- Cloud auth — nothing to copy. On the second PC just log in via `/mcp` against `auth.mcp.staticbit.ai` with the same allow-listed account; Claude Code registers and stores a token per device.
 
 **Recipe:**
 
@@ -570,7 +570,7 @@ unset XRPL_SIGNER_PASSPHRASE
 
 ### 12.5 Revoke cloud access
 
-For `xrpl-cloud` there's no local secret to wipe. To fully cut access: ask the admin to disable your account on the `xrpl-mcp.staticbit.io` allow-list (this revokes your refresh tokens), and clear the token Claude Code stored — `/mcp` → select `xrpl-cloud` → clear authentication.
+For `xrpl-cloud` there's no local secret to wipe. To fully cut access: ask the admin to disable your account on the `xrpl.mcp.staticbit.ai` allow-list (this revokes your refresh tokens), and clear the token Claude Code stored — `/mcp` → select `xrpl-cloud` → clear authentication.
 
 ---
 
@@ -580,10 +580,10 @@ For `xrpl-cloud` there's no local secret to wipe. To fully cut access: ask the a
 
 | Check | Command |
 |---|---|
-| Logged in via OAuth | `/mcp` → select `xrpl-cloud` → follow the browser login against `auth.mcp.staticbit.io` |
-| Account is on the allow-list | If login is refused, ask the admin of `xrpl-mcp.staticbit.io` to add (or re-enable) your account |
+| Logged in via OAuth | `/mcp` → select `xrpl-cloud` → follow the browser login against `auth.mcp.staticbit.ai` |
+| Account is on the allow-list | If login is refused, ask the admin of `xrpl.mcp.staticbit.ai` to add (or re-enable) your account |
 | Token went stale | `/mcp` → select `xrpl-cloud` → clear authentication, then log in again |
-| Server is up | `curl https://xrpl-mcp.staticbit.io/healthz` — should return `{"status":"ok"}` |
+| Server is up | `curl https://xrpl.mcp.staticbit.ai/healthz` — should return `{"status":"ok"}` |
 | Restarted Claude Code after install | Close fully and relaunch |
 
 ### `/mcp` shows `disconnected` for xrpl-local or xrpl-signer

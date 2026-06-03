@@ -7,12 +7,15 @@ this repository and tell them "deploy according to DEPLOY.md" — everything nee
 is here. No prior knowledge of the codebase is assumed.
 
 StaticBitXrplMcp is designed to live behind a **shared Traefik platform** on a
-single VPS — the same model as TelegramMCP. Multiple MCPs sit behind one Traefik
-that handles TLS, Let's Encrypt and host-based routing. Each MCP owns its own
-directory under `/opt/<service-name>/` with its own docker-compose.yml and `.env`s.
+single VPS. Multiple MCPs sit behind one Traefik that handles TLS, Let's Encrypt
+and host-based routing. The shared platform — Traefik plus a **wildcard TLS
+certificate for `*.mcp.staticbit.ai`** and the external `mcp-net` network — is
+owned by the [**mcp-infra**](https://github.com/StaticBit-io/mcp-infra) repo, not
+by this one. Each MCP owns its own directory under `/opt/<service-name>/` with its
+own docker-compose.yml and `.env`s.
 
 ```
-/opt/traefik/                ← platform (shared by all MCPs)
+/opt/traefik/                ← platform (from mcp-infra, shared by all MCPs)
   docker-compose.yml
   .env                       ← LETSENCRYPT_EMAIL
 
@@ -29,32 +32,34 @@ All services join an **external Docker network `mcp-net`**. Traefik scans it and
 picks up new containers automatically via labels — no Traefik config changes
 are required when adding a new MCP.
 
-The container image is published to `ghcr.io/staticbit-io/staticbit-xrpl-mcp` by an `xrpl-cloud`
-release (built inside [`release-plugin.yml`](../.github/workflows/release-plugin.yml) via the shared
-reusable workflow), or ad-hoc through **Actions → docker**
-([`docker.yml`](../.github/workflows/docker.yml), workflow_dispatch).
+The container image is **built from source on the host** by the deploy workflow
+(`docker compose up -d --build`) — there is no prebuilt image to pull and no GHCR
+authentication on the host. The deploy job transfers the repo source to the VPS
+and builds there.
 
 ---
 
 ## CI/CD deploy (the fast path)
 
-Once the host is bootstrapped (sections below), routine deploys are **automated** through the
-shared reusable workflows in [`mcp-tooling`](https://github.com/Platonenkov/mcp-tooling) — you
-don't run docker by hand:
+Once the host is bootstrapped (sections below), routine deploys are **automated** and run as a
+**non-root** `mcpdeploy` user — you don't run docker by hand. Trigger them via **Actions →
+deploy-build** (`deploy-build.yml`):
 
-- **Build / publish**: an `xrpl-cloud` release (`release-plugin.yml`) builds and pushes the
-  multi-arch image via the reusable `docker-build-push.yml`. Ad-hoc: **Actions → docker**
-  (workflow_dispatch, `version`).
-- **Deploy**: **Actions → deploy** (`deploy.yml`, `tag` = `latest` or a semver). The runner pulls
-  the image, `docker save | ssh`-pipes the tarball into the forced-command `deploy/deploy.sh` on
-  the VPS (**no GHCR login on the host**), which loads it, pins `XRPL_MCP_IMAGE` +
-  `XRPL_PULL_POLICY=never` in `/opt/staticbit-xrpl-mcp/.env`, recreates the container, and
-  smoke-tests `https://xrpl-mcp.staticbit.io/healthz`.
+- **Deploy (build from source)**: the runner transfers the repo source to the VPS (`git archive`
+  piped over `ssh tar`), reconstructs `.env` (plus a minimal `.env.xrpl-mcp`) on the host from
+  **GitHub Secrets / Variables**, then builds the image **from that source on the host**
+  (`docker compose up -d --build`, **no GHCR auth**) and smoke-tests `/healthz`.
+- **Register**: a downstream `register` job pushes this MCP's self-registration descriptor
+  (`.mcp-registry.json`) to the authorization server (`PUT /api/admin/mcps`, authenticated with
+  the `X-Service-Token` header), so the AS knows the scope/resource for `xrpl`.
 
-One-time host wiring this depends on: `deploy/deploy.sh` copied to `/opt/staticbit-xrpl-mcp/`; a
-**root forced-command** CI key in `/root/.ssh/authorized_keys` locked to it; and the repo secrets
-`DEPLOY_SSH_KEY` / `DEPLOY_HOST` / `DEPLOY_USER` / `DEPLOY_KNOWN_HOSTS`. The manual sections below
-remain the bootstrap reference and the fallback path.
+The cloud server is **OAuth-only** — there is no static bearer to provision. The whole flow runs
+as `mcpdeploy` over SSH; there is no root forced-command, no `deploy/deploy.sh`, no `DEPLOY_*`
+image-shipping secrets and no `docker save | ssh` tarball. The manual sections below remain the
+bootstrap reference and the fallback path.
+
+> The shared Traefik platform (wildcard TLS for `*.mcp.staticbit.ai`, the `mcp-net` network) is
+> provisioned separately from the [**mcp-infra**](https://github.com/StaticBit-io/mcp-infra) repo.
 
 ---
 
@@ -66,9 +71,9 @@ Before deploying this MCP:
 |---|---|---|
 | Ubuntu 22.04+ / Debian 12+ with Docker engine ≥ 24 | host admin | `docker version` |
 | External Docker network `mcp-net` exists | host admin | `docker network ls \| grep mcp-net` |
-| Traefik platform running at `/opt/traefik/` | host admin | `docker ps \| grep traefik` |
-| DNS A-record `xrpl-mcp.staticbit.io` → host IP propagated | DNS owner | `dig +short xrpl-mcp.staticbit.io @1.1.1.1` |
-| Optional GHCR pull access (org is private) | repo owner | `docker login ghcr.io` |
+| Traefik platform running at `/opt/traefik/` (from **mcp-infra**, wildcard TLS for `*.mcp.staticbit.ai`) | host admin | `docker ps \| grep traefik` |
+| DNS record `xrpl.mcp.staticbit.ai` → host IP propagated | DNS owner | `dig +short xrpl.mcp.staticbit.ai @1.1.1.1` |
+| Docker build toolchain on the host (image is built from source, not pulled) | host admin | `docker buildx version` |
 
 If any of the first three are missing, follow `TelegramMCP/OPERATIONS.md`
 sections 3–5 to set up the host and the Traefik platform once. Those steps are
@@ -108,12 +113,12 @@ the signing keys from the authorization server's JWKS) and gates `/mcp` on the
 What you need before continuing:
 
 - A reachable **authorization server** (the StaticBit deployment uses
-  `https://auth.mcp.staticbit.io`). It must publish a JWKS endpoint, support
+  `https://auth.mcp.staticbit.ai`). It must publish a JWKS endpoint, support
   dynamic client registration, and maintain the user **allow-list** — only
   allow-listed accounts can obtain a token, and disabling an account immediately
   revokes its refresh tokens.
 - Its **issuer** URL, the **resource** identifier for this MCP
-  (`https://xrpl-mcp.staticbit.io/mcp`), and the required **scope** (`xrpl`).
+  (`https://xrpl.mcp.staticbit.ai/mcp`), and the required **scope** (`xrpl`).
 
 Standing up the authorization server itself is out of scope for this document —
 point the MCP at an existing one. You'll wire these three values into the service
@@ -131,13 +136,13 @@ cp .env.xrpl-mcp.example .env.xrpl-mcp
 
 Edit `.env`:
 ```
-XRPL_MCP_HOST=xrpl-mcp.staticbit.io
+XRPL_MCP_HOST=xrpl.mcp.staticbit.ai
 ```
 
 Edit `.env.xrpl-mcp` — point the server at your authorization server (values from Step 2):
 ```
-Server__OAuth__Issuer=https://auth.mcp.staticbit.io
-Server__OAuth__Resource=https://xrpl-mcp.staticbit.io/mcp
+Server__OAuth__Issuer=https://auth.mcp.staticbit.ai
+Server__OAuth__Resource=https://xrpl.mcp.staticbit.ai/mcp
 Server__OAuth__RequiredScope=xrpl
 ```
 
@@ -154,30 +159,21 @@ chmod 600 .env .env.xrpl-mcp
 
 ## Step 4 — bring up the container
 
-Either pull the prebuilt image from GHCR (faster, recommended for prod):
-
-```bash
-# If the GHCR package is private, log in first with a PAT that has read:packages.
-echo "$GHCR_PAT" | docker login ghcr.io -u <GITHUB_USERNAME> --password-stdin
-
-docker compose pull
-docker compose up -d
-```
-
-Or build locally from the source you just cloned (no GHCR access needed):
+Build the image from the source you just put on the host and start it — no GHCR access and no
+`docker login` are needed:
 
 ```bash
 docker compose up -d --build
 ```
 
-Watch it come up:
+This is the same command the `deploy-build` workflow runs on the host. Watch it come up:
 ```bash
 docker compose logs -f xrpl-mcp
 ```
 
 On startup you should see:
 ```
-StaticBitXrplMcp HTTP listening on port 5500, RequireHttps=True, RateLimit=60/min, OAuth=https://auth.mcp.staticbit.io (scope=xrpl)
+StaticBitXrplMcp HTTP listening on port 5500, RequireHttps=True, RateLimit=60/min, OAuth=https://auth.mcp.staticbit.ai (scope=xrpl)
 ```
 
 The `OAuth=<issuer> (scope=...)` line confirms the server resolved the
@@ -187,8 +183,8 @@ Traefik picks up the new container by its labels and starts the Let's Encrypt
 HTTP-01 challenge automatically:
 ```bash
 cd /opt/traefik
-docker compose logs traefik 2>&1 | grep "xrpl-mcp.staticbit.io" | tail -3
-# Look for: INF Server responded with a certificate ...  domain=xrpl-mcp.staticbit.io
+docker compose logs traefik 2>&1 | grep "xrpl.mcp.staticbit.ai" | tail -3
+# Look for: INF Server responded with a certificate ...  domain=xrpl.mcp.staticbit.ai
 ```
 
 Usually 10–60 seconds after `up -d`.
@@ -201,7 +197,7 @@ Usually 10–60 seconds after `up -d`.
 
 ```bash
 curl -sS -o /dev/null -w "HTTP %{http_code}\n" \
-  -X POST https://xrpl-mcp.staticbit.io/mcp \
+  -X POST https://xrpl.mcp.staticbit.ai/mcp \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
 # Expected: HTTP 401 (plus a WWW-Authenticate header pointing at the resource metadata)
@@ -211,7 +207,7 @@ curl -sS -o /dev/null -w "HTTP %{http_code}\n" \
 
 ```bash
 curl -sS -o /dev/null -w "HTTP %{http_code}\n" \
-  -X POST https://xrpl-mcp.staticbit.io/mcp \
+  -X POST https://xrpl.mcp.staticbit.ai/mcp \
   -H "Authorization: Bearer not-a-real-jwt" \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
@@ -226,7 +222,7 @@ stored, or use your AS's token endpoint). Then:
 
 ```bash
 TOKEN=<XRPL_SCOPED_ACCESS_TOKEN>
-curl -sS -X POST https://xrpl-mcp.staticbit.io/mcp \
+curl -sS -X POST https://xrpl.mcp.staticbit.ai/mcp \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
@@ -237,7 +233,7 @@ curl -sS -X POST https://xrpl-mcp.staticbit.io/mcp \
 ### 5.4 — real XRPL call through the deployed server
 
 ```bash
-URL=https://xrpl-mcp.staticbit.io/mcp
+URL=https://xrpl.mcp.staticbit.ai/mcp
 HDR=$(mktemp)
 
 # Step 1: initialize, capture session id
@@ -270,7 +266,7 @@ curl -sS -X POST "$URL" \
 
 ## Step 6 — register in clients (Claude Code / Cursor / Claude Desktop)
 
-The deployed URL is `https://xrpl-mcp.staticbit.io/mcp`. There are no per-consumer
+The deployed URL is `https://xrpl.mcp.staticbit.ai/mcp`. There are no per-consumer
 bearer tokens to distribute, and no `Authorization` headers to bake into config
 files. Each consumer instead **logs in via OAuth** the first time they connect —
 the client performs dynamic client registration against the authorization server,
@@ -285,7 +281,7 @@ allow-list (Step 2) or login is refused.
 ### 6.1 Claude Code (user scope — available across all projects)
 
 ```powershell
-claude mcp add xrpl-cloud https://xrpl-mcp.staticbit.io/mcp `
+claude mcp add xrpl-cloud https://xrpl.mcp.staticbit.ai/mcp `
   --scope user `
   --transport http
 ```
@@ -293,7 +289,7 @@ claude mcp add xrpl-cloud https://xrpl-mcp.staticbit.io/mcp `
 Then run `/mcp`, select `xrpl-cloud`, and complete the browser login. Verify:
 ```powershell
 claude mcp list
-# xrpl-cloud   https://xrpl-mcp.staticbit.io/mcp (HTTP) - ✓ Connected
+# xrpl-cloud   https://xrpl.mcp.staticbit.ai/mcp (HTTP) - ✓ Connected
 ```
 
 If it shows `needs login`, finish the `/mcp` flow; if login is refused, the
@@ -311,7 +307,7 @@ the authorization server.
   "mcpServers": {
     "xrpl-cloud": {
       "type": "http",
-      "url": "https://xrpl-mcp.staticbit.io/mcp",
+      "url": "https://xrpl.mcp.staticbit.ai/mcp",
       "oauth": {}
     }
   }
@@ -324,7 +320,7 @@ the authorization server.
 {
   "mcpServers": {
     "xrpl-cloud": {
-      "url": "https://xrpl-mcp.staticbit.io/mcp",
+      "url": "https://xrpl.mcp.staticbit.ai/mcp",
       "oauth": {}
     }
   }
@@ -338,7 +334,7 @@ Restart Cursor after editing, then complete the browser login when prompted.
 {
   "mcpServers": {
     "xrpl-cloud": {
-      "url": "https://xrpl-mcp.staticbit.io/mcp",
+      "url": "https://xrpl.mcp.staticbit.ai/mcp",
       "oauth": {}
     }
   }
@@ -409,7 +405,7 @@ StaticBitXrplMcp server started
 
 • transport: http
 • port: 5500
-• oauth: https://auth.mcp.staticbit.io (scope=xrpl)
+• oauth: https://auth.mcp.staticbit.ai (scope=xrpl)
 
 2026-05-23T...  •  StaticBitXrplMcp admin-alerts
 ```
@@ -418,7 +414,7 @@ StaticBitXrplMcp server started
 
 From any external host:
 ```bash
-curl -s -o /dev/null -X POST https://xrpl-mcp.staticbit.io/mcp \
+curl -s -o /dev/null -X POST https://xrpl.mcp.staticbit.ai/mcp \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 ```
@@ -477,14 +473,10 @@ cd /opt/staticbit-xrpl-mcp && docker compose logs -f xrpl-mcp
 docker compose logs xrpl-mcp | grep -iE 'auth (failure|success)'   # audit
 ```
 
-### Update to latest image
-```bash
-cd /opt/staticbit-xrpl-mcp
-docker compose pull
-docker compose up -d
-```
+### Update (rebuild from latest source)
 
-### Update from local source changes
+The normal path is re-running **Actions → deploy-build**, which re-transfers the source and
+rebuilds on the host. To do it by hand:
 ```bash
 cd /opt/staticbit-xrpl-mcp
 git pull --ff-only
@@ -514,10 +506,10 @@ and completes the browser login. Nothing changes on this server.
 ```bash
 cd /opt/staticbit-xrpl-mcp
 docker compose down
-# Optionally:
-docker image rm ghcr.io/staticbit-io/staticbit-xrpl-mcp:latest
+# Optionally drop the locally built image:
+docker image rm staticbit-xrpl-mcp-xrpl-mcp 2>/dev/null || true
 rm -rf /opt/staticbit-xrpl-mcp
-# Then remove the DNS A-record.
+# Then remove the DNS record.
 ```
 
 The platform (Traefik) and other MCPs are unaffected.
@@ -531,7 +523,7 @@ The platform (Traefik) and other MCPs are unaffected.
 | `Server__Transport` | `http` (in container) | `stdio` or `http` |
 | `Server__HttpPort` | `5500` | listening port inside the container |
 | `Server__OAuth__Issuer` | — | authorization server issuer URL (JWKS resolved from its metadata; required) |
-| `Server__OAuth__Resource` | — | resource identifier for this MCP, e.g. `https://xrpl-mcp.staticbit.io/mcp` (required) |
+| `Server__OAuth__Resource` | — | resource identifier for this MCP, e.g. `https://xrpl.mcp.staticbit.ai/mcp` (required) |
 | `Server__OAuth__RequiredScope` | `xrpl` | scope a token must carry to reach `/mcp` |
 | `Server__HttpAuth__RequireHttps` | `true` | demand `X-Forwarded-Proto: https` from the proxy |
 | `Server__RateLimit__Enabled` | `true` | enable per-IP rate limiter |
@@ -560,7 +552,7 @@ Callers then pass `"network": "hooks_v3"`.
 | `docker compose up` fails: `network mcp-net not found` | Platform not deployed | `docker network create mcp-net && cd /opt/traefik && docker compose up -d` |
 | Container starts then exits with `OAuth:Issuer is empty` | No authorization server configured | Set `Server__OAuth__Issuer` / `Resource` in `.env.xrpl-mcp` (Step 3) |
 | Startup fails fetching JWKS / metadata | Issuer unreachable or wrong URL | Verify `Server__OAuth__Issuer` and that `<issuer>/.well-known/...` is reachable from the container |
-| TLS cert not issued | DNS not propagated / port 80 not reachable | `dig +short xrpl-mcp.staticbit.io @1.1.1.1`; `curl -I http://xrpl-mcp.staticbit.io/` |
+| TLS cert not issued | DNS not propagated / port 80 not reachable | `dig +short xrpl.mcp.staticbit.ai @1.1.1.1`; `curl -I http://xrpl.mcp.staticbit.ai/` |
 | `401` even with a token | Expired/invalid JWT, wrong issuer/audience, or missing `xrpl` scope | Re-login via `/mcp`; confirm the token's `iss`/`aud`/`scope` match the server config |
 | `401` for an allow-listed user | Account disabled on the authorization server | Re-enable the account on the allow-list, then re-login |
 | `400 HTTPS required` | `RequireHttps=true` and no `X-Forwarded-Proto` header | Verify Traefik labels are correct and request reaches via HTTPS |
