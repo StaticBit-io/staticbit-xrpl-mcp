@@ -301,13 +301,13 @@ internal static class Program
         if (!Uri.TryCreate(oauth.Issuer, UriKind.Absolute, out Uri? issuer) || issuer.Scheme != Uri.UriSchemeHttps)
         {
             throw new InvalidOperationException(
-                "OAuth:Issuer must be an absolute https URL (the authorization server), e.g. https://auth.mcp.staticbit.io.");
+                "OAuth:Issuer must be an absolute https URL (the authorization server), e.g. https://auth.mcp.staticbit.ai.");
         }
 
         if (!Uri.TryCreate(oauth.Resource, UriKind.Absolute, out Uri? resource) || resource.Scheme != Uri.UriSchemeHttps)
         {
             throw new InvalidOperationException(
-                "OAuth:Resource must be this server's absolute https canonical URI (the token audience), e.g. https://xrpl-mcp.staticbit.io/mcp.");
+                "OAuth:Resource must be this server's absolute https canonical URI (the token audience), e.g. https://xrpl.mcp.staticbit.ai/mcp.");
         }
     }
 

@@ -89,8 +89,8 @@ public class EnvBindingTestsU
     // ---------------- OAuth section (Mcp.Auth.ResourceServer SDK) ----------------
 
     [DataTestMethod]
-    [DataRow("OAuth__Issuer",            "https://auth.mcp.staticbit.io",       "Issuer")]
-    [DataRow("OAuth__Resource",          "https://xrpl-mcp.staticbit.io/mcp",   "Resource")]
+    [DataRow("OAuth__Issuer",            "https://auth.mcp.staticbit.ai",       "Issuer")]
+    [DataRow("OAuth__Resource",          "https://xrpl.mcp.staticbit.ai/mcp",   "Resource")]
     [DataRow("OAuth__RequiredScope",     "xrpl",                                "RequiredScope")]
     [DataRow("OAuth__VaultBaseUrl",      "http://staticbit-mcp-auth:8080",      "VaultBaseUrl")]
     [DataRow("OAuth__VaultServiceToken", "internal-shared-secret-with-as",      "VaultServiceToken")]

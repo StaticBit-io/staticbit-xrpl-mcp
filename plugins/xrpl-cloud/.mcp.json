@@ -2,9 +2,9 @@
   "mcpServers": {
     "xrpl-cloud": {
       "type": "http",
-      "url": "https://xrpl-mcp.staticbit.io/mcp",
+      "url": "https://xrpl.mcp.staticbit.ai/mcp",
       "oauth": {
-        "authServerMetadataUrl": "https://auth.mcp.staticbit.io/.well-known/oauth-authorization-server",
+        "authServerMetadataUrl": "https://auth.mcp.staticbit.ai/.well-known/oauth-authorization-server",
         "scopes": "xrpl",
         "callbackPort": 8128
       }
