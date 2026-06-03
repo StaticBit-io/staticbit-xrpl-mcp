@@ -213,6 +213,15 @@ internal static class Program
         app.MapGet("/healthz", () => Results.Ok(new { status = "ok", version = AppVersion }));
         app.MapGet("/readyz", () => Results.Ok(new { status = "ready", version = AppVersion }));
 
+        // Favicon — anonymous, so MCP connector clients can show an icon.
+        // Like /healthz, a plain MapGet here is not gated by the bearer middleware.
+        string faviconPath = Path.Combine(AppContext.BaseDirectory, "favicon.ico");
+        if (File.Exists(faviconPath))
+        {
+            byte[] faviconBytes = File.ReadAllBytes(faviconPath);
+            app.MapGet("/favicon.ico", () => Results.Bytes(faviconBytes, "image/x-icon"));
+        }
+
         // Prometheus scrape endpoint — opt-in via ServerOptions.Metrics.Enabled.
         // The auth middleware also bypasses this path (see BearerAuthMiddleware
         // updates below). Lock it down at the reverse proxy if you don't want
