@@ -76,8 +76,9 @@ jobs:
 
       - name: Build + start
         run: |
+          APP_VERSION=$(git rev-parse --short HEAD)
           ssh -i ~/.ssh/id_d -o StrictHostKeyChecking=accept-new \
-            "$SSH_USER@$SERVER_IP" 'cd ~/xrpl && docker compose up -d --build'
+            "$SSH_USER@$SERVER_IP" "cd ~/xrpl && APP_VERSION='$APP_VERSION' docker compose up -d --build"
 
       - name: Smoke /healthz
         run: |
