@@ -1,0 +1,115 @@
+name: deploy-build
+
+# Reproducible deploy of the XRPL MCP to the non-root mcpdeploy VPS, building from source on the
+# host. Reconstructs ~/xrpl/.env (+ a minimal .env.xrpl-mcp) entirely from GitHub Secrets/Variables —
+# nothing is hand-edited on the server. Prereq: the platform is provisioned (mcp-infra provision-vps)
+# and the mcpdeploy user exists (server-prep). After a clean /healthz it pushes this MCP's
+# self-registration (scope + resource) to the Authorization Server. Idempotent.
+#
+# Required GitHub config on THIS repo (Settings -> Secrets and variables -> Actions):
+#   Secrets:   PROVISION_SSH_KEY (mcpdeploy private key), AS_REGISTRY_ADMIN_TOKEN
+#   Variables: PROVISION_HOST (server IP), XRPL_MCP_HOST (e.g. xrpl.mcp.staticbit.ai),
+#              AS_REGISTER_URL (e.g. https://auth.mcp.staticbit.ai/api/admin/mcps),
+#              MCP_PUBLIC_HOST (= XRPL_MCP_HOST), optional OAUTH_ISSUER, SSH_USER
+#
+# XRPL_MCP_HOST and MCP_PUBLIC_HOST MUST be the same value: the compose derives
+# OAuth__Resource=https://$XRPL_MCP_HOST/mcp and the register step records the same resource, so the
+# audience the resource server validates matches the audience the AS mints.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Git ref to deploy (blank = the branch this is dispatched on)'
+        required: false
+        default: ''
+
+concurrency:
+  group: deploy-build-xrpl
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SERVER_IP: ${{ vars.PROVISION_HOST }}
+      SSH_USER: ${{ vars.SSH_USER || 'mcpdeploy' }}
+      XRPL_MCP_HOST: ${{ vars.XRPL_MCP_HOST }}
+      OAUTH_ISSUER: ${{ vars.OAUTH_ISSUER || 'https://auth.mcp.staticbit.ai' }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Validate
+        run: |
+          [ -n "$SERVER_IP" ]     || { echo "::error::vars.PROVISION_HOST required"; exit 1; }
+          [ -n "$XRPL_MCP_HOST" ] || { echo "::error::vars.XRPL_MCP_HOST required"; exit 1; }
+
+      - name: Prepare SSH
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.PROVISION_SSH_KEY }}" > ~/.ssh/id_d
+          chmod 600 ~/.ssh/id_d
+          ssh-keyscan -H "$SERVER_IP" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Transfer source
+        run: |
+          git archive HEAD | ssh -i ~/.ssh/id_d -o StrictHostKeyChecking=accept-new \
+            "$SSH_USER@$SERVER_IP" 'mkdir -p ~/xrpl && tar -x -C ~/xrpl'
+
+      - name: Write .env (from GitHub config)
+        run: |
+          SSHC="ssh -i ~/.ssh/id_d -o StrictHostKeyChecking=accept-new $SSH_USER@$SERVER_IP"
+          # Values come from the step env; piped over stdin (never on argv).
+          {
+            printf 'XRPL_MCP_HOST=%s\n' "$XRPL_MCP_HOST"
+            printf 'XRPL_PULL_POLICY=never\n'
+            printf 'OAUTH_ISSUER=%s\n' "$OAUTH_ISSUER"
+          } | $SSHC 'umask 077; cat > ~/xrpl/.env'
+          # Cloud OAuth-only: per-user auth via the AS, no static bearer. The Dockerfile already pins
+          # transport=http and port 5500; this file only needs to exist for the compose env_file.
+          {
+            printf '%s\n' '# Cloud OAuth-only deploy - per-user auth via the AS (no static bearer).'
+            printf 'Server__HttpAuth__RequireHttps=true\n'
+          } | $SSHC 'umask 077; cat > ~/xrpl/.env.xrpl-mcp'
+
+      - name: Build + start
+        run: |
+          ssh -i ~/.ssh/id_d -o StrictHostKeyChecking=accept-new \
+            "$SSH_USER@$SERVER_IP" 'cd ~/xrpl && docker compose up -d --build'
+
+      - name: Smoke /healthz
+        run: |
+          for i in $(seq 1 24); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "https://$XRPL_MCP_HOST/healthz" || true)
+            if [ "$code" = "200" ]; then echo "healthz OK"; exit 0; fi
+            sleep 5
+          done
+          echo "::error::/healthz did not return 200"; exit 1
+
+  # Push this MCP's self-registration (scope + resource) to the Authorization Server after a
+  # successful deploy. Body is .mcp-registry.json (schema only, no secret values); auth via the
+  # X-Service-Token header. Resource is overridden to the actual public host.
+  register:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+      - name: Register with Authorization Server
+        env:
+          AS_REGISTER_URL: ${{ vars.AS_REGISTER_URL }}
+          AS_SERVICE_TOKEN: ${{ secrets.AS_REGISTRY_ADMIN_TOKEN }}
+          MCP_PUBLIC_HOST: ${{ vars.MCP_PUBLIC_HOST }}
+        run: |
+          if [ -n "$MCP_PUBLIC_HOST" ]; then
+            jq --arg res "https://$MCP_PUBLIC_HOST/mcp" '.resource = $res' .mcp-registry.json > /tmp/reg.json
+          else
+            cp .mcp-registry.json /tmp/reg.json
+          fi
+          curl -fsS -X PUT "$AS_REGISTER_URL" \
+            -H "X-Service-Token: $AS_SERVICE_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data-binary @/tmp/reg.json
