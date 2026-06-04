@@ -1,3 +1,8 @@
+## v0.3.2 — 2026-06-03
+
+### Features
+- The server now serves `/favicon.ico` so MCP connector clients show an icon.
+
 ## v0.3.1 — 2026-05-31
 
 ### Features
