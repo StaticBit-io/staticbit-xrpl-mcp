@@ -34,6 +34,27 @@ internal static class TestnetFixture
     }
 
     /// <summary>
+    /// Builds a pool that resolves <paramref name="networkName"/> to <paramref name="wsUrl"/>.
+    /// Used by tests that must hit a specific node (e.g. a public mainnet cluster that disables
+    /// certain commands) rather than the default testnet faucet node.
+    /// </summary>
+    public static XrplClientPool BuildPool(string networkName, string wsUrl)
+    {
+        XrplMcpOptions options = new XrplMcpOptions
+        {
+            DefaultNetwork = networkName,
+            Networks = new System.Collections.Generic.Dictionary<string, string>
+            {
+                [networkName] = wsUrl,
+            },
+        };
+        IOptionsMonitor<XrplMcpOptions> monitor = new StaticOptionsMonitor(options);
+        NetworkResolver resolver = new NetworkResolver(monitor);
+        XrplMcpMetrics metrics = new XrplMcpMetrics();
+        return new XrplClientPool(resolver, NullLogger<XrplClientPool>.Instance, new OptionsWrapper<XrplMcpOptions>(options), metrics);
+    }
+
+    /// <summary>
     /// Build a TransactionPreparer wired to the testnet pool — used by prepare-smoke tests
     /// that round-trip Autofill + binary encoding but do NOT sign or submit. The Account
     /// passed to each prepare-tool must be a real funded testnet account (Autofill calls

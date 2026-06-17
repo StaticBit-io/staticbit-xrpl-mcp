@@ -1,5 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net.Http;
+using System.Net.Sockets;
+using System.Net.WebSockets;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using ModelContextProtocol;
 using Xrpl.Client.Exceptions;
 
@@ -37,6 +43,22 @@ public static class XrplToolError
         WriteIndented = false,
         // Skip nulls so the payload is compact for the LLM context window.
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+    };
+
+    // rippled reports failures on the wire as "<code> - <human message>" (e.g.
+    // "noPermission - You don't have permission for this command."). Some SDK paths throw an
+    // untyped XrplException instead of a typed RippledException, so the upstream classifier
+    // can't structurally recognise them — this pattern recovers the machine-readable code.
+    private static readonly Regex RippledCodePattern = new Regex(
+        @"^(?<code>[A-Za-z][A-Za-z0-9_]*) - .+",
+        RegexOptions.Compiled | RegexOptions.Singleline);
+
+    // Codes that mean "this request is not available on this node" — the one rippled bucket we
+    // can map to a precise category with confidence. Everything else keeps a neutral category
+    // but still gets its code surfaced.
+    private static readonly HashSet<string> UnavailableCommandCodes = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "noPermission", "unknownCmd", "notSupported", "notEnabled", "unimplemented", "amendmentBlocked",
     };
 
     /// <summary>
@@ -120,6 +142,59 @@ public static class XrplToolError
                 Command = info.Command,
                 Warnings = info.Warnings,
             };
+        }
+
+        // Transport-level failures — the WebSocket/JSON-RPC link to the rippled node
+        // dropped, refused, or reset. The upstream classifier has no concept of these
+        // .NET socket types, so without this branch they collapse to Unknown/"internal
+        // error" and the agent can't tell a network blip from a real bug.
+        if (exception is WebSocketException or SocketException or IOException or HttpRequestException)
+        {
+            return new XrplErrorInfo
+            {
+                RawError = info.RawError,
+                RawErrorCode = info.RawErrorCode,
+                RawErrorMessage = info.RawErrorMessage,
+                Category = XrplErrorCategory.TemporaryServerProblem,
+                Subject = XrplErrorSubject.Server,
+                Title = "Connection problem",
+                UserMessage = exception.Message,
+                IsRetryable = true,
+                IsUserFixable = false,
+                Command = info.Command,
+                Warnings = info.Warnings,
+            };
+        }
+
+        // Untyped rippled failure (e.g. XrplException from ripple_path_find): recover the wire
+        // error code so the agent gets a structured error_code instead of "internal error" prose.
+        if (exception.GetType().Namespace is { } ns && ns.StartsWith("Xrpl", StringComparison.Ordinal))
+        {
+            string message = string.IsNullOrEmpty(info.UserMessage) ? (exception.Message ?? string.Empty) : info.UserMessage;
+            Match match = RippledCodePattern.Match(message);
+            if (match.Success)
+            {
+                string code = match.Groups["code"].Value;
+                bool unavailable = UnavailableCommandCodes.Contains(code);
+                return new XrplErrorInfo
+                {
+                    // RawError carries the rippled error string (e.g. "noPermission"); the numeric
+                    // RawErrorCode is left as the classifier found it (usually absent here).
+                    RawError = code,
+                    RawErrorCode = info.RawErrorCode,
+                    RawErrorMessage = info.RawErrorMessage,
+                    Category = unavailable ? XrplErrorCategory.UnsupportedRequest : XrplErrorCategory.Unknown,
+                    Subject = XrplErrorSubject.Server,
+                    Title = unavailable ? "Request not available on this node" : "Rippled error",
+                    UserMessage = message,
+                    IsRetryable = false,
+                    IsUserFixable = unavailable,
+                    Command = info.Command,
+                    FieldName = info.FieldName,
+                    FieldValue = info.FieldValue,
+                    Warnings = info.Warnings,
+                };
+            }
         }
 
         return info;

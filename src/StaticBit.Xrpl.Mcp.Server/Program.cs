@@ -65,6 +65,10 @@ internal static class Program
             .WithStdioServerTransport()
             .WithToolsFromAssembly(typeof(LedgerTools).Assembly);
 
+        // Wrap every tool so escaping exceptions surface as structured envelopes instead of the
+        // SDK's opaque "An error occurred invoking '<tool>'." stub. Must run after WithTools*.
+        builder.Services.AddXrplToolErrorClassification();
+
         await builder.Build().RunAsync().ConfigureAwait(false);
     }
 
@@ -193,6 +197,10 @@ internal static class Program
             .AddMcpServer()
             .WithHttpTransport()
             .WithToolsFromAssembly(typeof(LedgerTools).Assembly);
+
+        // Wrap every tool so escaping exceptions surface as structured envelopes instead of the
+        // SDK's opaque "An error occurred invoking '<tool>'." stub. Must run after WithTools*.
+        builder.Services.AddXrplToolErrorClassification();
 
         WebApplication app = builder.Build();
 
