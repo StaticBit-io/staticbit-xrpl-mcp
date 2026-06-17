@@ -1,3 +1,29 @@
+## v0.3.8 — 2026-06-17
+
+### Features
+- serve /favicon.ico so MCP connector clients show an icon (ed61cbb)
+- parameterize public host (env-driven OAuth resource/issuer + register override) (c5e61ea)
+- self-register via .mcp-registry.json + deploy register job (7beb5cc)
+
+### Fixes
+- make XRPL tool errors transparent via central classifier (9d69bb9)
+
+### Documentation
+- sync admin-alert examples to xrpl-mcp + transport/auth format (016dec3)
+- migrate to staticbit.ai host + non-root build-from-source deploy (d96db32)
+
+### Build / CI
+- wire AdminAlerts (Enabled/BotToken/ChatId) from GitHub config (e49f5ea)
+- stamp deployed commit as version; drop dead image-based deploy workflow (27cabdf)
+- add non-root build-from-source deploy workflow (deploy-build) (59ba885)
+
+### Other
+- chore(release): xrpl-cloud v0.3.2 (server serves /favicon.ico) (7e02027)
+- alerts: normalize admin-alert source name to xrpl-mcp + unify StartUp metadata (7a3eeb5)
+- config: migrate hosts to staticbit.ai (manifests, appsettings, registry, tests) (d256b41)
+- Merge feature/cloud-mcp-onboarding: self-register onboarding + domain parameterization (65f5fe8)
+- release: xrpl-signer v0.3.6 (5b0e639)
+
 ## v0.3.7 — 2026-05-31
 
 ### Features
