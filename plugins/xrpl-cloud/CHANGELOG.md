@@ -1,3 +1,11 @@
+## v0.3.3 — 2026-06-17
+
+### Fixes
+- make XRPL tool errors transparent via central classifier (9d69bb9)
+
+### Other
+- release: xrpl-local v0.3.8 (913f6ae)
+
 ## v0.3.2 — 2026-06-03
 
 ### Features
