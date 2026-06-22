@@ -11,7 +11,7 @@ XRPL toolkit for Claude Code — **source + three plugins in one repo**. Contain
 > 📖 **[INSTALL.md](docs/INSTALL.md)** — step-by-step instructions for the end user of the plugins: from a fresh Claude Code install to the first signed XRPL transaction.
 > 📖 **[DEPLOY.md](docs/DEPLOY.md)** — for an admin deploying the cloud server on a VPS.
 > 📖 **[OPERATIONS.md](docs/OPERATIONS.md)** — day-two runbook for the cloud server: deploy, rollback, health, secrets.
-> 📖 **[RELEASE.md](RELEASE.md)** — for me (the release manager) — how to publish new plugin versions.
+> 📖 **[RELEASE.md](RELEASE.md)** — maintainer guide — how to publish new plugin versions.
 > 📖 **[docs/features.md](docs/features.md)** — full feature catalogue (<!-- toolcount:total -->131<!-- /toolcount:total --> tools, 432 unit tests, 12 covered amendments).
 > 📖 **[docs/glossary.md](docs/glossary.md)** — XRPL terminology used in tool descriptions.
 > 📖 **[docs/supply-chain.md](docs/supply-chain.md)** — what ships with every release (SBOM, SLSA, optional notarization) and how to verify it.

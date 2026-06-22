@@ -2,7 +2,7 @@
 
 # RELEASE — publishing a new plugin version
 
-This document is for **you**, the release manager, when you need to ship an update of one of the plugins to the marketplace. Orchestrator script: [`release-plugin.sh`](release-plugin.sh).
+This is the maintainer guide for shipping an update of one of the plugins to the marketplace. Orchestrator script: [`release-plugin.sh`](release-plugin.sh).
 
 ## TL;DR
 
@@ -23,7 +23,7 @@ The script rebuilds binaries, copies them into `plugins/<name>/bin/`, bumps the 
 
 ## When to bump what
 
-All plugins are currently at `0.1.0` — no public users, you can move freely. Once there are actual subscribers to your marketplace — follow [semver](https://semver.org):
+Follow [semver](https://semver.org):
 
 | Change | Bump |
 |---|---|
@@ -133,10 +133,10 @@ Both plugin versions bump simultaneously, binaries of each are built, with one s
 | Create a GitHub Release (with release-notes UI on GitHub) | Only if you want to. The script creates a **git tag** — usually that's enough. You can later `gh release create <tag>` manually |
 | Force-push | Intentionally unsupported. If push is rejected (non-fast-forward) — sort it out manually: `git pull --rebase` in the relevant repo, then retry with `--push` |
 
-## Your responsibility after release
+## After release
 
 1. **Cloud deployment**, if server code is affected and there's a live VPS. The script doesn't SSH on its own.
-2. **Notify users** that the update is available (if there are more than just you). They run:
+2. **Notify users** that the update is available. They run:
    ```
    /plugin marketplace update staticbit-xrpl-mcp
    /plugin update xrpl-signer@staticbit-xrpl-mcp

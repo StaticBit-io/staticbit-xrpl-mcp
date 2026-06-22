@@ -2,7 +2,7 @@
 
 # RELEASE — выпуск новой версии плагинов
 
-Этот документ для **тебя**, когда нужно опубликовать обновление одного из плагинов в marketplace. Скрипт-оркестратор: [`release-plugin.sh`](release-plugin.sh).
+Гайд для мейнтейнера: как опубликовать обновление одного из плагинов в marketplace. Скрипт-оркестратор: [`release-plugin.sh`](release-plugin.sh).
 
 ## TL;DR
 
@@ -23,7 +23,7 @@ git push
 
 ## Когда какой bump
 
-Сейчас все плагины на `0.1.0` — публичных пользователей нет, можно крутить смело. Когда появятся реальные подписчики на ваш marketplace — соблюдай [semver](https://semver.org/lang/ru/):
+Соблюдай [semver](https://semver.org/lang/ru/):
 
 | Что изменилось | Bump |
 |---|---|
@@ -136,7 +136,7 @@ claude plugin update xrpl-signer@staticbit-xrpl-mcp
 ## Что лежит на тебе после релиза
 
 1. **Cloud deployment**, если затронут server-код и есть live VPS. Скрипт не SSH'ится сам.
-2. **Уведомить пользователей** что обновление доступно (если их больше чем ты сам). Они сделают:
+2. **Уведомить пользователей** что обновление доступно. Они сделают:
    ```
    /plugin marketplace update staticbit-xrpl-mcp
    /plugin update xrpl-signer@staticbit-xrpl-mcp
