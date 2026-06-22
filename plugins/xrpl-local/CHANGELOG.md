@@ -1,3 +1,19 @@
+## v0.4.0 — 2026-06-22
+
+### Features
+- signing ceremony, scoped auto-sign, memo/tainted-destination guard, submit discipline (65b3659)
+- stamp default SourceTag 100010011 + full-disclosure transaction preview (78c470b)
+
+### Documentation
+- prepare repository for public launch (LICENSE, CONTRIBUTING, CoC, public install, cloud repositioning) (2746bf9)
+
+### Tests
+- configurable integration endpoint/account + SourceTag/preview smoke assertions (5254373)
+
+### Other
+- release: xrpl-signer v0.4.0 (7627ef3)
+- release: xrpl-cloud v0.3.3 (5f58489)
+
 ## v0.3.8 — 2026-06-17
 
 ### Features
