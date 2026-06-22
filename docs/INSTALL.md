@@ -8,7 +8,7 @@ Self-contained step-by-step guide. Share a link to this file with a new user —
 
 1. [Prerequisites](#1-prerequisites)
 2. [Choosing a scenario — which plugins to install](#2-choosing-a-scenario)
-3. [Getting a GitHub PAT](#3-getting-a-github-pat)
+3. [Marketplace access](#3-marketplace-access)
 4. [Adding the marketplace](#4-adding-the-marketplace)
 5. [Installing the plugins](#5-installing-the-plugins)
 6. [Getting access — admin allow-list and secrets](#6-getting-access)
@@ -29,7 +29,6 @@ Self-contained step-by-step guide. Share a link to this file with a new user —
 | Claude Code 2.1+ | `/plugin` commands and plugin MCP support were added in this version | `claude --version` |
 | Node.js 18+ | `xrpl-local` and `xrpl-signer` launch the .NET binary via a Node launcher | `node --version` |
 | ~600 MB of disk | self-contained binaries for 5 platforms bundled inside the plugins | — |
-| GitHub PAT (Personal Access Token) | the marketplace repo is private — read access required | see §3 |
 
 > If you're on Claude Code < 2.1 — update via `claude update` or the [official updater](https://claude.com/claude-code).
 
@@ -47,7 +46,7 @@ The marketplace contains **three independent** plugins. You can install them in 
 | **Read-only locally** | `xrpl-local` | same without cloud |
 | **Wallet management only** (generate/import/back up, no network) | `xrpl-signer` | offline keystore on its own |
 
-> If unsure — go with the first option (cloud + signer). It's the lightest combination and you can extend or swap later without losing the wallets in your keystore.
+> If unsure — go with **local + signer**. It's fully self-contained (no arranged cloud access needed), and you can extend or swap later without losing the wallets in your keystore.
 
 ### Why signing is always local
 
@@ -81,39 +80,11 @@ Full per-parameter reference is auto-generated: [`docs/TOOLS.generated.md`](TOOL
 
 ---
 
-## 3. Getting a GitHub PAT
+## 3. Marketplace access
 
-The marketplace repo is **private**, so Claude Code will prompt for a token on the first `marketplace add`. Generate the PAT ahead of time:
+The marketplace is **public** — `claude plugin marketplace add` needs no GitHub token. Skip straight to §4.
 
-### 3.1 Generate a PAT
-
-1. Open [github.com/settings/tokens](https://github.com/settings/tokens).
-2. **Generate new token** → **Fine-grained personal access token** (recommended) or **Tokens (classic)**.
-
-**If fine-grained:**
-- Token name: `staticbit-xrpl-mcp-readonly`
-- Expiration: 90 days (or longer — your call)
-- Resource owner: `StaticBit-io`
-- Repository access: **Only select repositories** → `staticbit-xrpl-mcp`
-- Permissions → Repository permissions:
-  - **Contents**: Read-only
-  - **Metadata**: Read-only (auto)
-- **Generate token**. Copy and save it (shown **once**).
-
-**If classic:**
-- Note: `staticbit-xrpl-mcp-readonly`
-- Expiration: 90 days
-- Scopes: just `repo` (Full control of private repositories — nothing else needed)
-- **Generate token**. Copy it.
-
-### 3.2 Where to put the token
-
-You'll need the PAT **twice**:
-
-1. **For `claude plugin marketplace add`** — Claude Code will store it in its credential store. No need to put it in ENV manually, just enter it when the CLI asks (§4).
-2. **Optional** — for `git clone` if you ever want to work with the marketplace by hand.
-
-Save the token in your password manager (1Password / Bitwarden / KeePass) — useful during rotation.
+> Hosting your own *private* fork instead? Then a read-only GitHub PAT is the standard way Claude Code authenticates to a private marketplace repo — but for the official StaticBit marketplace nothing is required.
 
 ---
 
@@ -123,7 +94,7 @@ Save the token in your password manager (1Password / Bitwarden / KeePass) — us
 claude plugin marketplace add https://github.com/StaticBit-io/staticbit-xrpl-mcp
 ```
 
-Claude Code will ask for the token — paste the PAT from §3.
+The marketplace is public — no token is requested.
 
 **Verify:**
 
@@ -175,13 +146,13 @@ Every installed plugin must show `Status: ✔ enabled`.
 
 ## 6. Getting access
 
-### 6.1 Allow-list — only for `xrpl-cloud`
+### 6.1 `xrpl-cloud` — StaticBit-hosted, by arrangement
 
-If you're installing `xrpl-cloud`, the cloud server (`xrpl.mcp.staticbit.ai`) is protected by **OAuth 2.1** against `auth.mcp.staticbit.ai`. There is **no bearer token and no ENV var** to set — instead, your account must be on the server **allow-list**. Ask the admin of `xrpl.mcp.staticbit.ai` to add you.
+`xrpl-cloud` talks to a server **hosted by StaticBit** (`xrpl.mcp.staticbit.ai`), protected by **OAuth 2.1** against `auth.mcp.staticbit.ai`. That hosted endpoint is **not open to public self-service** — access is arranged with StaticBit and the account must be on the server allow-list.
 
-Once you're on the allow-list, you log in interactively from Claude Code via `/mcp` (see §9) — the browser flow takes you through `auth.mcp.staticbit.ai`, Claude Code performs dynamic client registration, stores the resulting token and refreshes it automatically. Nothing to copy or paste, nothing to save in a password manager.
+**For self-serve you don't need this section.** Use `xrpl-local` (no access step — it talks to public XRPL nodes from your own machine) or self-host the same server for your team (see [DEPLOY.md](DEPLOY.md)). Both expose the identical tool surface.
 
-If your access is later revoked (admin disables your account), your tokens are invalidated immediately and `/mcp` will start failing — re-request access from the admin.
+If you *have* arranged hosted access, log in interactively from Claude Code via `/mcp` (see §9): the browser flow goes through `auth.mcp.staticbit.ai`, Claude Code performs dynamic client registration and refreshes the token automatically — nothing to copy or paste.
 
 ### 6.2 `XRPL_SIGNER_PASSPHRASE` — only for `xrpl-signer`
 

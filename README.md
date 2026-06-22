@@ -23,7 +23,7 @@ XRPL toolkit for Claude Code — **source + three plugins in one repo**. Contain
 
 | Plugin | What it does | Size |
 |---|---|---|
-| [`xrpl-cloud`](plugins/xrpl-cloud/) | HTTP MCP to the StaticBit cloud server at `xrpl.mcp.staticbit.ai`. Read / prepare / submit over OAuth 2.1-authed HTTPS. | ~10 KB |
+| [`xrpl-cloud`](plugins/xrpl-cloud/) | Thin HTTP client for the **StaticBit-hosted** server at `xrpl.mcp.staticbit.ai` — hosted access by arrangement (not open self-service; use `xrpl-local` or self-host). | ~10 KB |
 | [`xrpl-local`](plugins/xrpl-local/) | Local stdio MCP — same tools, but entirely on your machine; WebSocket directly to public XRPL nodes. | ~260 MB (5 RIDs) |
 | [`xrpl-signer`](plugins/xrpl-signer/) | Offline stdio MCP for wallet management and signing — encrypted keystore, zero network code. Pairs with cloud or local. | ~200 MB (5 RIDs) |
 
@@ -61,24 +61,28 @@ The signer is identical in both flows — it's pure cryptography, knows nothing 
 /plugin marketplace add https://github.com/StaticBit-io/staticbit-xrpl-mcp
 ```
 
-The marketplace is private; Claude Code will prompt for a GitHub PAT (read access) on first `marketplace add`.
+Public marketplace — no token required.
 
-Then — pick which plugins to install:
+Then install the local toolkit + signer (recommended for everyone — fully self-contained, nothing leaves your machine):
 
 ```
-# Cloud + signer (lightweight, depends on the StaticBit VPS):
-/plugin install xrpl-cloud@staticbit-xrpl-mcp
-/plugin install xrpl-signer@staticbit-xrpl-mcp
-
-# Local + signer (offline-first, no cloud dependency):
+# read / prepare / submit, runs locally; talks straight to public XRPL nodes:
 /plugin install xrpl-local@staticbit-xrpl-mcp
+# offline wallet management + signing (encrypted keystore):
 /plugin install xrpl-signer@staticbit-xrpl-mcp
+```
 
-# Read-only via cloud (no signing — Cowork agents, dashboards):
-/plugin install xrpl-cloud@staticbit-xrpl-mcp
+Wallet management only (no network):
+
+```
+/plugin install xrpl-signer@staticbit-xrpl-mcp
 ```
 
 Full instructions with every ENV variable — in [INSTALL.md](docs/INSTALL.md).
+
+### `xrpl-cloud` and self-hosting
+
+`xrpl-cloud` is a thin HTTP client for a server **hosted by StaticBit** at `xrpl.mcp.staticbit.ai`. That hosted endpoint is operated by StaticBit and is **not open to public self-service** — it requires an account arranged with StaticBit. For a self-serve setup, `xrpl-local` does everything the cloud does, entirely on your machine. If you want a shared, cloud-like HTTP endpoint for your own team, **self-host the same server** (identical code to `xrpl-local`) — see [DEPLOY.md](docs/DEPLOY.md).
 
 ## Repo layout
 
