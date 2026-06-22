@@ -19,10 +19,16 @@ internal static class TestnetFixture
     public const string DefaultTestnetWs = "wss://s.altnet.rippletest.net:51233";
 
     /// <summary>
-    /// Well-known funded testnet faucet — used as the read target for smoke tests.
-    /// This is a static, publicly documented account that always exists on testnet.
+    /// Funded account used as the prepare-smoke submitter (Autofill calls <c>account_info</c>)
+    /// and the read target for account smoke tests. Defaults to a well-known, publicly documented
+    /// testnet faucet account. Override via the <c>XRPL_TESTNET_ACCOUNT</c> environment variable to
+    /// point at an account that exists on a custom node — e.g. the genesis account
+    /// <c>rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh</c> on a standalone rippled.
     /// </summary>
-    public const string KnownFundedTestnetAccount = "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe";
+    public static string KnownFundedTestnetAccount =>
+        Environment.GetEnvironmentVariable("XRPL_TESTNET_ACCOUNT") is { Length: > 0 } account
+            ? account
+            : "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe";
 
     public static XrplClientPool BuildPool()
     {
