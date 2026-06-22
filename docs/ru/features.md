@@ -198,6 +198,8 @@ Tool оставлен как plumbing для будущих server-side watchers
 - **`xrpl_tx_explain`** — превращает decoded tx (blob hex или JSON) в человеческую строку: *"Payment from rA... to rB...: 10000000 drops XRP. [fee=12 drops, seq=42, LLS=1234]"*. Pure local, без сетевых вызовов. Покрывает все основные типы (Payment, TrustSet, Offer\*, AMM\*, NFToken\*, Escrow\*, Check\*, PaymentChannel\*, AccountSet, SetRegularKey, DepositPreauth, SignerListSet, AccountDelete, Clawback) + generic fallback.
 - **`xrpl_tx_preflight`** — проверяет `account_info` + `server_state`, считает резервы (base + owner_count × inc), сравнивает с balance, для Payment ещё проверяет `RequireDestinationTag`/`DepositAuth`/`DisallowIncomingXRP` на destination. Возвращает structured report с warnings[].
 - **Fee escalation policy** — `LastLedgerSequenceOffset` реально применяется в `TransactionPreparer`; `FeeBumpMultiplier` для проактивного over-pay во время open-ledger escalation.
+- **Атрибуция SourceTag** — каждая `*_prepare`-транзакция стампится `SourceTag` `100010011` (MCP-тег StaticBit, сосед платформенного `100010010`), если вызывающий не задал свой; явный SourceTag — включая `0` — сохраняется, а для XLS-56 Batch тегируется только внешняя транзакция. Override/выключение через `StaticBitXrplMcp__DefaultSourceTag`.
+- **Превью транзакции** — каждый `*_prepare` возвращает блок `preview` (полные адреса без усечения, drops→XRP, флаг аномального fee, оценка истечения `LastLedgerSequence`, декодированные **untrusted** memo) через `TransactionPreview` для промпта подтверждения.
 - **`xrpl_tx_decode_blob`** — возвращает осмысленные ошибки (odd length / non-hex / decode exception / null result) вместо пустого `{}`.
 
 ---

@@ -530,6 +530,7 @@ The platform (Traefik) and other MCPs are unaffected.
 | `StaticBitXrplMcp__DefaultNetwork` | `mainnet` | used when caller omits `network` |
 | `StaticBitXrplMcp__RequestTimeoutSeconds` | `30` | rippled request timeout |
 | `StaticBitXrplMcp__LastLedgerSequenceOffset` | `20` | added to current ledger in `*_prepare` |
+| `StaticBitXrplMcp__DefaultSourceTag` | `100010011` | stamped on `*_prepare`d tx unless caller supplies one |
 | `StaticBitXrplMcp__Networks__mainnet` | `wss://xrplcluster.com` | mainnet WS endpoint |
 | `StaticBitXrplMcp__Networks__testnet` | `wss://s.altnet.rippletest.net:51233` | testnet WS endpoint |
 | `StaticBitXrplMcp__Networks__devnet`  | `wss://s.devnet.rippletest.net:51233`  | devnet WS endpoint |

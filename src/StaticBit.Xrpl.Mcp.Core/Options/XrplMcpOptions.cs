@@ -36,6 +36,22 @@ public sealed class XrplMcpOptions
     public decimal FeeBumpMultiplier { get; set; } = 1.0m;
 
     /// <summary>
+    /// StaticBit's on-ledger platform <c>SourceTag</c> is <c>100010010</c>; this MCP server uses
+    /// the sibling tag <c>100010011</c> so volume initiated through it is attributable separately
+    /// from the main platform. Default value of <see cref="DefaultSourceTag"/>.
+    /// </summary>
+    public const uint StaticBitMcpSourceTag = 100010011;
+
+    /// <summary>
+    /// <c>SourceTag</c> stamped onto every <c>*_prepare</c>d transaction that does not already
+    /// carry one — attributing on-ledger volume initiated through this server. A SourceTag the
+    /// caller supplied explicitly (including <c>0</c>) is always preserved; for an XLS-56 Batch
+    /// only the outer transaction is tagged, never the caller-signed inner transactions. Defaults
+    /// to <see cref="StaticBitMcpSourceTag"/>; set to <c>null</c> to disable stamping entirely.
+    /// </summary>
+    public uint? DefaultSourceTag { get; set; } = StaticBitMcpSourceTag;
+
+    /// <summary>
     /// Hard timeout for any single rippled WebSocket request, in seconds.
     /// </summary>
     public int RequestTimeoutSeconds { get; set; } = 30;

@@ -14,6 +14,7 @@ public class XrplMcpOptionsTestsU
         Assert.AreEqual((uint)20, options.LastLedgerSequenceOffset);
         Assert.AreEqual(1.0m, options.FeeBumpMultiplier);
         Assert.AreEqual(30, options.RequestTimeoutSeconds);
+        Assert.AreEqual((uint?)100010011, options.DefaultSourceTag);
     }
 
     [TestMethod]

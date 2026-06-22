@@ -519,6 +519,7 @@ rm -rf /opt/staticbit-xrpl-mcp
 | `StaticBitXrplMcp__DefaultNetwork` | `mainnet` | используется, когда вызывающий опускает `network` |
 | `StaticBitXrplMcp__RequestTimeoutSeconds` | `30` | таймаут запроса к rippled |
 | `StaticBitXrplMcp__LastLedgerSequenceOffset` | `20` | добавляется к текущему ledger в `*_prepare` |
+| `StaticBitXrplMcp__DefaultSourceTag` | `100010011` | проставляется на `*_prepare`-tx, если вызывающий не задал свой |
 | `StaticBitXrplMcp__Networks__mainnet` | `wss://xrplcluster.com` | WS-эндпоинт mainnet |
 | `StaticBitXrplMcp__Networks__testnet` | `wss://s.altnet.rippletest.net:51233` | WS-эндпоинт testnet |
 | `StaticBitXrplMcp__Networks__devnet`  | `wss://s.devnet.rippletest.net:51233`  | WS-эндпоинт devnet |

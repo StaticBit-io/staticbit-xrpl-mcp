@@ -86,6 +86,14 @@ public class EnvBindingTestsU
         Assert.AreEqual(1.5m, BindSection<XrplMcpOptions>(BuildConfig(), XrplMcpOptions.SectionName).FeeBumpMultiplier);
     }
 
+    [TestMethod]
+    public void TestU_StaticBitXrplMcp__DefaultSourceTag_BindsAsUInt()
+    {
+        using EnvVarScope _ = EnvVarScope.Set("StaticBitXrplMcp__DefaultSourceTag", "777");
+
+        Assert.AreEqual((uint?)777, BindSection<XrplMcpOptions>(BuildConfig(), XrplMcpOptions.SectionName).DefaultSourceTag);
+    }
+
     // ---------------- OAuth section (Mcp.Auth.ResourceServer SDK) ----------------
 
     [DataTestMethod]
