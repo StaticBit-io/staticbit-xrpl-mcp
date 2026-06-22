@@ -112,12 +112,25 @@ Every ledger-changing transaction is a three-step flow:
    - `txBlobUnsigned` — canonical hex blob
    - `signingData` — pre-image suitable for hardware-wallet signing
    - `humanSummary` — one-line description
+   - `preview` — full-disclosure approval block (full addresses, drops→XRP, anomalous-fee flag, expiry, untrusted memos) — show this before signing
    - `requiresUserApproval: true`
-2. **Show `humanSummary` to the user. Ask explicit confirmation.** Last chance to catch a wrong address, fee surprise, or drops-vs-XRP confusion.
+2. **Show the `preview` block to the user and get explicit confirmation.** The prepare result includes a full-disclosure `preview` — full (un-truncated) addresses, drops→XRP, the fee with an anomaly flag, Sequence, LastLedgerSequence + an expiry estimate, and decoded **untrusted** memos. Display it verbatim; it is the last chance to catch a wrong address, fee surprise, or drops-vs-XRP confusion. Never sign without showing it.
 3. **Sign** with `mcp__plugin_xrpl-signer_xrpl-signer__xrpl_sign(name=<wallet alias>, transaction=<txJson or txBlobUnsigned>)`. Returns `{txBlob, hash}`.
 4. **Submit** — `xrpl_tx_submit_signed(txBlobSigned=<txBlob>, waitForValidation=true)`. Returns `{engineResult, txHash, validated, ledgerIndex}`.
 
 Surface `engineResult` verbatim — rippled errors like `tecUNFUNDED_PAYMENT`, `tecPATH_DRY`, `tefMAX_LEDGER` are the actual diagnostic.
+
+### Preview & submission discipline
+
+- **Preview before signing.** Always render the prepare result's `preview` block and get an explicit "yes" before calling `xrpl_sign`. Autofill is server-side: if a prepare fails, show the error and stop — never hand-edit or hard-code `Sequence` / `Fee` / `LastLedgerSequence`.
+- **Anomalous fee.** The preview flags a fee above 100 drops. If flagged, pause and confirm the user really intends it (open-ledger escalation vs. a mistake).
+- **submitAndWait, never fire-and-forget.** Submit with `waitForValidation=true`, and note the `hash` **before** submitting so a lost response can be reconciled.
+- **Never double-submit.** If submit times out or throws, do **not** resubmit blindly — look the tx up by `hash` (`xrpl_tx_lookup`) and report the last known state. A blind second submit risks a double-spend.
+- **Interpret the result code:**
+  - `tesSUCCESS` — applied; done.
+  - `tec*` — applied to the ledger and the **fee was burned**; the intent failed (e.g. `tecUNFUNDED_PAYMENT`, `tecPATH_DRY`). Do **not** resubmit the same tx — fix the cause first.
+  - `tef*` / `tel*` / `tem*` — never reached a ledger (malformed / local / fee too low). Safe to fix and resubmit with a **fresh** prepare.
+  - `ter*` — retryable; may still apply within the LastLedgerSequence window. Wait — don't pile on duplicates.
 
 ### Payments, DEX, trust lines, issuer ops
 
