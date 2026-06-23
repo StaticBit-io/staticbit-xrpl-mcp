@@ -1,3 +1,21 @@
+## v0.4.1 — 2026-06-23
+
+### Documentation
+- drop stale GitHub PAT references (public marketplace needs no token) (7b2c7c8)
+- neutralize maintainer-voice in RELEASE/README (drop first-person + stale 0.1.0 note) (fb197da)
+
+### Build / CI
+- bump actions/setup-dotnet from 4 to 5 in docs gates (applies #21) (1e52820)
+- bump actions/checkout from 5 to 6 (84243aa)
+- bump actions/setup-node from 4 to 6 (2d743ec)
+
+### Other
+- Merge pull request #25 from StaticBit-io/dependabot/nuget/dot-config/dotnet-minor-patch-39309a9c2b (478eaa0)
+- Merge pull request #20 from StaticBit-io/dependabot/github_actions/actions/setup-node-6 (b0a581b)
+- Merge pull request #22 from StaticBit-io/dependabot/github_actions/actions/checkout-6 (ffbd251)
+- release: xrpl-cloud v0.4.0 (b0c142e)
+- deps: Bump mcp.fleetlint and 14 others (586cf9e)
+
 ## v0.4.0 — 2026-06-22
 
 ### Features
