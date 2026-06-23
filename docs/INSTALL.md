@@ -430,7 +430,6 @@ If you have wallets on the first PC (e.g. `main`, `cold`, `dex`) and want them a
 
 **What you do NOT migrate:**
 - ENV variables — set them again with `[Environment]::SetEnvironmentVariable(...)`.
-- The GitHub PAT — each device has its own.
 - Cloud auth — nothing to copy. On the second PC just log in via `/mcp` against `auth.mcp.staticbit.ai` with the same allow-listed account; Claude Code registers and stores a token per device.
 
 **Recipe:**
@@ -572,14 +571,13 @@ You changed `XRPL_SIGNER_PASSPHRASE` after the wallet was created. AES-GCM canno
 - Restore the old passphrase.
 - If lost — the wallet is lost (that's why the keystore is encrypted). Recover from a seed backup if you have one.
 
-### Marketplace add fails with `authentication required`
+### Marketplace add fails
 
-PAT wasn't saved or has expired. Remove and re-add:
+The marketplace is **public** — no token is needed. If `add` fails, check your network access to GitHub and that the URL is exact, then remove and re-add:
 ```powershell
 claude plugin marketplace remove staticbit-xrpl-mcp
 claude plugin marketplace add https://github.com/StaticBit-io/staticbit-xrpl-mcp
 ```
-Paste a fresh PAT.
 
 ### `command not found: claude`
 
