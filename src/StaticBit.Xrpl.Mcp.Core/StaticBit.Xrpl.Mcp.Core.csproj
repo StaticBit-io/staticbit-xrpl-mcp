@@ -17,12 +17,12 @@
 
   <ItemGroup>
     <PackageReference Include="Mcp.Auth.ResourceServer" Version="0.3.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.8" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.8" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.8" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.8" />
-    <PackageReference Include="ModelContextProtocol.Core" Version="1.3.0" />
-    <PackageReference Include="Xrpl" Version="10.4.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.9" />
+    <PackageReference Include="ModelContextProtocol.Core" Version="1.4.0" />
+    <PackageReference Include="Xrpl" Version="10.4.2" />
   </ItemGroup>
 
 </Project>
