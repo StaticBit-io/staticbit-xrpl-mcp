@@ -8,16 +8,34 @@ XRPL toolkit for Claude Code — **source + three plugins in one repo**. Contain
 - **Offline stdio signer** with an encrypted keystore (PBKDF2 + AES-256-GCM).
 - **Three plugins** for Claude Code shaped as a marketplace inside the same repo.
 
-> 📖 **[INSTALL.md](docs/INSTALL.md)** — step-by-step instructions for the end user of the plugins: from a fresh Claude Code install to the first signed XRPL transaction.
-> 📖 **[DEPLOY.md](docs/DEPLOY.md)** — for an admin deploying the cloud server on a VPS.
-> 📖 **[OPERATIONS.md](docs/OPERATIONS.md)** — day-two runbook for the cloud server: deploy, rollback, health, secrets.
-> 📖 **[RELEASE.md](RELEASE.md)** — maintainer guide — how to publish new plugin versions.
-> 📖 **[docs/features.md](docs/features.md)** — full feature catalogue (<!-- toolcount:total -->131<!-- /toolcount:total --> tools, 432 unit tests, 12 covered amendments).
-> 📖 **[docs/glossary.md](docs/glossary.md)** — XRPL terminology used in tool descriptions.
-> 📖 **[docs/supply-chain.md](docs/supply-chain.md)** — what ships with every release (SBOM, SLSA, optional notarization) and how to verify it.
-> 📖 **[docs/tools-schema.json](docs/tools-schema.json)** — machine-readable JSON-Schema catalogue of all MCP tools (<!-- toolcount:total -->131<!-- /toolcount:total -->), for third-party agents.
-> 📖 **[docs/examples/](docs/examples/)** — recipes for cross-plugin Cowork agents.
-> 📖 **[docs/bilingual-convention.md](docs/bilingual-convention.md)** — bilingual documentation convention (`docs/ru/` mirror subtree + `.ru.md` suffix outside `docs/`).
+## Install (for plugin users)
+
+```
+/plugin marketplace add https://github.com/StaticBit-io/staticbit-xrpl-mcp
+```
+
+Public marketplace — no token required.
+
+Then install the local toolkit + signer (recommended for everyone — fully self-contained, nothing leaves your machine):
+
+```
+# read / prepare / submit, runs locally; talks straight to public XRPL nodes:
+/plugin install xrpl-local@staticbit-xrpl-mcp
+# offline wallet management + signing (encrypted keystore):
+/plugin install xrpl-signer@staticbit-xrpl-mcp
+```
+
+Wallet management only (no network):
+
+```
+/plugin install xrpl-signer@staticbit-xrpl-mcp
+```
+
+Full instructions with every ENV variable — in [INSTALL.md](docs/INSTALL.md).
+
+### `xrpl-cloud` and self-hosting
+
+`xrpl-cloud` is a thin HTTP client for a server **hosted by StaticBit** at `xrpl.mcp.staticbit.ai`. That hosted endpoint is operated by StaticBit and is **not open to public self-service** — it requires an account arranged with StaticBit. For a self-serve setup, `xrpl-local` does everything the cloud does, entirely on your machine. If you want a shared, cloud-like HTTP endpoint for your own team, **self-host the same server** (identical code to `xrpl-local`) — see [DEPLOY.md](docs/DEPLOY.md).
 
 ## Marketplace plugins
 
@@ -49,40 +67,24 @@ XRPL toolkit for Claude Code — **source + three plugins in one repo**. Contain
 │   xrpl-signer (stdio) ┘                                │
 │                       ├─ sign locally                  │
 │   xrpl-local (stdio) ─┘                                │
-│                       └─ submit_signed                 │
+│                       └─ submit_signed                  │
 └────────────────────────────────────────────────────────┘
 ```
 
 The signer is identical in both flows — it's pure cryptography, knows nothing about the prepare/submit side.
 
-## Install (for plugin users)
+## Documentation
 
-```
-/plugin marketplace add https://github.com/StaticBit-io/staticbit-xrpl-mcp
-```
-
-Public marketplace — no token required.
-
-Then install the local toolkit + signer (recommended for everyone — fully self-contained, nothing leaves your machine):
-
-```
-# read / prepare / submit, runs locally; talks straight to public XRPL nodes:
-/plugin install xrpl-local@staticbit-xrpl-mcp
-# offline wallet management + signing (encrypted keystore):
-/plugin install xrpl-signer@staticbit-xrpl-mcp
-```
-
-Wallet management only (no network):
-
-```
-/plugin install xrpl-signer@staticbit-xrpl-mcp
-```
-
-Full instructions with every ENV variable — in [INSTALL.md](docs/INSTALL.md).
-
-### `xrpl-cloud` and self-hosting
-
-`xrpl-cloud` is a thin HTTP client for a server **hosted by StaticBit** at `xrpl.mcp.staticbit.ai`. That hosted endpoint is operated by StaticBit and is **not open to public self-service** — it requires an account arranged with StaticBit. For a self-serve setup, `xrpl-local` does everything the cloud does, entirely on your machine. If you want a shared, cloud-like HTTP endpoint for your own team, **self-host the same server** (identical code to `xrpl-local`) — see [DEPLOY.md](docs/DEPLOY.md).
+> 📖 **[INSTALL.md](docs/INSTALL.md)** — step-by-step instructions for the end user of the plugins: from a fresh Claude Code install to the first signed XRPL transaction.
+> 📖 **[DEPLOY.md](docs/DEPLOY.md)** — for an admin deploying the cloud server on a VPS.
+> 📖 **[OPERATIONS.md](docs/OPERATIONS.md)** — day-two runbook for the cloud server: deploy, rollback, health, secrets.
+> 📖 **[RELEASE.md](RELEASE.md)** — maintainer guide — how to publish new plugin versions.
+> 📖 **[docs/features.md](docs/features.md)** — full feature catalogue (<!-- toolcount:total -->131<!-- /toolcount:total --> tools, 432 unit tests, 12 covered amendments).
+> 📖 **[docs/glossary.md](docs/glossary.md)** — XRPL terminology used in tool descriptions.
+> 📖 **[docs/supply-chain.md](docs/supply-chain.md)** — what ships with every release (SBOM, SLSA, optional notarization) and how to verify it.
+> 📖 **[docs/tools-schema.json](docs/tools-schema.json)** — machine-readable JSON-Schema catalogue of all MCP tools (<!-- toolcount:total -->131<!-- /toolcount:total -->), for third-party agents.
+> 📖 **[docs/examples/](docs/examples/)** — recipes for cross-plugin Cowork agents.
+> 📖 **[docs/bilingual-convention.md](docs/bilingual-convention.md)** — bilingual documentation convention (`docs/ru/` mirror subtree + `.ru.md` suffix outside `docs/`).
 
 ## Repo layout
 

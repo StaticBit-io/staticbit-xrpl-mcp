@@ -8,15 +8,34 @@ XRPL toolkit for Claude Code — **исходники + три плагина в
 - **Offline stdio signer** с encrypted keystore (PBKDF2 + AES-256-GCM).
 - **Три плагина** для Claude Code в виде marketplace в этом же репо.
 
-> 📖 **[INSTALL.ru.md](docs/ru/INSTALL.md)** — пошаговая инструкция для конечного пользователя плагинов: от чистой Claude Code до первой подписанной XRPL-транзакции.
-> 📖 **[DEPLOY.ru.md](docs/ru/DEPLOY.md)** — для админа, разворачивающего cloud-сервер на VPS.
-> 📖 **[OPERATIONS.ru.md](docs/ru/OPERATIONS.md)** — day-two runbook для cloud-сервера: деплой, откат, health, секреты.
-> 📖 **[RELEASE.ru.md](RELEASE.ru.md)** — гайд мейнтейнера, как публиковать новые версии плагинов.
-> 📖 **[docs/glossary.ru.md](docs/ru/glossary.md)** — XRPL-термины, которые встречаются в описаниях tools.
-> 📖 **[docs/supply-chain.ru.md](docs/ru/supply-chain.md)** — что прикладывается к каждому release (SBOM, SLSA, опц. notarization) и как пользователю это верифицировать.
-> 📖 **[docs/tools-schema.json](docs/tools-schema.json)** — машинно-читаемый JSON-Schema каталог всех MCP-tools (<!-- toolcount:total -->131<!-- /toolcount:total --> шт), для third-party агентов.
-> 📖 **[docs/examples/](docs/ru/examples/)** — рецепты кросс-плагинных Cowork-агентов.
-> 📖 **[docs/bilingual-convention.ru.md](docs/ru/bilingual-convention.md)** — соглашение о двуязычной документации (зеркало `docs/ru/` + суффикс `.ru.md` вне `docs/`).
+## Install (для пользователей плагина)
+
+```
+/plugin marketplace add https://github.com/StaticBit-io/staticbit-xrpl-mcp
+```
+
+Публичный marketplace — токен не нужен.
+
+Дальше ставь локальный набор + signer (рекомендуется всем — полностью self-contained, ничего не уходит с твоей машины):
+
+```
+# read / prepare / submit, работает локально; напрямую к публичным XRPL-нодам:
+/plugin install xrpl-local@staticbit-xrpl-mcp
+# offline-управление кошельками + подпись (encrypted keystore):
+/plugin install xrpl-signer@staticbit-xrpl-mcp
+```
+
+Только управление кошельками (без сети):
+
+```
+/plugin install xrpl-signer@staticbit-xrpl-mcp
+```
+
+Подробная инструкция со всеми ENV-переменными — в [INSTALL.ru.md](docs/ru/INSTALL.md).
+
+### `xrpl-cloud` и self-hosting
+
+`xrpl-cloud` — это тонкий HTTP-клиент к серверу, **который хостит StaticBit** (`xrpl.mcp.staticbit.ai`). Этот hosted-эндпоинт управляется StaticBit и **не открыт для публичного self-service** — нужен аккаунт по договорённости со StaticBit. Для self-serve `xrpl-local` делает всё то же, что cloud, целиком на твоей машине. Если нужен общий cloud-подобный HTTP-эндпоинт для своей команды — **подними тот же сервер сам** (идентичный код `xrpl-local`), см. [DEPLOY.ru.md](docs/ru/DEPLOY.md).
 
 ## Плагины marketplace
 
@@ -48,40 +67,23 @@ XRPL toolkit for Claude Code — **исходники + три плагина в
 │   xrpl-signer (stdio) ┘                                │
 │                       ├─ sign locally                  │
 │   xrpl-local (stdio) ─┘                                │
-│                       └─ submit_signed                 │
+│                       └─ submit_signed                  │
 └────────────────────────────────────────────────────────┘
 ```
 
 Signer одинаков в обоих flow — он чистая криптография, ничего не знает о prepare/submit стороне.
 
-## Install (для пользователей плагина)
+## Documentation
 
-```
-/plugin marketplace add https://github.com/StaticBit-io/staticbit-xrpl-mcp
-```
-
-Публичный marketplace — токен не нужен.
-
-Дальше ставь локальный набор + signer (рекомендуется всем — полностью self-contained, ничего не уходит с твоей машины):
-
-```
-# read / prepare / submit, работает локально; напрямую к публичным XRPL-нодам:
-/plugin install xrpl-local@staticbit-xrpl-mcp
-# offline-управление кошельками + подпись (encrypted keystore):
-/plugin install xrpl-signer@staticbit-xrpl-mcp
-```
-
-Только управление кошельками (без сети):
-
-```
-/plugin install xrpl-signer@staticbit-xrpl-mcp
-```
-
-Подробная инструкция со всеми ENV-переменными — в [INSTALL.ru.md](docs/ru/INSTALL.md).
-
-### `xrpl-cloud` и self-hosting
-
-`xrpl-cloud` — это тонкий HTTP-клиент к серверу, **который хостит StaticBit** (`xrpl.mcp.staticbit.ai`). Этот hosted-эндпоинт управляется StaticBit и **не открыт для публичного self-service** — нужен аккаунт по договорённости со StaticBit. Для self-serve `xrpl-local` делает всё то же, что cloud, целиком на твоей машине. Если нужен общий cloud-подобный HTTP-эндпоинт для своей команды — **подними тот же сервер сам** (идентичный код `xrpl-local`), см. [DEPLOY.ru.md](docs/ru/DEPLOY.md).
+> 📖 **[INSTALL.ru.md](docs/ru/INSTALL.md)** — пошаговая инструкция для конечного пользователя плагинов: от чистой Claude Code до первой подписанной XRPL-транзакции.
+> 📖 **[DEPLOY.ru.md](docs/ru/DEPLOY.md)** — для админа, разворачивающего cloud-сервер на VPS.
+> 📖 **[OPERATIONS.ru.md](docs/ru/OPERATIONS.md)** — day-two runbook для cloud-сервера: деплой, откат, health, секреты.
+> 📖 **[RELEASE.ru.md](RELEASE.ru.md)** — гайд мейнтейнера, как публиковать новые версии плагинов.
+> 📖 **[docs/glossary.ru.md](docs/ru/glossary.md)** — XRPL-термины, которые встречаются в описаниях tools.
+> 📖 **[docs/supply-chain.ru.md](docs/ru/supply-chain.md)** — что прикладывается к каждому release (SBOM, SLSA, опц. notarization) и как пользователю это верифицировать.
+> 📖 **[docs/tools-schema.json](docs/tools-schema.json)** — машинно-читаемый JSON-Schema каталог всех MCP-tools (<!-- toolcount:total -->131<!-- /toolcount:total --> шт), для third-party агентов.
+> 📖 **[docs/examples/](docs/ru/examples/)** — рецепты кросс-плагинных Cowork-агентов.
+> 📖 **[docs/bilingual-convention.ru.md](docs/ru/bilingual-convention.md)** — соглашение о двуязычной документации (зеркало `docs/ru/` + суффикс `.ru.md` вне `docs/`).
 
 ## Структура репо
 
