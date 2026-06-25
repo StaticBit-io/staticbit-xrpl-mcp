@@ -1,0 +1,24 @@
+name: security-audit
+
+# Static security audit of this repo's GitHub Actions workflows (pwn-request / Actions-injection
+# / supply-chain class) via the shared reusable gate in mcp-tooling. Policy: .github/zizmor.yml.
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+      - '.github/zizmor.yml'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/**'
+      - '.github/zizmor.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    uses: Platonenkov/mcp-tooling/.github/workflows/security-audit.yml@main
+    permissions:
+      contents: read
