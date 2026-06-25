@@ -4,6 +4,7 @@ name: security-audit
 # / supply-chain class) via the shared reusable gate in mcp-tooling. Policy: .github/zizmor.yml.
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - '.github/workflows/**'
