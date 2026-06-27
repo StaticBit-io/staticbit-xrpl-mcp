@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
@@ -195,8 +196,21 @@ public sealed class TransactionTools
             throw new ArgumentException("Transaction JSON is required.", nameof(txJson));
         }
 
-        Dictionary<string, object> dict = JsonSerializer.Deserialize<Dictionary<string, object>>(txJson)
-            ?? throw new ArgumentException("Transaction JSON must be a JSON object.", nameof(txJson));
+        Dictionary<string, object> dict;
+        try
+        {
+            using JsonDocument doc = JsonDocument.Parse(txJson);
+            if (doc.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                throw new ArgumentException("Transaction JSON must be a JSON object.", nameof(txJson));
+            }
+
+            dict = (Dictionary<string, object>)NormalizeJson(doc.RootElement)!;
+        }
+        catch (JsonException ex)
+        {
+            throw new ArgumentException($"Transaction JSON is not valid JSON: {ex.Message}", nameof(txJson), ex);
+        }
 
         if (!dict.TryGetValue("TransactionType", out object? typeValue) || typeValue is null)
         {
@@ -209,6 +223,29 @@ public sealed class TransactionTools
             .PrepareAsync(new NetworkRef(network), dict, summary, cancellationToken)
             .ConfigureAwait(false);
     }
+
+    /// <summary>
+    /// Recursively converts a System.Text.Json element tree into native CLR types
+    /// (string / long / double / bool / <see cref="Dictionary{TKey,TValue}"/> / <see cref="List{T}"/>)
+    /// so the downstream (Newtonsoft-based) SDK serializer never sees a raw <see cref="JsonElement"/>.
+    /// Null-valued fields are dropped — XRPL transactions must not carry null members.
+    /// </summary>
+    internal static object? NormalizeJson(JsonElement el) => el.ValueKind switch
+    {
+        JsonValueKind.Object => el.EnumerateObject()
+            .Where(p => p.Value.ValueKind != JsonValueKind.Null)
+            .ToDictionary(p => p.Name, p => NormalizeJson(p.Value)!),
+        JsonValueKind.Array => el.EnumerateArray()
+            .Where(v => v.ValueKind != JsonValueKind.Null)
+            .Select(v => NormalizeJson(v)!)
+            .ToList(),
+        JsonValueKind.String => el.GetString()!,
+        JsonValueKind.Number => el.TryGetInt64(out long l) ? (object)l : el.GetDouble(),
+        JsonValueKind.True => true,
+        JsonValueKind.False => false,
+        JsonValueKind.Null => null,
+        _ => el.GetRawText(),
+    };
 
     private static string TryGetTxHash(object? txJson)
     {
