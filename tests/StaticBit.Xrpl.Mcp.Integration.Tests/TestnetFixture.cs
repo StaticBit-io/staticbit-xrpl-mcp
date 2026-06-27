@@ -51,7 +51,7 @@ internal static class TestnetFixture
             DefaultNetwork = networkName,
             Networks = new System.Collections.Generic.Dictionary<string, string>
             {
-                [networkName] = wsUrl,
+                [networkName.ToLowerInvariant()] = wsUrl,
             },
         };
         IOptionsMonitor<XrplMcpOptions> monitor = new StaticOptionsMonitor(options);
@@ -90,7 +90,7 @@ internal static class TestnetFixture
             DefaultNetwork = networkName,
             Networks = new System.Collections.Generic.Dictionary<string, string>
             {
-                [networkName] = wsUrl,
+                [networkName.ToLowerInvariant()] = wsUrl,
             },
         };
         IOptionsMonitor<XrplMcpOptions> monitor = new StaticOptionsMonitor(options);

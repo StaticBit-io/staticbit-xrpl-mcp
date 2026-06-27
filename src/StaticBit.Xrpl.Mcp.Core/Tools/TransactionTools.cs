@@ -196,13 +196,21 @@ public sealed class TransactionTools
             throw new ArgumentException("Transaction JSON is required.", nameof(txJson));
         }
 
-        using JsonDocument doc = JsonDocument.Parse(txJson);
-        if (doc.RootElement.ValueKind != JsonValueKind.Object)
+        Dictionary<string, object> dict;
+        try
         {
-            throw new ArgumentException("Transaction JSON must be a JSON object.", nameof(txJson));
-        }
+            using JsonDocument doc = JsonDocument.Parse(txJson);
+            if (doc.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                throw new ArgumentException("Transaction JSON must be a JSON object.", nameof(txJson));
+            }
 
-        Dictionary<string, object> dict = (Dictionary<string, object>)NormalizeJson(doc.RootElement)!;
+            dict = (Dictionary<string, object>)NormalizeJson(doc.RootElement)!;
+        }
+        catch (JsonException ex)
+        {
+            throw new ArgumentException($"Transaction JSON is not valid JSON: {ex.Message}", nameof(txJson), ex);
+        }
 
         if (!dict.TryGetValue("TransactionType", out object? typeValue) || typeValue is null)
         {
