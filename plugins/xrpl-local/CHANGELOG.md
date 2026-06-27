@@ -1,3 +1,21 @@
+## v0.5.0 — 2026-06-27
+
+### Features
+- xrpl-x402-payments skill (stdio+cloud) + generic-prepare fix (#26) (01d1e71)
+
+### Fixes
+- valid YAML frontmatter in skill descriptions (79f0d49)
+
+### Documentation
+- move Install to the top for plugin users (reorder; doc links → Documentation section) (d6caaca)
+
+### Build / CI
+- add workflow_dispatch to security-audit (manual re-audit; pick up fixed reusable) (a9a5eea)
+- add zizmor+actionlint security-audit gate (16889e4)
+
+### Other
+- release: xrpl-signer v0.4.1 (089080e)
+
 ## v0.4.1 — 2026-06-23
 
 ### Documentation
