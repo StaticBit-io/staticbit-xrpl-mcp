@@ -1,6 +1,6 @@
 ---
 name: xrpl-x402-payments
-description: Use when an agent must pay for a paid HTTP resource that answers with 402 Payment Required on the XRP Ledger (x402 / t54 exact scheme) — pay-per-request for APIs, model inference, or services, settled in XRP or RLUSD. The agent catches the 402, locally signs an XRPL Payment, and retries the request with a payment proof. Recognizes phrases like "pay for this API", "it returns 402", "x402", "agentic payment", "оплати платный ресурс", "ресурс требует оплату 402". Local-first: pairs the `xrpl-local` plugin (prepare) with the `xrpl-signer` plugin (offline signing). Payer side only — does not host paid endpoints.
+description: Use when an agent must pay for a paid HTTP resource that answers with 402 Payment Required on the XRP Ledger (x402 / t54 exact scheme) — pay-per-request for APIs, model inference, or services, settled in XRP or RLUSD. The agent catches the 402, locally signs an XRPL Payment, and retries the request with a payment proof. Recognizes phrases like "pay for this API", "it returns 402", "x402", "agentic payment", "оплати платный ресурс", "ресурс требует оплату 402". Local-first — pairs the `xrpl-local` plugin (prepare) with the `xrpl-signer` plugin (offline signing). Payer side only — does not host paid endpoints.
 ---
 
 # x402 agentic payments on XRPL (t54 exact scheme)
