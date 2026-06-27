@@ -78,6 +78,29 @@ internal static class TestnetFixture
         return (pool, preparer);
     }
 
+    /// <summary>
+    /// Builds a pool + preparer bound to <paramref name="networkName"/> → <paramref name="wsUrl"/>
+    /// WITHOUT touching any shared environment variable. Used by tests that target a specific node
+    /// (e.g. a local standalone rippled) and must not contaminate other integration tests' network.
+    /// </summary>
+    public static (XrplClientPool pool, TransactionPreparer preparer) BuildPreparer(string networkName, string wsUrl)
+    {
+        XrplMcpOptions options = new XrplMcpOptions
+        {
+            DefaultNetwork = networkName,
+            Networks = new System.Collections.Generic.Dictionary<string, string>
+            {
+                [networkName] = wsUrl,
+            },
+        };
+        IOptionsMonitor<XrplMcpOptions> monitor = new StaticOptionsMonitor(options);
+        NetworkResolver resolver = new NetworkResolver(monitor);
+        XrplMcpMetrics metrics = new XrplMcpMetrics();
+        XrplClientPool pool = new XrplClientPool(resolver, NullLogger<XrplClientPool>.Instance, new OptionsWrapper<XrplMcpOptions>(options), metrics);
+        TransactionPreparer preparer = new TransactionPreparer(pool, new OptionsWrapper<XrplMcpOptions>(options));
+        return (pool, preparer);
+    }
+
     private static XrplMcpOptions BuildOptions()
     {
         string url = Environment.GetEnvironmentVariable("XRPL_TESTNET_WS") ?? DefaultTestnetWs;
