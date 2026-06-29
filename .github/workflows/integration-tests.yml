@@ -50,7 +50,7 @@ jobs:
 
       - name: Upload TRX results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: integration-trx
           path: '**/TestResults/integration.trx'
