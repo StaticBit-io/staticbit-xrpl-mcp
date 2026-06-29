@@ -37,7 +37,7 @@ jobs:
       XRPL_MCP_HOST: ${{ vars.XRPL_MCP_HOST }}
       OAUTH_ISSUER: ${{ vars.OAUTH_ISSUER || 'https://auth.mcp.staticbit.ai' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref }}
 
@@ -103,7 +103,7 @@ jobs:
     needs: deploy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref }}
       - name: Register with Authorization Server
