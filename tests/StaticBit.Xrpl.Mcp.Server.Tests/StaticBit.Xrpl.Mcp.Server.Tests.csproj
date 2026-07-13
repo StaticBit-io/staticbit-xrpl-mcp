@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MSTest" Version="4.2.3" />
+    <PackageReference Include="MSTest" Version="4.3.0" />
     <!-- Needed by EnvBindingTestsU to replicate Program.cs's configuration pipeline. -->
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.9" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.9" />
