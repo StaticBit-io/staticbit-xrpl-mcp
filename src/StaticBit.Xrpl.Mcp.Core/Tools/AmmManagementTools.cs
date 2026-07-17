@@ -67,10 +67,10 @@ public sealed class AmmManagementTools
         [Description(ToolDescriptions.Network)] string network,
         [Description("Voter (must hold LP tokens of this pool).")] string account,
         [Description("First pool asset currency code ('XRP' or 3-char/40-hex).")] string asset1Currency,
-        [Description("First pool asset issuer (empty for XRP).")] string? asset1Issuer,
         [Description("Second pool asset currency code.")] string asset2Currency,
-        [Description("Second pool asset issuer (empty for XRP).")] string? asset2Issuer,
         [Description("Vote: trading fee in 1/10 bps (0..1000).")] uint tradingFeeBasisPoints,
+        [Description("First pool asset issuer. Required for tokens; omit it when asset1Currency is 'XRP'.")] string? asset1Issuer = null,
+        [Description("Second pool asset issuer. Required for tokens; omit it when asset2Currency is 'XRP'.")] string? asset2Issuer = null,
         CancellationToken cancellationToken = default)
     {
         if (tradingFeeBasisPoints > 1000)
@@ -102,9 +102,9 @@ public sealed class AmmManagementTools
         [Description(ToolDescriptions.Network)] string network,
         [Description("Bidder account (must hold LP tokens of this pool).")] string account,
         [Description("First pool asset currency code.")] string asset1Currency,
-        [Description("First pool asset issuer (empty for XRP).")] string? asset1Issuer,
         [Description("Second pool asset currency code.")] string asset2Currency,
-        [Description("Second pool asset issuer (empty for XRP).")] string? asset2Issuer,
+        [Description("First pool asset issuer. Required for tokens; omit it when asset1Currency is 'XRP'.")] string? asset1Issuer = null,
+        [Description("Second pool asset issuer. Required for tokens; omit it when asset2Currency is 'XRP'.")] string? asset2Issuer = null,
         [Description("Optional minimum bid (LP tokens, JSON {value,currency,issuer}).")] string? bidMin = null,
         [Description("Optional maximum bid (LP tokens, JSON {value,currency,issuer}).")] string? bidMax = null,
         [Description("Optional JSON array of up to 4 r-addresses authorized to trade at the discounted fee.")] string? authAccountsJson = null,
@@ -139,7 +139,7 @@ public sealed class AmmManagementTools
         [Description("Issuer's token currency code (3-char or 40-char hex). Cannot be 'XRP' — only issued currencies can be clawed back.")] string asset1Currency,
         [Description("Issuer's token issuer — MUST equal account.")] string asset1Issuer,
         [Description("Counterpart pool asset currency code.")] string asset2Currency,
-        [Description("Counterpart pool asset issuer. Empty for XRP.")] string? asset2Issuer = null,
+        [Description("Counterpart pool asset issuer. Required for tokens; omit it when asset2Currency is 'XRP'.")] string? asset2Issuer = null,
         [Description("Optional clawback amount as a decimal string. Omit to claw back the maximum available of the issuer's token.")] string? amountValue = null,
         CancellationToken cancellationToken = default)
     {
@@ -200,9 +200,9 @@ public sealed class AmmManagementTools
         [Description(ToolDescriptions.Network)] string network,
         [Description("Sender account.")] string account,
         [Description("First pool asset currency code.")] string asset1Currency,
-        [Description("First pool asset issuer (empty for XRP).")] string? asset1Issuer,
         [Description("Second pool asset currency code.")] string asset2Currency,
-        [Description("Second pool asset issuer (empty for XRP).")] string? asset2Issuer,
+        [Description("First pool asset issuer. Required for tokens; omit it when asset1Currency is 'XRP'.")] string? asset1Issuer = null,
+        [Description("Second pool asset issuer. Required for tokens; omit it when asset2Currency is 'XRP'.")] string? asset2Issuer = null,
         CancellationToken cancellationToken = default)
     {
         IssuedCurrency a1 = ToolDisplay.BuildAsset(asset1Currency, asset1Issuer);

@@ -131,8 +131,8 @@ public sealed class LoanBrokerTools
         [Description("Account depositing cover capital (typically the broker owner or a backstop LP).")] string account,
         [Description("64-hex LoanBrokerID.")] string loanBrokerId,
         [Description("Vault asset currency ('XRP', 3-char, or 40-hex).")] string assetCurrency,
-        [Description("Vault asset issuer (empty for XRP).")] string? assetIssuer,
         [Description("Decimal amount to deposit (drops for XRP, decimal value for IOU/MPT).")] string amountValue,
+        [Description("Vault asset issuer. Required for tokens; omit it when assetCurrency is 'XRP'.")] string? assetIssuer = null,
         CancellationToken cancellationToken = default)
     {
         ValidateHash256(loanBrokerId, nameof(loanBrokerId));
@@ -165,8 +165,8 @@ public sealed class LoanBrokerTools
         [Description("Owner/depositor account submitting the withdrawal.")] string account,
         [Description("64-hex LoanBrokerID.")] string loanBrokerId,
         [Description("Vault asset currency.")] string assetCurrency,
-        [Description("Vault asset issuer (empty for XRP).")] string? assetIssuer,
         [Description("Decimal amount to withdraw.")] string amountValue,
+        [Description("Vault asset issuer. Required for tokens; omit it when assetCurrency is 'XRP'.")] string? assetIssuer = null,
         [Description("Optional destination address (defaults to account).")] string? destination = null,
         [Description("Optional destination tag.")] uint? destinationTag = null,
         CancellationToken cancellationToken = default)

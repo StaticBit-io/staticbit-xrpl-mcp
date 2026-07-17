@@ -307,9 +307,9 @@ Prepares an UNSIGNED AMMBid for the AMM auction slot (discounted trading fee for
 | `network` | `string` | **yes** | — |  |
 | `account` | `string` | **yes** | — | Bidder account (must hold LP tokens of this pool). |
 | `asset1Currency` | `string` | **yes** | — | First pool asset currency code. |
-| `asset1Issuer` | `string?` | no | — | First pool asset issuer (empty for XRP). |
 | `asset2Currency` | `string` | **yes** | — | Second pool asset currency code. |
-| `asset2Issuer` | `string?` | no | — | Second pool asset issuer (empty for XRP). |
+| `asset1Issuer` | `string?` | no | `null` | First pool asset issuer. Required for tokens; omit it when asset1Currency is 'XRP'. |
+| `asset2Issuer` | `string?` | no | `null` | Second pool asset issuer. Required for tokens; omit it when asset2Currency is 'XRP'. |
 | `bidMin` | `string?` | no | `null` | Optional minimum bid (LP tokens, JSON {value,currency,issuer}). |
 | `bidMax` | `string?` | no | `null` | Optional maximum bid (LP tokens, JSON {value,currency,issuer}). |
 | `authAccountsJson` | `string?` | no | `null` | Optional JSON array of up to 4 r-addresses authorized to trade at the discounted fee. |
@@ -328,7 +328,7 @@ Prepares an UNSIGNED AMMClawback (XLS-37). The token issuer claws back tokens pr
 | `asset1Currency` | `string` | **yes** | — | Issuer's token currency code (3-char or 40-char hex). Cannot be 'XRP' — only issued currencies can be clawed back. |
 | `asset1Issuer` | `string` | **yes** | — | Issuer's token issuer — MUST equal account. |
 | `asset2Currency` | `string` | **yes** | — | Counterpart pool asset currency code. |
-| `asset2Issuer` | `string?` | no | `null` | Counterpart pool asset issuer. Empty for XRP. |
+| `asset2Issuer` | `string?` | no | `null` | Counterpart pool asset issuer. Required for tokens; omit it when asset2Currency is 'XRP'. |
 | `amountValue` | `string?` | no | `null` | Optional clawback amount as a decimal string. Omit to claw back the maximum available of the issuer's token. |
 
 ### `xrpl_amm_create_prepare`
@@ -356,9 +356,9 @@ Prepares an UNSIGNED AMMDelete to fully delete an empty AMM (after AMMWithdraw l
 | `network` | `string` | **yes** | — |  |
 | `account` | `string` | **yes** | — | Sender account. |
 | `asset1Currency` | `string` | **yes** | — | First pool asset currency code. |
-| `asset1Issuer` | `string?` | no | — | First pool asset issuer (empty for XRP). |
 | `asset2Currency` | `string` | **yes** | — | Second pool asset currency code. |
-| `asset2Issuer` | `string?` | no | — | Second pool asset issuer (empty for XRP). |
+| `asset1Issuer` | `string?` | no | `null` | First pool asset issuer. Required for tokens; omit it when asset1Currency is 'XRP'. |
+| `asset2Issuer` | `string?` | no | `null` | Second pool asset issuer. Required for tokens; omit it when asset2Currency is 'XRP'. |
 
 ### `xrpl_amm_deposit_prepare`
 
@@ -371,9 +371,9 @@ Prepares an UNSIGNED AMMDeposit. Provide the pool's two assets and ONE of: (a) a
 | `network` | `string` | **yes** | — |  |
 | `account` | `string` | **yes** | — | Sender address (liquidity provider). |
 | `asset1Currency` | `string` | **yes** | — | First pool asset — currency code ('XRP' or 3-char / 40-hex). |
-| `asset1Issuer` | `string?` | no | — | First pool asset — issuer. Empty for XRP. |
 | `asset2Currency` | `string` | **yes** | — | Second pool asset — currency code. |
-| `asset2Issuer` | `string?` | no | — | Second pool asset — issuer. Empty for XRP. |
+| `asset1Issuer` | `string?` | no | `null` | First pool asset — issuer. Required for tokens; omit it when asset1Currency is 'XRP'. |
+| `asset2Issuer` | `string?` | no | `null` | Second pool asset — issuer. Required for tokens; omit it when asset2Currency is 'XRP'. |
 | `amount` | `string?` | no | `null` | Optional amount to deposit (drops string for XRP, JSON token object for issued currencies). |
 | `amount2` | `string?` | no | `null` | Optional second amount (only with 'amount' for tfTwoAsset mode). |
 | `lpTokenOut` | `string?` | no | `null` | Optional LP token amount to receive (JSON {value,currency,issuer} where issuer is the AMM account). |
@@ -389,9 +389,9 @@ Returns state of an AMM instance — pool assets, LP token supply, trading fee, 
 |---|---|---|---|---|
 | `network` | `string` | **yes** | — |  |
 | `asset1Currency` | `string?` | no | `null` | First asset of the pool — currency code ('XRP' or 3-char/40-hex token). |
-| `asset1Issuer` | `string?` | no | `null` | Issuer of the first asset. Leave empty for XRP. |
+| `asset1Issuer` | `string?` | no | `null` | Issuer of the first asset. Required for tokens; omit it when asset1Currency is 'XRP'. |
 | `asset2Currency` | `string?` | no | `null` | Second asset of the pool — currency code. |
-| `asset2Issuer` | `string?` | no | `null` | Issuer of the second asset. Leave empty for XRP. |
+| `asset2Issuer` | `string?` | no | `null` | Issuer of the second asset. Required for tokens; omit it when asset2Currency is 'XRP'. |
 | `ammAccount` | `string?` | no | `null` | Optional: AMM account address. If set, asset1/asset2 are ignored. |
 | `lpAccount` | `string?` | no | `null` | Optional: liquidity provider account — when set, returns LP token amount this account holds. |
 | `ledgerIndex` | `string?` | no | `null` |  |
@@ -407,10 +407,10 @@ Prepares an UNSIGNED AMMVote — LP votes on the desired trading fee of the pool
 | `network` | `string` | **yes** | — |  |
 | `account` | `string` | **yes** | — | Voter (must hold LP tokens of this pool). |
 | `asset1Currency` | `string` | **yes** | — | First pool asset currency code ('XRP' or 3-char/40-hex). |
-| `asset1Issuer` | `string?` | no | — | First pool asset issuer (empty for XRP). |
 | `asset2Currency` | `string` | **yes** | — | Second pool asset currency code. |
-| `asset2Issuer` | `string?` | no | — | Second pool asset issuer (empty for XRP). |
 | `tradingFeeBasisPoints` | `uint` | **yes** | — | Vote: trading fee in 1/10 bps (0..1000). |
+| `asset1Issuer` | `string?` | no | `null` | First pool asset issuer. Required for tokens; omit it when asset1Currency is 'XRP'. |
+| `asset2Issuer` | `string?` | no | `null` | Second pool asset issuer. Required for tokens; omit it when asset2Currency is 'XRP'. |
 
 ### `xrpl_amm_withdraw_prepare`
 
@@ -423,9 +423,9 @@ Prepares an UNSIGNED AMMWithdraw. Provide the pool's two assets and either lpTok
 | `network` | `string` | **yes** | — |  |
 | `account` | `string` | **yes** | — | Sender address (liquidity provider). |
 | `asset1Currency` | `string` | **yes** | — | First pool asset — currency code ('XRP' or 3-char / 40-hex). |
-| `asset1Issuer` | `string?` | no | — | First pool asset — issuer. Empty for XRP. |
 | `asset2Currency` | `string` | **yes** | — | Second pool asset — currency code. |
-| `asset2Issuer` | `string?` | no | — | Second pool asset — issuer. Empty for XRP. |
+| `asset1Issuer` | `string?` | no | `null` | First pool asset — issuer. Required for tokens; omit it when asset1Currency is 'XRP'. |
+| `asset2Issuer` | `string?` | no | `null` | Second pool asset — issuer. Required for tokens; omit it when asset2Currency is 'XRP'. |
 | `amount` | `string?` | no | `null` | Optional amount to withdraw (drops string for XRP, JSON token object for issued currencies). |
 | `amount2` | `string?` | no | `null` | Optional second amount for two-asset withdrawals. |
 | `lpTokenIn` | `string?` | no | `null` | Optional LP token amount to redeem (JSON token object, issuer = AMM account). |
@@ -450,15 +450,15 @@ Prepares an UNSIGNED Batch transaction (XLS-56) that atomically executes up to 8
 
 <sub>Source: `src/StaticBit.Xrpl.Mcp.Core/Tools/DexTools.cs`</sub>
 
-Returns the order book (offers) for a currency pair on the XRPL DEX. Use 'XRP' currency with empty issuer for XRP.
+Returns the order book (offers) for a currency pair on the XRPL DEX. For XRP, pass currency 'XRP' and omit the matching issuer.
 
 | Param | Type | Required | Default | Description |
 |---|---|---|---|---|
 | `network` | `string` | **yes** | — |  |
 | `takerGetsCurrency` | `string` | **yes** | — | Currency the taker would RECEIVE. 'XRP' or 3-char/40-hex token code. |
-| `takerGetsIssuer` | `string?` | no | — | Issuer for the taker_gets currency. Leave empty for XRP. |
 | `takerPaysCurrency` | `string` | **yes** | — | Currency the taker would PAY. 'XRP' or 3-char/40-hex token code. |
-| `takerPaysIssuer` | `string?` | no | — | Issuer for the taker_pays currency. Leave empty for XRP. |
+| `takerGetsIssuer` | `string?` | no | `null` | Issuer for the taker_gets currency. Required for tokens; omit it when takerGetsCurrency is 'XRP'. |
+| `takerPaysIssuer` | `string?` | no | `null` | Issuer for the taker_pays currency. Required for tokens; omit it when takerPaysCurrency is 'XRP'. |
 | `taker` | `string?` | no | `null` | Optional address used as the offer-taker's perspective (for filtering unfunded offers). |
 | `limit` | `uint?` | no | `null` | Page size. Server may cap this value. |
 | `ledgerIndex` | `string?` | no | `null` |  |
@@ -742,8 +742,8 @@ Prepares an UNSIGNED LoanBrokerCoverDeposit (XLS-66). Deposits cover (first-loss
 | `account` | `string` | **yes** | — | Account depositing cover capital (typically the broker owner or a backstop LP). |
 | `loanBrokerId` | `string` | **yes** | — | 64-hex LoanBrokerID. |
 | `assetCurrency` | `string` | **yes** | — | Vault asset currency ('XRP', 3-char, or 40-hex). |
-| `assetIssuer` | `string?` | no | — | Vault asset issuer (empty for XRP). |
 | `amountValue` | `string` | **yes** | — | Decimal amount to deposit (drops for XRP, decimal value for IOU/MPT). |
+| `assetIssuer` | `string?` | no | `null` | Vault asset issuer. Required for tokens; omit it when assetCurrency is 'XRP'. |
 
 ### `xrpl_loan_broker_cover_withdraw_prepare`
 
@@ -757,8 +757,8 @@ Prepares an UNSIGNED LoanBrokerCoverWithdraw (XLS-66). Withdraws cover capital f
 | `account` | `string` | **yes** | — | Owner/depositor account submitting the withdrawal. |
 | `loanBrokerId` | `string` | **yes** | — | 64-hex LoanBrokerID. |
 | `assetCurrency` | `string` | **yes** | — | Vault asset currency. |
-| `assetIssuer` | `string?` | no | — | Vault asset issuer (empty for XRP). |
 | `amountValue` | `string` | **yes** | — | Decimal amount to withdraw. |
+| `assetIssuer` | `string?` | no | `null` | Vault asset issuer. Required for tokens; omit it when assetCurrency is 'XRP'. |
 | `destination` | `string?` | no | `null` | Optional destination address (defaults to account). |
 | `destinationTag` | `uint?` | no | `null` | Optional destination tag. |
 
@@ -829,8 +829,8 @@ Prepares an UNSIGNED LoanPay (XLS-66). Borrower makes a payment on a loan. 'amou
 | `account` | `string` | **yes** | — | Borrower account (the loan's Counterparty). |
 | `loanId` | `string` | **yes** | — | 64-hex LoanID. |
 | `assetCurrency` | `string` | **yes** | — | Vault asset currency. |
-| `assetIssuer` | `string?` | no | — | Vault asset issuer (empty for XRP). |
 | `amountValue` | `string` | **yes** | — | Payment amount (decimal string). |
+| `assetIssuer` | `string?` | no | `null` | Vault asset issuer. Required for tokens; omit it when assetCurrency is 'XRP'. |
 | `paymentKind` | `string?` | no | `null` | Optional payment kind: 'scheduled' (default), 'overpayment', 'full', or 'late'. |
 
 ### `xrpl_loan_set_prepare`
@@ -1495,8 +1495,8 @@ Prepares an UNSIGNED VaultCreate (XLS-65). Creates a new pooled-asset vault owne
 | `network` | `string` | **yes** | — |  |
 | `account` | `string` | **yes** | — | Owner account of the new vault. |
 | `assetCurrency` | `string` | **yes** | — | Vault asset currency code ('XRP', 3-char, or 40-hex). |
-| `assetIssuer` | `string?` | no | — | Vault asset issuer (empty for XRP). |
 | `amountValue` | `string` | **yes** | — | Initial deposit as a decimal string in vault-asset units. For XRP pass drops as a decimal string. |
+| `assetIssuer` | `string?` | no | `null` | Vault asset issuer. Required for tokens; omit it when assetCurrency is 'XRP'. |
 | `assetsMaximum` | `string?` | no | `null` | Optional max total assets (STNumber decimal string). Omit for uncapped. |
 | `metadataHex` | `string?` | no | `null` | Optional hex-encoded metadata for the share MPT (≤2048 hex chars = 1024 bytes). |
 | `dataHex` | `string?` | no | `null` | Optional hex blob attached to the vault (≤512 hex chars = 256 bytes). |
@@ -1530,8 +1530,8 @@ Prepares an UNSIGNED VaultDeposit (XLS-65). The depositor sends the vault's asse
 | `account` | `string` | **yes** | — | Depositor account. |
 | `vaultId` | `string` | **yes** | — | 64-hex VaultID. |
 | `assetCurrency` | `string` | **yes** | — | Vault asset currency code ('XRP', 3-char, or 40-hex). Must match the vault's asset. |
-| `assetIssuer` | `string?` | no | — | Vault asset issuer (empty for XRP). |
 | `amountValue` | `string` | **yes** | — | Amount to deposit (decimal string; drops for XRP). |
+| `assetIssuer` | `string?` | no | `null` | Vault asset issuer. Required for tokens; omit it when assetCurrency is 'XRP'. |
 
 ### `xrpl_vault_set_prepare`
 
@@ -1562,7 +1562,7 @@ Prepares an UNSIGNED VaultWithdraw (XLS-65). Pass amountKind='asset' to withdraw
 | `amountKind` | `string` | **yes** | — | 'asset' to specify an exact underlying-asset amount, or 'shares' to redeem an exact share amount. |
 | `amountValue` | `string` | **yes** | — | Decimal amount (drops for XRP-asset; shares for amountKind='shares'). |
 | `assetCurrency` | `string?` | no | `null` | For amountKind='asset': vault asset currency ('XRP'/3-char/40-hex). |
-| `assetIssuer` | `string?` | no | `null` | For amountKind='asset': vault asset issuer (empty for XRP). |
+| `assetIssuer` | `string?` | no | `null` | For amountKind='asset': vault asset issuer. Required for tokens; omit it when assetCurrency is 'XRP'. |
 | `shareMptIssuanceId` | `string?` | no | `null` | For amountKind='shares': 48-hex MPTokenIssuanceID of the share MPT (vault.ShareMPTID). |
 | `destination` | `string?` | no | `null` | Destination account that receives the assets. Omit to receive into 'account'. |
 | `destinationTag` | `uint?` | no | `null` | Optional destination tag. |

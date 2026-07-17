@@ -15,7 +15,11 @@ public class DexToolsTestsU
     public async Task TestU_BookOffers_MissingNetwork_NamesNetwork()
     {
         ArgumentException ex = await Assert.ThrowsAsync<ArgumentException>(() =>
-            NewTool().BookOffersAsync("", "XRP", null, "USD", "rIssuer"));
+            NewTool().BookOffersAsync(
+                network: "",
+                takerGetsCurrency: "XRP",
+                takerPaysCurrency: "USD",
+                takerPaysIssuer: "rIssuer"));
 
         StringAssert.Contains(ex.Message, "Network");
     }
@@ -24,7 +28,11 @@ public class DexToolsTestsU
     public async Task TestU_BookOffers_MissingTakerGetsCurrency_NamesField()
     {
         ArgumentException ex = await Assert.ThrowsAsync<ArgumentException>(() =>
-            NewTool().BookOffersAsync("testnet", "", null, "USD", "rIssuer"));
+            NewTool().BookOffersAsync(
+                network: "testnet",
+                takerGetsCurrency: "",
+                takerPaysCurrency: "USD",
+                takerPaysIssuer: "rIssuer"));
 
         StringAssert.Contains(ex.Message, "takerGetsCurrency");
     }
@@ -33,7 +41,11 @@ public class DexToolsTestsU
     public async Task TestU_BookOffers_MissingTakerPaysIssuer_NamesField()
     {
         ArgumentException ex = await Assert.ThrowsAsync<ArgumentException>(() =>
-            NewTool().BookOffersAsync("testnet", "XRP", null, "USD", takerPaysIssuer: null));
+            NewTool().BookOffersAsync(
+                network: "testnet",
+                takerGetsCurrency: "XRP",
+                takerPaysCurrency: "USD",
+                takerPaysIssuer: null));
 
         StringAssert.Contains(ex.Message, "takerPaysIssuer");
     }
@@ -44,6 +56,9 @@ public class DexToolsTestsU
         // Both sides valid (XRP needs no issuer) → validation passes, so the null pool is
         // dereferenced. Proves we did NOT over-validate a legitimate XRP/XRP request.
         await Assert.ThrowsAsync<NullReferenceException>(() =>
-            NewTool().BookOffersAsync("testnet", "XRP", null, "XRP", null));
+            NewTool().BookOffersAsync(
+                network: "testnet",
+                takerGetsCurrency: "XRP",
+                takerPaysCurrency: "XRP"));
     }
 }

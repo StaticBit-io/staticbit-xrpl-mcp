@@ -26,13 +26,13 @@ public sealed class DexTools
     }
 
     [McpServerTool(Name = "xrpl_book_offers")]
-    [Description("Returns the order book (offers) for a currency pair on the XRPL DEX. Use 'XRP' currency with empty issuer for XRP.")]
+    [Description("Returns the order book (offers) for a currency pair on the XRPL DEX. For XRP, pass currency 'XRP' and omit the matching issuer.")]
     public async Task<string> BookOffersAsync(
         [Description(ToolDescriptions.Network)] string network,
         [Description("Currency the taker would RECEIVE. 'XRP' or 3-char/40-hex token code.")] string takerGetsCurrency,
-        [Description("Issuer for the taker_gets currency. Leave empty for XRP.")] string? takerGetsIssuer,
         [Description("Currency the taker would PAY. 'XRP' or 3-char/40-hex token code.")] string takerPaysCurrency,
-        [Description("Issuer for the taker_pays currency. Leave empty for XRP.")] string? takerPaysIssuer,
+        [Description("Issuer for the taker_gets currency. Required for tokens; omit it when takerGetsCurrency is 'XRP'.")] string? takerGetsIssuer = null,
+        [Description("Issuer for the taker_pays currency. Required for tokens; omit it when takerPaysCurrency is 'XRP'.")] string? takerPaysIssuer = null,
         [Description("Optional address used as the offer-taker's perspective (for filtering unfunded offers).")] string? taker = null,
         [Description("Page size. Server may cap this value.")] uint? limit = null,
         [Description(ToolDescriptions.LedgerIndex)] string? ledgerIndex = null,

@@ -31,9 +31,9 @@ public sealed class AmmTools
     public async Task<string> AmmInfoAsync(
         [Description(ToolDescriptions.Network)] string network,
         [Description("First asset of the pool — currency code ('XRP' or 3-char/40-hex token).")] string? asset1Currency = null,
-        [Description("Issuer of the first asset. Leave empty for XRP.")] string? asset1Issuer = null,
+        [Description("Issuer of the first asset. Required for tokens; omit it when asset1Currency is 'XRP'.")] string? asset1Issuer = null,
         [Description("Second asset of the pool — currency code.")] string? asset2Currency = null,
-        [Description("Issuer of the second asset. Leave empty for XRP.")] string? asset2Issuer = null,
+        [Description("Issuer of the second asset. Required for tokens; omit it when asset2Currency is 'XRP'.")] string? asset2Issuer = null,
         [Description("Optional: AMM account address. If set, asset1/asset2 are ignored.")] string? ammAccount = null,
         [Description("Optional: liquidity provider account — when set, returns LP token amount this account holds.")] string? lpAccount = null,
         [Description(ToolDescriptions.LedgerIndex)] string? ledgerIndex = null,
