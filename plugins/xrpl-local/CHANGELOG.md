@@ -1,3 +1,12 @@
+## v0.6.0 — 2026-07-17
+
+### Fixes
+- make issuer params optional so XRP side can be omitted (c862f77)
+
+### Other
+- chore: bump mcp.skilllint pin to 0.2.0 (frontmatter validation) (5495ef4)
+- release: xrpl-cloud v0.5.0 (74dab98)
+
 ## v0.5.0 — 2026-06-27
 
 ### Features
