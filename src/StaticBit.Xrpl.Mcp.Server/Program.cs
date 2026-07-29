@@ -65,6 +65,10 @@ internal static class Program
             .WithStdioServerTransport()
             .WithToolsFromAssembly(typeof(LedgerTools).Assembly);
 
+        // Wrap every tool so escaping exceptions surface as structured envelopes instead of the
+        // SDK's opaque "An error occurred invoking '<tool>'." stub. Must run after WithTools*.
+        builder.Services.AddXrplToolErrorClassification();
+
         await builder.Build().RunAsync().ConfigureAwait(false);
     }
 
@@ -194,6 +198,10 @@ internal static class Program
             .WithHttpTransport()
             .WithToolsFromAssembly(typeof(LedgerTools).Assembly);
 
+        // Wrap every tool so escaping exceptions surface as structured envelopes instead of the
+        // SDK's opaque "An error occurred invoking '<tool>'." stub. Must run after WithTools*.
+        builder.Services.AddXrplToolErrorClassification();
+
         WebApplication app = builder.Build();
 
         ILogger startupLogger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("StaticBitXrplMcp");
@@ -212,6 +220,15 @@ internal static class Program
         // The auth middleware lets them through without a bearer.
         app.MapGet("/healthz", () => Results.Ok(new { status = "ok", version = AppVersion }));
         app.MapGet("/readyz", () => Results.Ok(new { status = "ready", version = AppVersion }));
+
+        // Favicon — anonymous, so MCP connector clients can show an icon.
+        // Like /healthz, a plain MapGet here is not gated by the bearer middleware.
+        string faviconPath = Path.Combine(AppContext.BaseDirectory, "favicon.ico");
+        if (File.Exists(faviconPath))
+        {
+            byte[] faviconBytes = File.ReadAllBytes(faviconPath);
+            app.MapGet("/favicon.ico", () => Results.Bytes(faviconBytes, "image/x-icon"));
+        }
 
         // Prometheus scrape endpoint — opt-in via ServerOptions.Metrics.Enabled.
         // The auth middleware also bypasses this path (see BearerAuthMiddleware
@@ -276,19 +293,18 @@ internal static class Program
         lifetime.ApplicationStarted.Register(() =>
         {
             alerter.Alert(AlertKind.StartUp,
-                "StaticBitXrplMcp server started",
+                "xrpl-mcp server started",
                 new Dictionary<string, string>
                 {
                     ["transport"] = server.Transport,
-                    ["port"] = server.HttpPort.ToString(CultureInfo.InvariantCulture),
-                    ["bearerTokens"] = server.HttpAuth.Tokens.Count.ToString(CultureInfo.InvariantCulture),
+                    ["auth"] = "oauth",
                 });
         });
 
         lifetime.ApplicationStopping.Register(() =>
         {
             alerter.Alert(AlertKind.ShutDown,
-                "StaticBitXrplMcp server stopping",
+                "xrpl-mcp server stopping",
                 new Dictionary<string, string>
                 {
                     ["transport"] = server.Transport,
@@ -301,13 +317,13 @@ internal static class Program
         if (!Uri.TryCreate(oauth.Issuer, UriKind.Absolute, out Uri? issuer) || issuer.Scheme != Uri.UriSchemeHttps)
         {
             throw new InvalidOperationException(
-                "OAuth:Issuer must be an absolute https URL (the authorization server), e.g. https://auth.mcp.staticbit.io.");
+                "OAuth:Issuer must be an absolute https URL (the authorization server), e.g. https://auth.mcp.staticbit.ai.");
         }
 
         if (!Uri.TryCreate(oauth.Resource, UriKind.Absolute, out Uri? resource) || resource.Scheme != Uri.UriSchemeHttps)
         {
             throw new InvalidOperationException(
-                "OAuth:Resource must be this server's absolute https canonical URI (the token audience), e.g. https://xrpl-mcp.staticbit.io/mcp.");
+                "OAuth:Resource must be this server's absolute https canonical URI (the token audience), e.g. https://xrpl.mcp.staticbit.ai/mcp.");
         }
     }
 

@@ -26,25 +26,31 @@ public sealed class DexTools
     }
 
     [McpServerTool(Name = "xrpl_book_offers")]
-    [Description("Returns the order book (offers) for a currency pair on the XRPL DEX. Use 'XRP' currency with empty issuer for XRP.")]
+    [Description("Returns the order book (offers) for a currency pair on the XRPL DEX. For XRP, pass currency 'XRP' and omit the matching issuer.")]
     public async Task<string> BookOffersAsync(
         [Description(ToolDescriptions.Network)] string network,
         [Description("Currency the taker would RECEIVE. 'XRP' or 3-char/40-hex token code.")] string takerGetsCurrency,
-        [Description("Issuer for the taker_gets currency. Leave empty for XRP.")] string? takerGetsIssuer,
         [Description("Currency the taker would PAY. 'XRP' or 3-char/40-hex token code.")] string takerPaysCurrency,
-        [Description("Issuer for the taker_pays currency. Leave empty for XRP.")] string? takerPaysIssuer,
+        [Description("Issuer for the taker_gets currency. Required for tokens; omit it when takerGetsCurrency is 'XRP'.")] string? takerGetsIssuer = null,
+        [Description("Issuer for the taker_pays currency. Required for tokens; omit it when takerPaysCurrency is 'XRP'.")] string? takerPaysIssuer = null,
         [Description("Optional address used as the offer-taker's perspective (for filtering unfunded offers).")] string? taker = null,
         [Description("Page size. Server may cap this value.")] uint? limit = null,
         [Description(ToolDescriptions.LedgerIndex)] string? ledgerIndex = null,
         CancellationToken cancellationToken = default)
     {
-        IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
+        // Validate inputs up front so a malformed request fails fast with a field-named error
+        // instead of opening a pooled connection first and surfacing a connection-level failure.
+        NetworkRef networkRef = new NetworkRef(network);
+        TakerAmount takerGets = BuildAmount(takerGetsCurrency, takerGetsIssuer, "takerGets");
+        TakerAmount takerPays = BuildAmount(takerPaysCurrency, takerPaysIssuer, "takerPays");
+
+        IXrplClient client = await _pool.GetAsync(networkRef, cancellationToken).ConfigureAwait(false);
 
         BookOffersRequest request = new BookOffersRequest
         {
             LedgerIndex = LedgerIndexParser.Parse(ledgerIndex),
-            TakerGets = BuildAmount(takerGetsCurrency, takerGetsIssuer),
-            TakerPays = BuildAmount(takerPaysCurrency, takerPaysIssuer),
+            TakerGets = takerGets,
+            TakerPays = takerPays,
             Taker = taker,
             Limit = limit,
         };
@@ -53,11 +59,12 @@ public sealed class DexTools
         return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:book_offers:{network}");
     }
 
-    private static TakerAmount BuildAmount(string currency, string? issuer)
+    private static TakerAmount BuildAmount(string currency, string? issuer, string side)
     {
         if (string.IsNullOrWhiteSpace(currency))
         {
-            throw new ArgumentException("Currency code is required (use 'XRP' for native XRP).", nameof(currency));
+            throw new ArgumentException(
+                $"{side}Currency is required (use 'XRP' for native XRP).", $"{side}Currency");
         }
 
         string normalizedCurrency = currency.Trim();
@@ -66,7 +73,8 @@ public sealed class DexTools
         return new TakerAmount
         {
             Currency = isXrp ? "XRP" : normalizedCurrency,
-            Issuer = isXrp ? null! : (issuer ?? throw new ArgumentException("Issuer is required for non-XRP currencies.", nameof(issuer))),
+            Issuer = isXrp ? null! : (issuer ?? throw new ArgumentException(
+                $"{side}Issuer is required for non-XRP currencies.", $"{side}Issuer")),
         };
     }
 }

@@ -299,7 +299,7 @@ public sealed class AdminAlerter : IAdminAlerter, IHostedService, IAsyncDisposab
         }
 
         sb.Append("\n<i>").Append(env.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture))
-          .Append("  •  StaticBitXrplMcp admin-alerts</i>");
+          .Append("  •  xrpl-mcp admin-alerts</i>");
 
         return sb.ToString();
     }

@@ -174,8 +174,8 @@ public sealed class LoanTools
         [Description("Borrower account (the loan's Counterparty).")] string account,
         [Description("64-hex LoanID.")] string loanId,
         [Description("Vault asset currency.")] string assetCurrency,
-        [Description("Vault asset issuer (empty for XRP).")] string? assetIssuer,
         [Description("Payment amount (decimal string).")] string amountValue,
+        [Description("Vault asset issuer. Required for tokens; omit it when assetCurrency is 'XRP'.")] string? assetIssuer = null,
         [Description("Optional payment kind: 'scheduled' (default), 'overpayment', 'full', or 'late'.")] string? paymentKind = null,
         CancellationToken cancellationToken = default)
     {

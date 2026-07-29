@@ -36,6 +36,17 @@ internal static class PrepareSmokeAssert
             $"TxJson.TransactionType must be {expectedTxType}.");
         Assert.IsTrue(prep.TxJson.ContainsKey("Sequence"), "Autofill must populate Sequence.");
         Assert.IsTrue(prep.TxJson.ContainsKey("Fee"), "Autofill must populate Fee.");
+
+        // C2.1 — the MCP default SourceTag is stamped on every prepared tx (caller set none here).
+        Assert.IsTrue(prep.TxJson.ContainsKey("SourceTag"), "Default SourceTag must be stamped.");
+        Assert.AreEqual(100010011L, System.Convert.ToInt64(prep.TxJson["SourceTag"]),
+            "SourceTag must be the MCP default 100010011.");
+
+        // C1.2 — the full-disclosure preview block must be rendered for the approval prompt.
+        Assert.IsFalse(string.IsNullOrWhiteSpace(prep.Preview), "Preview block must be rendered.");
+        StringAssert.Contains(prep.Preview, "Network:", "Preview must disclose the network.");
+        StringAssert.Contains(prep.Preview, "Fee:", "Preview must include the Fee line.");
+
         StringAssert.Contains(prep.HumanSummary ?? "", humanSummaryContains,
             $"HumanSummary should mention '{humanSummaryContains}'.");
     }

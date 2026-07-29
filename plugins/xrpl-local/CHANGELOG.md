@@ -1,3 +1,92 @@
+## v0.6.0 — 2026-07-17
+
+### Fixes
+- make issuer params optional so XRP side can be omitted (c862f77)
+
+### Other
+- Revert "release: xrpl-local v0.6.0" (4fac28e)
+- release: xrpl-local v0.6.0 (44473d7)
+- chore: bump mcp.skilllint pin to 0.2.0 (frontmatter validation) (5495ef4)
+- release: xrpl-cloud v0.5.0 (74dab98)
+
+## v0.5.0 — 2026-06-27
+
+### Features
+- xrpl-x402-payments skill (stdio+cloud) + generic-prepare fix (#26) (01d1e71)
+
+### Fixes
+- valid YAML frontmatter in skill descriptions (79f0d49)
+
+### Documentation
+- move Install to the top for plugin users (reorder; doc links → Documentation section) (d6caaca)
+
+### Build / CI
+- add workflow_dispatch to security-audit (manual re-audit; pick up fixed reusable) (a9a5eea)
+- add zizmor+actionlint security-audit gate (16889e4)
+
+### Other
+- release: xrpl-signer v0.4.1 (089080e)
+
+## v0.4.1 — 2026-06-23
+
+### Documentation
+- drop stale GitHub PAT references (public marketplace needs no token) (7b2c7c8)
+- neutralize maintainer-voice in RELEASE/README (drop first-person + stale 0.1.0 note) (fb197da)
+
+### Build / CI
+- bump actions/setup-dotnet from 4 to 5 in docs gates (applies #21) (1e52820)
+- bump actions/checkout from 5 to 6 (84243aa)
+- bump actions/setup-node from 4 to 6 (2d743ec)
+
+### Other
+- Merge pull request #25 from StaticBit-io/dependabot/nuget/dot-config/dotnet-minor-patch-39309a9c2b (478eaa0)
+- Merge pull request #20 from StaticBit-io/dependabot/github_actions/actions/setup-node-6 (b0a581b)
+- Merge pull request #22 from StaticBit-io/dependabot/github_actions/actions/checkout-6 (ffbd251)
+- release: xrpl-cloud v0.4.0 (b0c142e)
+- deps: Bump mcp.fleetlint and 14 others (586cf9e)
+
+## v0.4.0 — 2026-06-22
+
+### Features
+- signing ceremony, scoped auto-sign, memo/tainted-destination guard, submit discipline (65b3659)
+- stamp default SourceTag 100010011 + full-disclosure transaction preview (78c470b)
+
+### Documentation
+- prepare repository for public launch (LICENSE, CONTRIBUTING, CoC, public install, cloud repositioning) (2746bf9)
+
+### Tests
+- configurable integration endpoint/account + SourceTag/preview smoke assertions (5254373)
+
+### Other
+- release: xrpl-signer v0.4.0 (7627ef3)
+- release: xrpl-cloud v0.3.3 (5f58489)
+
+## v0.3.8 — 2026-06-17
+
+### Features
+- serve /favicon.ico so MCP connector clients show an icon (ed61cbb)
+- parameterize public host (env-driven OAuth resource/issuer + register override) (c5e61ea)
+- self-register via .mcp-registry.json + deploy register job (7beb5cc)
+
+### Fixes
+- make XRPL tool errors transparent via central classifier (9d69bb9)
+
+### Documentation
+- sync admin-alert examples to xrpl-mcp + transport/auth format (016dec3)
+- migrate to staticbit.ai host + non-root build-from-source deploy (d96db32)
+
+### Build / CI
+- wire AdminAlerts (Enabled/BotToken/ChatId) from GitHub config (e49f5ea)
+- stamp deployed commit as version; drop dead image-based deploy workflow (27cabdf)
+- add non-root build-from-source deploy workflow (deploy-build) (59ba885)
+
+### Other
+- chore(release): xrpl-cloud v0.3.2 (server serves /favicon.ico) (7e02027)
+- alerts: normalize admin-alert source name to xrpl-mcp + unify StartUp metadata (7a3eeb5)
+- config: migrate hosts to staticbit.ai (manifests, appsettings, registry, tests) (d256b41)
+- Merge feature/cloud-mcp-onboarding: self-register onboarding + domain parameterization (65f5fe8)
+- release: xrpl-signer v0.3.6 (5b0e639)
+
 ## v0.3.7 — 2026-05-31
 
 ### Features

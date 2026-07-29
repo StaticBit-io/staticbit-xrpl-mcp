@@ -44,6 +44,13 @@ public sealed class PreparedTransaction
     public string HumanSummary { get; set; } = string.Empty;
 
     /// <summary>
+    /// Multi-line, full-disclosure preview block for the user-approval prompt: full (un-truncated)
+    /// addresses, drops→XRP, an anomalous-fee flag, the LastLedgerSequence expiry estimate, and
+    /// decoded (untrusted) memos. The host/agent MUST show this before signing.
+    /// </summary>
+    public string Preview { get; set; } = string.Empty;
+
+    /// <summary>
     /// Always true for write-flow tools — signals the host that user confirmation is required
     /// before signing/submitting.
     /// </summary>

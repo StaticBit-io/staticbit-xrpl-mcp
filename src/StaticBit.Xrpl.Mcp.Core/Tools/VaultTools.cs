@@ -41,8 +41,8 @@ public sealed class VaultTools
         [Description(ToolDescriptions.Network)] string network,
         [Description("Owner account of the new vault.")] string account,
         [Description("Vault asset currency code ('XRP', 3-char, or 40-hex).")] string assetCurrency,
-        [Description("Vault asset issuer (empty for XRP).")] string? assetIssuer,
         [Description("Initial deposit as a decimal string in vault-asset units. For XRP pass drops as a decimal string.")] string amountValue,
+        [Description("Vault asset issuer. Required for tokens; omit it when assetCurrency is 'XRP'.")] string? assetIssuer = null,
         [Description("Optional max total assets (STNumber decimal string). Omit for uncapped.")] string? assetsMaximum = null,
         [Description("Optional hex-encoded metadata for the share MPT (≤2048 hex chars = 1024 bytes).")] string? metadataHex = null,
         [Description("Optional hex blob attached to the vault (≤512 hex chars = 256 bytes).")] string? dataHex = null,
@@ -213,8 +213,8 @@ public sealed class VaultTools
         [Description("Depositor account.")] string account,
         [Description("64-hex VaultID.")] string vaultId,
         [Description("Vault asset currency code ('XRP', 3-char, or 40-hex). Must match the vault's asset.")] string assetCurrency,
-        [Description("Vault asset issuer (empty for XRP).")] string? assetIssuer,
         [Description("Amount to deposit (decimal string; drops for XRP).")] string amountValue,
+        [Description("Vault asset issuer. Required for tokens; omit it when assetCurrency is 'XRP'.")] string? assetIssuer = null,
         CancellationToken cancellationToken = default)
     {
         ValidateVaultId(vaultId);
@@ -248,7 +248,7 @@ public sealed class VaultTools
         [Description("'asset' to specify an exact underlying-asset amount, or 'shares' to redeem an exact share amount.")] string amountKind,
         [Description("Decimal amount (drops for XRP-asset; shares for amountKind='shares').")] string amountValue,
         [Description("For amountKind='asset': vault asset currency ('XRP'/3-char/40-hex).")] string? assetCurrency = null,
-        [Description("For amountKind='asset': vault asset issuer (empty for XRP).")] string? assetIssuer = null,
+        [Description("For amountKind='asset': vault asset issuer. Required for tokens; omit it when assetCurrency is 'XRP'.")] string? assetIssuer = null,
         [Description("For amountKind='shares': 48-hex MPTokenIssuanceID of the share MPT (vault.ShareMPTID).")] string? shareMptIssuanceId = null,
         [Description("Destination account that receives the assets. Omit to receive into 'account'.")] string? destination = null,
         [Description("Optional destination tag.")] uint? destinationTag = null,

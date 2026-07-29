@@ -72,20 +72,31 @@ public sealed class TransactionPreparer
         {
             IXrplClient client = await _pool.GetAsync(network, cancellationToken).ConfigureAwait(false);
 
+            // Fetch the current validated ledger index once: it pre-seeds LastLedgerSequence (below)
+            // and feeds the preview's "expires in ~N ledgers" estimate. Non-fatal on failure.
+            uint? currentLedgerIndex = null;
+            try
+            {
+                currentLedgerIndex = await client.GetLedgerIndex(cancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                // Leave null — Autofill computes LastLedgerSequence itself; the preview omits the estimate.
+            }
+
             // Honor the configured LastLedgerSequenceOffset by pre-seeding the field;
             // SDK's Autofill only fills it when absent so this overrides the SDK's hardcoded offset.
-            if (_options.LastLedgerSequenceOffset > 0 && !transaction.ContainsKey("LastLedgerSequence"))
+            if (_options.LastLedgerSequenceOffset > 0
+                && !transaction.ContainsKey("LastLedgerSequence")
+                && currentLedgerIndex is uint seedLedger)
             {
-                try
-                {
-                    uint currentLedger = await client.GetLedgerIndex(cancellationToken).ConfigureAwait(false);
-                    transaction["LastLedgerSequence"] = currentLedger + _options.LastLedgerSequenceOffset;
-                }
-                catch
-                {
-                    // Fall through and let Autofill compute it with its own default.
-                }
+                transaction["LastLedgerSequence"] = seedLedger + _options.LastLedgerSequenceOffset;
             }
+
+            // Stamp the server's default SourceTag before Autofill so it becomes part of the
+            // canonical, signed transaction. Top-level only — an XLS-56 Batch's inner
+            // transactions (nested under RawTransactions) stay byte-for-byte as the caller built them.
+            ApplyDefaultSourceTag(transaction, _options.DefaultSourceTag);
 
             Dictionary<string, object> filled = await client
                 .Autofill(transaction, signersCount: null, cancellationToken)
@@ -98,6 +109,7 @@ public sealed class TransactionPreparer
             uint lastLedgerSequence = ExtractUInt(filled, "LastLedgerSequence");
 
             Dictionary<string, object?> normalizedJson = NormalizeDictionary(filled);
+            string preview = TransactionPreview.Render(normalizedJson, network.Value, currentLedgerIndex);
 
             return new PreparedTransaction
             {
@@ -107,6 +119,7 @@ public sealed class TransactionPreparer
                 SigningData = signingData,
                 LastLedgerSequence = lastLedgerSequence,
                 HumanSummary = humanSummary,
+                Preview = preview,
                 RequiresUserApproval = true,
             };
         }
@@ -148,6 +161,27 @@ public sealed class TransactionPreparer
         if (bumped <= currentDrops) return;
 
         filled["Fee"] = bumped.ToString(CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>
+    /// Stamp <paramref name="defaultSourceTag"/> onto <paramref name="transaction"/> when it does
+    /// not already carry a <c>SourceTag</c>. A value the caller supplied — including an explicit
+    /// <c>0</c> — is preserved, and a <c>null</c> option disables stamping. Operates on the
+    /// top-level transaction only, so an XLS-56 Batch keeps its caller-signed inner transactions
+    /// (nested under <c>RawTransactions</c>) intact.
+    /// </summary>
+    internal static void ApplyDefaultSourceTag(IDictionary<string, object> transaction, uint? defaultSourceTag)
+    {
+        if (defaultSourceTag is null) return;
+
+        if (transaction.TryGetValue("SourceTag", out object? existing)
+            && existing is not null
+            && !(existing is JsonElement je && je.ValueKind == JsonValueKind.Null))
+        {
+            return;
+        }
+
+        transaction["SourceTag"] = defaultSourceTag.Value;
     }
 
     private static uint ExtractUInt(IDictionary<string, object> dict, string key)

@@ -90,6 +90,48 @@
         "xrpl-cloud",
         "xrpl-local"
       ]
+    },
+    {
+      "trigger": "pay for this API",
+      "plugins": [
+        "xrpl-cloud",
+        "xrpl-local"
+      ]
+    },
+    {
+      "trigger": "it returns 402",
+      "plugins": [
+        "xrpl-cloud",
+        "xrpl-local"
+      ]
+    },
+    {
+      "trigger": "x402",
+      "plugins": [
+        "xrpl-cloud",
+        "xrpl-local"
+      ]
+    },
+    {
+      "trigger": "agentic payment",
+      "plugins": [
+        "xrpl-cloud",
+        "xrpl-local"
+      ]
+    },
+    {
+      "trigger": "оплати платный ресурс",
+      "plugins": [
+        "xrpl-cloud",
+        "xrpl-local"
+      ]
+    },
+    {
+      "trigger": "ресурс требует оплату 402",
+      "plugins": [
+        "xrpl-cloud",
+        "xrpl-local"
+      ]
     }
   ]
 }

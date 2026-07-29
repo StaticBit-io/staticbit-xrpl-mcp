@@ -1,3 +1,61 @@
+## v0.5.0 — 2026-06-27
+
+### Features
+- xrpl-x402-payments skill (stdio+cloud) + generic-prepare fix (#26) (01d1e71)
+
+### Fixes
+- valid YAML frontmatter in skill descriptions (79f0d49)
+
+### Documentation
+- move Install to the top for plugin users (reorder; doc links → Documentation section) (d6caaca)
+- drop stale GitHub PAT references (public marketplace needs no token) (7b2c7c8)
+- neutralize maintainer-voice in RELEASE/README (drop first-person + stale 0.1.0 note) (fb197da)
+
+### Build / CI
+- add workflow_dispatch to security-audit (manual re-audit; pick up fixed reusable) (a9a5eea)
+- add zizmor+actionlint security-audit gate (16889e4)
+- bump actions/setup-dotnet from 4 to 5 in docs gates (applies #21) (1e52820)
+- bump actions/checkout from 5 to 6 (84243aa)
+- bump actions/setup-node from 4 to 6 (2d743ec)
+
+### Other
+- release: xrpl-local v0.5.0 (418c387)
+- release: xrpl-signer v0.4.1 (089080e)
+- release: xrpl-local v0.4.1 (7ed26ef)
+- Merge pull request #25 from StaticBit-io/dependabot/nuget/dot-config/dotnet-minor-patch-39309a9c2b (478eaa0)
+- Merge pull request #20 from StaticBit-io/dependabot/github_actions/actions/setup-node-6 (b0a581b)
+- Merge pull request #22 from StaticBit-io/dependabot/github_actions/actions/checkout-6 (ffbd251)
+- deps: Bump mcp.fleetlint and 14 others (586cf9e)
+
+## v0.4.0 — 2026-06-22
+
+### Features
+- signing ceremony, scoped auto-sign, memo/tainted-destination guard, submit discipline (65b3659)
+- stamp default SourceTag 100010011 + full-disclosure transaction preview (78c470b)
+
+### Documentation
+- prepare repository for public launch (LICENSE, CONTRIBUTING, CoC, public install, cloud repositioning) (2746bf9)
+
+### Tests
+- configurable integration endpoint/account + SourceTag/preview smoke assertions (5254373)
+
+### Other
+- release: xrpl-local v0.4.0 (3451440)
+- release: xrpl-signer v0.4.0 (7627ef3)
+
+## v0.3.3 — 2026-06-17
+
+### Fixes
+- make XRPL tool errors transparent via central classifier (9d69bb9)
+
+### Other
+- release: xrpl-local v0.3.8 (913f6ae)
+
+## v0.3.2 — 2026-06-03
+
+### Features
+- The server now serves `/favicon.ico` so MCP connector clients show an icon.
+
 ## v0.3.1 — 2026-05-31
 
 ### Features
@@ -46,7 +104,7 @@
 ## v0.3.0 — 2026-05-28
 
 ### Changed
-- **OAuth 2.1 auth** — the cloud server (`xrpl-mcp.staticbit.io`) now authenticates via OAuth against `auth.mcp.staticbit.io` instead of a static `XRPL_MCP_BEARER`. The plugin `.mcp.json` uses an `oauth` block (dynamic client registration); run `/mcp` once to log in. **Breaking**: `XRPL_MCP_BEARER` is gone; only allow-listed accounts can log in. Plugin README updated (INSTALL.md/DEPLOY.md OAuth rewrite pending).
+- **OAuth 2.1 auth** — the cloud server (`xrpl.mcp.staticbit.ai`) now authenticates via OAuth against `auth.mcp.staticbit.ai` instead of a static `XRPL_MCP_BEARER`. The plugin `.mcp.json` uses an `oauth` block (dynamic client registration); run `/mcp` once to log in. **Breaking**: `XRPL_MCP_BEARER` is gone; only allow-listed accounts can log in. Plugin README updated (INSTALL.md/DEPLOY.md OAuth rewrite pending).
 
 ## v0.2.5 — 2026-05-27
 

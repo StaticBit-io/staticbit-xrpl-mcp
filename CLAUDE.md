@@ -44,23 +44,29 @@ generator for XRPL transaction schemas, unrelated to tool-reference docs.)
 Per-plugin tags `<plugin>--vX.Y.Z` drive plugin releases (`release-plugin.yml` /
 `release-plugin.sh`, with signing/SBOM/SLSA). See `RELEASE.md` and per-plugin CHANGELOGs.
 
-## CI/CD — shared reusable workflows (repo `mcp-tooling`, public)
+## CI/CD — build-from-source deploy
 
-Image build/publish and VPS deploy are thin callers of the shared reusable workflows in
-`mcp-tooling` (`uses: Platonenkov/mcp-tooling/.github/workflows/<file>@main`):
-- The **xrpl-cloud release builds the cloud image itself**: `release-plugin.yml` has a gated
-  downstream `docker` job (runs only for `plugin == xrpl-cloud`) calling `docker-build-push.yml`
-  with the released version. This is required because the release job's `GITHUB_TOKEN` tag push
-  can't trigger `docker.yml` (recursion guard).
-- `docker.yml` is **manual-dispatch only** — ad-hoc image republish. No per-push/PR builds.
-- `deploy.yml` → `deploy-vps.yml`: ships the image to the VPS over SSH into the forced-command
-  `deploy/deploy.sh` (no `docker login` on the host), then smoke-tests `/healthz`. Needs the
-  `DEPLOY_*` repo secrets + the forced-command key in the host `~/.ssh/authorized_keys`.
+The stdio plugin **release/signing** flow (per-plugin tags, SBOM/SLSA) is unchanged — see the
+Releases section above.
+
+The **cloud** server is deployed by **`deploy-build.yml`** (Actions → **deploy-build**), which
+builds the image **from source on the host** as a non-root `mcpdeploy` user — there is no GHCR
+image to publish or pull:
+- It transfers the repo source to the VPS (`git archive` piped over `ssh tar`), reconstructs `.env`
+  (plus a minimal `.env.xrpl-mcp`) from **GitHub Secrets / Variables**, then runs
+  `docker compose up -d --build` (no `docker login`, no GHCR auth) and smoke-tests `/healthz`.
+- A downstream `register` job pushes the self-registration descriptor `.mcp-registry.json` to the
+  AS (`PUT /api/admin/mcps`, `X-Service-Token`) so it knows the `xrpl` scope/resource.
+- There is no `deploy/deploy.sh`, no root forced-command key, no `DEPLOY_*` image-shipping secrets
+  and no `docker save | ssh` tarball.
+
+The shared platform — **Traefik + wildcard TLS for `*.mcp.staticbit.ai` + the `mcp-net` network** —
+lives in the separate **mcp-infra** repo, not here.
 
 ## Operational conventions
 
 - **Add a new cloud MCP**: add the `Mcp.Auth.ResourceServer` package + an `OAuth` config section
-  (`Issuer` = https://auth.mcp.staticbit.io, `Resource` = this server's canonical `https://…/mcp`,
+  (`Issuer` = https://auth.mcp.staticbit.ai, `Resource` = this server's canonical `https://…/mcp`,
   `RequiredScope`); wire `AddMcpResourceServer` + `MapMcpProtectedResourceMetadata` +
   `RequireAuthorization(McpAuth.Policy)`. Register it in the AS admin panel `/admin/mcps` (scope +
   resource + secret definitions). Ship the plugin `.mcp.json` with an `oauth` block (DCR; users run
@@ -69,11 +75,11 @@ Image build/publish and VPS deploy are thin callers of the shared reusable workf
   and the Telegram admin-bot token lives in those URLs. Do not lower it.
 - **Secrets**: never commit `.env` / `*.key` / `secrets/`. Admin alerts use a shared admin bot via
   `Server__AdminAlerts__{Enabled,BotToken,ChatId}`.
-- **Deploy**: behind the shared Traefik on `mcp-net`. Image-based deploy via `deploy.yml` (the
-  shared `deploy-vps` reusable): the runner `docker save | ssh`-pipes the ghcr image into the
-  host's forced-command `deploy/deploy.sh`, which loads it, pins `XRPL_MCP_IMAGE` +
-  `XRPL_PULL_POLICY=never` in the compose `.env`, and recreates the container. No GHCR auth on the
-  host. **Live:** prod runs the official ghcr image. On the VPS a root forced-command CI key
-  (`/root/.ssh/authorized_keys`) is locked to `/opt/staticbit-xrpl-mcp/deploy.sh`, the repo's
-  `DEPLOY_*` secrets are set, and the host compose is image-based (`*.bak.pre-cd` backup kept).
-  Deploy via **Actions → deploy** (tag) or an `xrpl-cloud` release.
+- **Deploy**: behind the shared Traefik on `mcp-net` (platform from **mcp-infra**, wildcard TLS for
+  `*.mcp.staticbit.ai`). Build-from-source deploy via `deploy-build.yml` as the non-root
+  `mcpdeploy` user: the runner transfers the repo source to the VPS, reconstructs `.env` (+ a
+  minimal `.env.xrpl-mcp`) from GitHub Secrets/Variables, runs `docker compose up -d --build` on
+  the host (no GHCR auth), smoke-tests `/healthz`, then a `register` job pushes `.mcp-registry.json`
+  to the AS (`PUT /api/admin/mcps`, `X-Service-Token`). The cloud server is OAuth-only (no static
+  bearer). Deploy via **Actions → deploy-build**. No `deploy/deploy.sh`, no root forced-command,
+  no `DEPLOY_*` secrets, no `docker save`.

@@ -924,23 +924,23 @@
             "type": "string",
             "description": "First pool asset currency code."
           },
+          "asset2Currency": {
+            "type": "string",
+            "description": "Second pool asset currency code."
+          },
           "asset1Issuer": {
             "type": [
               "string",
               "null"
             ],
-            "description": "First pool asset issuer (empty for XRP)."
-          },
-          "asset2Currency": {
-            "type": "string",
-            "description": "Second pool asset currency code."
+            "description": "First pool asset issuer. Required for tokens; omit it when asset1Currency is 'XRP'."
           },
           "asset2Issuer": {
             "type": [
               "string",
               "null"
             ],
-            "description": "Second pool asset issuer (empty for XRP)."
+            "description": "Second pool asset issuer. Required for tokens; omit it when asset2Currency is 'XRP'."
           },
           "bidMin": {
             "type": [
@@ -968,9 +968,7 @@
           "network",
           "account",
           "asset1Currency",
-          "asset1Issuer",
-          "asset2Currency",
-          "asset2Issuer"
+          "asset2Currency"
         ],
         "additionalProperties": false
       }
@@ -1011,7 +1009,7 @@
               "string",
               "null"
             ],
-            "description": "Counterpart pool asset issuer. Empty for XRP."
+            "description": "Counterpart pool asset issuer. Required for tokens; omit it when asset2Currency is 'XRP'."
           },
           "amountValue": {
             "type": [
@@ -1090,32 +1088,30 @@
             "type": "string",
             "description": "First pool asset currency code."
           },
+          "asset2Currency": {
+            "type": "string",
+            "description": "Second pool asset currency code."
+          },
           "asset1Issuer": {
             "type": [
               "string",
               "null"
             ],
-            "description": "First pool asset issuer (empty for XRP)."
-          },
-          "asset2Currency": {
-            "type": "string",
-            "description": "Second pool asset currency code."
+            "description": "First pool asset issuer. Required for tokens; omit it when asset1Currency is 'XRP'."
           },
           "asset2Issuer": {
             "type": [
               "string",
               "null"
             ],
-            "description": "Second pool asset issuer (empty for XRP)."
+            "description": "Second pool asset issuer. Required for tokens; omit it when asset2Currency is 'XRP'."
           }
         },
         "required": [
           "network",
           "account",
           "asset1Currency",
-          "asset1Issuer",
-          "asset2Currency",
-          "asset2Issuer"
+          "asset2Currency"
         ],
         "additionalProperties": false
       }
@@ -1139,23 +1135,23 @@
             "type": "string",
             "description": "First pool asset — currency code ('XRP' or 3-char / 40-hex)."
           },
+          "asset2Currency": {
+            "type": "string",
+            "description": "Second pool asset — currency code."
+          },
           "asset1Issuer": {
             "type": [
               "string",
               "null"
             ],
-            "description": "First pool asset — issuer. Empty for XRP."
-          },
-          "asset2Currency": {
-            "type": "string",
-            "description": "Second pool asset — currency code."
+            "description": "First pool asset — issuer. Required for tokens; omit it when asset1Currency is 'XRP'."
           },
           "asset2Issuer": {
             "type": [
               "string",
               "null"
             ],
-            "description": "Second pool asset — issuer. Empty for XRP."
+            "description": "Second pool asset — issuer. Required for tokens; omit it when asset2Currency is 'XRP'."
           },
           "amount": {
             "type": [
@@ -1190,9 +1186,7 @@
           "network",
           "account",
           "asset1Currency",
-          "asset1Issuer",
-          "asset2Currency",
-          "asset2Issuer"
+          "asset2Currency"
         ],
         "additionalProperties": false
       }
@@ -1220,7 +1214,7 @@
               "string",
               "null"
             ],
-            "description": "Issuer of the first asset. Leave empty for XRP."
+            "description": "Issuer of the first asset. Required for tokens; omit it when asset1Currency is 'XRP'."
           },
           "asset2Currency": {
             "type": [
@@ -1234,7 +1228,7 @@
               "string",
               "null"
             ],
-            "description": "Issuer of the second asset. Leave empty for XRP."
+            "description": "Issuer of the second asset. Required for tokens; omit it when asset2Currency is 'XRP'."
           },
           "ammAccount": {
             "type": [
@@ -1283,37 +1277,35 @@
             "type": "string",
             "description": "First pool asset currency code ('XRP' or 3-char/40-hex)."
           },
+          "asset2Currency": {
+            "type": "string",
+            "description": "Second pool asset currency code."
+          },
+          "tradingFeeBasisPoints": {
+            "type": "integer",
+            "format": "uint",
+            "description": "Vote: trading fee in 1/10 bps (0..1000)."
+          },
           "asset1Issuer": {
             "type": [
               "string",
               "null"
             ],
-            "description": "First pool asset issuer (empty for XRP)."
-          },
-          "asset2Currency": {
-            "type": "string",
-            "description": "Second pool asset currency code."
+            "description": "First pool asset issuer. Required for tokens; omit it when asset1Currency is 'XRP'."
           },
           "asset2Issuer": {
             "type": [
               "string",
               "null"
             ],
-            "description": "Second pool asset issuer (empty for XRP)."
-          },
-          "tradingFeeBasisPoints": {
-            "type": "integer",
-            "format": "uint",
-            "description": "Vote: trading fee in 1/10 bps (0..1000)."
+            "description": "Second pool asset issuer. Required for tokens; omit it when asset2Currency is 'XRP'."
           }
         },
         "required": [
           "network",
           "account",
           "asset1Currency",
-          "asset1Issuer",
           "asset2Currency",
-          "asset2Issuer",
           "tradingFeeBasisPoints"
         ],
         "additionalProperties": false
@@ -1338,23 +1330,23 @@
             "type": "string",
             "description": "First pool asset — currency code ('XRP' or 3-char / 40-hex)."
           },
+          "asset2Currency": {
+            "type": "string",
+            "description": "Second pool asset — currency code."
+          },
           "asset1Issuer": {
             "type": [
               "string",
               "null"
             ],
-            "description": "First pool asset — issuer. Empty for XRP."
-          },
-          "asset2Currency": {
-            "type": "string",
-            "description": "Second pool asset — currency code."
+            "description": "First pool asset — issuer. Required for tokens; omit it when asset1Currency is 'XRP'."
           },
           "asset2Issuer": {
             "type": [
               "string",
               "null"
             ],
-            "description": "Second pool asset — issuer. Empty for XRP."
+            "description": "Second pool asset — issuer. Required for tokens; omit it when asset2Currency is 'XRP'."
           },
           "amount": {
             "type": [
@@ -1392,9 +1384,7 @@
           "network",
           "account",
           "asset1Currency",
-          "asset1Issuer",
-          "asset2Currency",
-          "asset2Issuer"
+          "asset2Currency"
         ],
         "additionalProperties": false
       }
@@ -1441,7 +1431,7 @@
     },
     {
       "name": "xrpl_book_offers",
-      "description": "Returns the order book (offers) for a currency pair on the XRPL DEX. Use 'XRP' currency with empty issuer for XRP.",
+      "description": "Returns the order book (offers) for a currency pair on the XRPL DEX. For XRP, pass currency 'XRP' and omit the matching issuer.",
       "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.DexTools",
       "inputSchema": {
         "type": "object",
@@ -1454,23 +1444,23 @@
             "type": "string",
             "description": "Currency the taker would RECEIVE. 'XRP' or 3-char/40-hex token code."
           },
+          "takerPaysCurrency": {
+            "type": "string",
+            "description": "Currency the taker would PAY. 'XRP' or 3-char/40-hex token code."
+          },
           "takerGetsIssuer": {
             "type": [
               "string",
               "null"
             ],
-            "description": "Issuer for the taker_gets currency. Leave empty for XRP."
-          },
-          "takerPaysCurrency": {
-            "type": "string",
-            "description": "Currency the taker would PAY. 'XRP' or 3-char/40-hex token code."
+            "description": "Issuer for the taker_gets currency. Required for tokens; omit it when takerGetsCurrency is 'XRP'."
           },
           "takerPaysIssuer": {
             "type": [
               "string",
               "null"
             ],
-            "description": "Issuer for the taker_pays currency. Leave empty for XRP."
+            "description": "Issuer for the taker_pays currency. Required for tokens; omit it when takerPaysCurrency is 'XRP'."
           },
           "taker": {
             "type": [
@@ -1498,9 +1488,7 @@
         "required": [
           "network",
           "takerGetsCurrency",
-          "takerGetsIssuer",
-          "takerPaysCurrency",
-          "takerPaysIssuer"
+          "takerPaysCurrency"
         ],
         "additionalProperties": false
       }
@@ -2348,16 +2336,16 @@
             "type": "string",
             "description": "Vault asset currency ('XRP', 3-char, or 40-hex)."
           },
+          "amountValue": {
+            "type": "string",
+            "description": "Decimal amount to deposit (drops for XRP, decimal value for IOU/MPT)."
+          },
           "assetIssuer": {
             "type": [
               "string",
               "null"
             ],
-            "description": "Vault asset issuer (empty for XRP)."
-          },
-          "amountValue": {
-            "type": "string",
-            "description": "Decimal amount to deposit (drops for XRP, decimal value for IOU/MPT)."
+            "description": "Vault asset issuer. Required for tokens; omit it when assetCurrency is 'XRP'."
           }
         },
         "required": [
@@ -2365,7 +2353,6 @@
           "account",
           "loanBrokerId",
           "assetCurrency",
-          "assetIssuer",
           "amountValue"
         ],
         "additionalProperties": false
@@ -2394,16 +2381,16 @@
             "type": "string",
             "description": "Vault asset currency."
           },
+          "amountValue": {
+            "type": "string",
+            "description": "Decimal amount to withdraw."
+          },
           "assetIssuer": {
             "type": [
               "string",
               "null"
             ],
-            "description": "Vault asset issuer (empty for XRP)."
-          },
-          "amountValue": {
-            "type": "string",
-            "description": "Decimal amount to withdraw."
+            "description": "Vault asset issuer. Required for tokens; omit it when assetCurrency is 'XRP'."
           },
           "destination": {
             "type": [
@@ -2426,7 +2413,6 @@
           "account",
           "loanBrokerId",
           "assetCurrency",
-          "assetIssuer",
           "amountValue"
         ],
         "additionalProperties": false
@@ -2617,16 +2603,16 @@
             "type": "string",
             "description": "Vault asset currency."
           },
+          "amountValue": {
+            "type": "string",
+            "description": "Payment amount (decimal string)."
+          },
           "assetIssuer": {
             "type": [
               "string",
               "null"
             ],
-            "description": "Vault asset issuer (empty for XRP)."
-          },
-          "amountValue": {
-            "type": "string",
-            "description": "Payment amount (decimal string)."
+            "description": "Vault asset issuer. Required for tokens; omit it when assetCurrency is 'XRP'."
           },
           "paymentKind": {
             "type": [
@@ -2641,7 +2627,6 @@
           "account",
           "loanId",
           "assetCurrency",
-          "assetIssuer",
           "amountValue"
         ],
         "additionalProperties": false
@@ -4691,16 +4676,16 @@
             "type": "string",
             "description": "Vault asset currency code ('XRP', 3-char, or 40-hex)."
           },
+          "amountValue": {
+            "type": "string",
+            "description": "Initial deposit as a decimal string in vault-asset units. For XRP pass drops as a decimal string."
+          },
           "assetIssuer": {
             "type": [
               "string",
               "null"
             ],
-            "description": "Vault asset issuer (empty for XRP)."
-          },
-          "amountValue": {
-            "type": "string",
-            "description": "Initial deposit as a decimal string in vault-asset units. For XRP pass drops as a decimal string."
+            "description": "Vault asset issuer. Required for tokens; omit it when assetCurrency is 'XRP'."
           },
           "assetsMaximum": {
             "type": [
@@ -4761,7 +4746,6 @@
           "network",
           "account",
           "assetCurrency",
-          "assetIssuer",
           "amountValue"
         ],
         "additionalProperties": false
@@ -4818,16 +4802,16 @@
             "type": "string",
             "description": "Vault asset currency code ('XRP', 3-char, or 40-hex). Must match the vault's asset."
           },
+          "amountValue": {
+            "type": "string",
+            "description": "Amount to deposit (decimal string; drops for XRP)."
+          },
           "assetIssuer": {
             "type": [
               "string",
               "null"
             ],
-            "description": "Vault asset issuer (empty for XRP)."
-          },
-          "amountValue": {
-            "type": "string",
-            "description": "Amount to deposit (decimal string; drops for XRP)."
+            "description": "Vault asset issuer. Required for tokens; omit it when assetCurrency is 'XRP'."
           }
         },
         "required": [
@@ -4835,7 +4819,6 @@
           "account",
           "vaultId",
           "assetCurrency",
-          "assetIssuer",
           "amountValue"
         ],
         "additionalProperties": false
@@ -4929,7 +4912,7 @@
               "string",
               "null"
             ],
-            "description": "For amountKind='asset': vault asset issuer (empty for XRP)."
+            "description": "For amountKind='asset': vault asset issuer. Required for tokens; omit it when assetCurrency is 'XRP'."
           },
           "shareMptIssuanceId": {
             "type": [

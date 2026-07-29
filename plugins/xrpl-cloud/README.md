@@ -2,7 +2,7 @@
 
 # xrpl-cloud plugin
 
-A lightweight HTTP MCP client for our cloud XRPL server at `xrpl-mcp.staticbit.io`. No binaries, no local processes — Claude Code authenticates to the server via **OAuth 2.1** (run `/mcp` once to sign in).
+A lightweight HTTP MCP client for our cloud XRPL server at `xrpl.mcp.staticbit.ai`. No binaries, no local processes — Claude Code authenticates to the server via **OAuth 2.1** (run `/mcp` once to sign in).
 
 ## When to choose this plugin
 
@@ -21,13 +21,13 @@ If you are privacy-sensitive (you don't want the cloud server admin to see traff
 
 ### Authentication (OAuth 2.1)
 
-The server is protected by OAuth; only accounts on the **allow-list** can sign in — ask the `xrpl-mcp.staticbit.io` admin to add your account. No bearer/ENV needs to be set. Then, in Claude Code:
+The server is protected by OAuth; only accounts on the **allow-list** can sign in — ask the `xrpl.mcp.staticbit.ai` admin to add your account. No bearer/ENV needs to be set. Then, in Claude Code:
 
 ```
 /mcp
 ```
 
-Complete the browser sign-in to `auth.mcp.staticbit.io` — Claude Code will perform dynamic client registration, store the token, and refresh it automatically.
+Complete the browser sign-in to `auth.mcp.staticbit.ai` — Claude Code will perform dynamic client registration, store the token, and refresh it automatically.
 
 ## Verification
 
@@ -35,7 +35,7 @@ Complete the browser sign-in to `auth.mcp.staticbit.io` — Claude Code will per
 /mcp
 ```
 ```
-xrpl-cloud  https://xrpl-mcp.staticbit.io/mcp (HTTP)  ✓ Connected
+xrpl-cloud  https://xrpl.mcp.staticbit.ai/mcp (HTTP)  ✓ Connected
 ```
 
 All <!-- toolcount:xrpl -->116<!-- /toolcount:xrpl --> tools are available as `mcp__plugin_xrpl-cloud_xrpl-cloud__*`. Full parameter-level reference: [`docs/TOOLS.generated.md`](../../docs/TOOLS.generated.md). Categories at a glance (with representative tools):
@@ -64,5 +64,5 @@ Cloud does `prepare` → signer (locally) does `sign` → cloud does `submit_sig
 ## Security
 
 - The cloud server **never** receives a seed/private key — all write tools accept only a signed blob.
-- Authentication is OAuth 2.1: the server validates short-lived JWTs from `auth.mcp.staticbit.io`; only allow-listed accounts can sign in. Failed attempts are sent to the VPS admin via Telegram.
+- Authentication is OAuth 2.1: the server validates short-lived JWTs from `auth.mcp.staticbit.ai`; only allow-listed accounts can sign in. Failed attempts are sent to the VPS admin via Telegram.
 - HTTPS-only.

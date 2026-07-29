@@ -30,7 +30,7 @@ jobs:
       security-events: write     # required to publish results to the Security tab
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v5

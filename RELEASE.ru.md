@@ -2,55 +2,58 @@
 
 # RELEASE — выпуск новой версии плагинов
 
-Этот документ для **тебя**, когда нужно опубликовать обновление одного из плагинов в marketplace. Скрипт-оркестратор: [`release-plugin.sh`](release-plugin.sh).
+Гайд для мейнтейнера: как опубликовать обновление одного из плагинов в marketplace. Канонический путь — **workflow `release-plugin`**; его рабочая лошадка — [`release-plugin.sh`](release-plugin.sh), который для настоящего релиза руками запускать **не** нужно.
 
 ## TL;DR
 
 ```bash
-# Запускаем из корня monorepo (исходники + marketplace в одном репо).
-
-# 1. Закоммитил код, запушил, проверил тесты — стандартный flow.
+# 1. Закоммитил код, запушил, CI зелёный — стандартный flow.
 git status            # должно быть clean
 git push
 
-# 2. Релизишь:
-./release-plugin.sh xrpl-signer patch --push
+# 2. Релиз — Actions → release-plugin, либо из CLI:
+gh workflow run release-plugin.yml --ref main -f plugin=xrpl-signer -f bump=patch
+
+# 3. Проверить, что релиз создан вместе с артефактами:
+gh release view xrpl-signer--v0.4.2 --json assets --jq '.assets[].name'
 ```
 
-Скрипт сам пересоберёт бинари, скопирует их в `plugins/<name>/bin/`, bumpнет версию в `plugin.json` + `marketplace.json`, припишет CHANGELOG из git log, создаст коммит и git tag, и сделает fast-forward push.
+Workflow прогоняет unit-тесты, вызывает `release-plugin.sh` (пересборка бинарей → bump `plugin.json` + `marketplace.json` → запись в CHANGELOG → коммит → тег), затем подписывает бинари, генерирует CycloneDX SBOM, прикладывает SLSA build-provenance attestation и создаёт **GitHub Release** с per-RID тарболами и `.sha256`.
+
+> ⚠️ **Не запускай `./release-plugin.sh <plugin> <bump> --push` для настоящего релиза.**
+> Скрипт останавливается на commit+tag. Подпись, SBOM, SLSA-provenance и GitHub Release существуют **только** в `release-plugin.yml`, а этот workflow — **dispatch-only**: триггера `push: tags` у него нет, поэтому запушенный локально тег не создаёт Release вообще. Marketplace при этом всё равно отдаст новую версию (бинари закоммичены в репо) — получится версия, у которой молча нет supply-chain артефактов. Локально скрипт нужен для проверок `--build-only` / `--dry-run` (сценарий D).
 
 ---
 
 ## Когда какой bump
 
-Сейчас все плагины на `0.1.0` — публичных пользователей нет, можно крутить смело. Когда появятся реальные подписчики на ваш marketplace — соблюдай [semver](https://semver.org/lang/ru/):
+Соблюдай [semver](https://semver.org/lang/ru/):
 
 | Что изменилось | Bump |
 |---|---|
 | Фикс бага без изменения API (имя tool'а, его параметры, поведение) | `patch` |
-| Новый tool, новый опциональный параметр существующего tool'а, новая опц. ENV | `minor` |
+| Новый tool, новый опциональный параметр существующего tool'а, новая опциональная ENV | `minor` |
 | Удалён tool, переименован параметр, изменена семантика (breaking) | `major` |
-| Только текст SKILL.md / README — нет изменения в API | `patch` |
-| Обновили self-contained .NET бинарь без изменения API | `patch` (или `minor` если performance/storage заметно поменялись) |
+| Только текст SKILL.md / README — без изменения API | `patch` |
+| Обновлён self-contained .NET бинарь без изменения API | `patch` (или `minor`, если заметно изменилась производительность/размер) |
 
-Точную версию можно задать вручную через `--version`:
-```bash
-./release-plugin.sh xrpl-signer --version 1.0.0-rc.1
-```
+Превращение существующего **обязательного** параметра в опциональный — это `minor`: схема начинает принимать больше, не ломая существующие вызовы.
 
-## Какой плагин зависит от какого исходника
+Workflow принимает `patch` / `minor` / `major`. Точная версия (например, pre-release вида `1.0.0-rc.1`) — возможность только скрипта, см. `--version` в таблице флагов.
 
-| Плагин | Источник кода | При изменении чего bumpаем |
+## Какой плагин от каких исходников зависит
+
+| Плагин | Исходники | Bump при изменении |
 |---|---|---|
-| `xrpl-cloud` | манифест плагина + skill + .mcp.json (URL/headers) | только manifest/skill — `--no-build` |
-| `xrpl-local` | `src/StaticBit.Xrpl.Mcp.{Abstractions,Core,Server}` | весь server-проект |
-| `xrpl-signer` | `src/StaticBit.Xrpl.Mcp.Signer` | только signer-проект (independent) |
+| `xrpl-cloud` | манифест плагина + skill + .mcp.json (URL/headers) | только манифест/skill — `no_build` |
+| `xrpl-local` | `src/StaticBit.Xrpl.Mcp.{Abstractions,Core,Server}` | весь серверный проект |
+| `xrpl-signer` | `src/StaticBit.Xrpl.Mcp.Signer` | только проект сигнера (независим) |
 
-Если правишь `StaticBit.Xrpl.Mcp.Core` — затронут только `xrpl-local` (signer не зависит от Core). Если правишь `StaticBit.Xrpl.Mcp.Server` — только `xrpl-local`. Если правишь `StaticBit.Xrpl.Mcp.Signer` — только `xrpl-signer`. `xrpl-cloud` зависит только от URL endpoint'а и текста в манифесте.
+Меняешь `StaticBit.Xrpl.Mcp.Core` — затронут только `xrpl-local` (сигнер от Core не зависит). Меняешь `StaticBit.Xrpl.Mcp.Server` — только `xrpl-local`. Меняешь `StaticBit.Xrpl.Mcp.Signer` — только `xrpl-signer`. `xrpl-cloud` зависит лишь от URL эндпоинта и текста манифеста.
 
-## Типичные сценарии
+## Типовые сценарии
 
-### Сценарий A — мелкий фикс в signer-коде
+### Сценарий A — небольшой фикс в коде сигнера
 
 ```bash
 # Правишь src/StaticBit.Xrpl.Mcp.Signer/..., тестируешь:
@@ -61,11 +64,11 @@ git add -A
 git commit -m "fix(signer): correct error message on missing wallet"
 git push
 
-# Релизишь — скрипт сам всё сделает:
-./release-plugin.sh xrpl-signer patch --push
+# Релизишь — workflow сам всё сделает:
+gh workflow run release-plugin.yml --ref main -f plugin=xrpl-signer -f bump=patch
 ```
 
-### Сценарий B — обновил skill / README плагина (без пересборки)
+### Сценарий B — обновили skill / README плагина (без пересборки)
 
 ```bash
 # Правишь прямо тут — исходники и marketplace в одном monorepo:
@@ -75,78 +78,91 @@ git commit -m "docs(xrpl-cloud): clarify two-phase signing flow in skill"
 git push
 
 # Релизишь без билда:
-./release-plugin.sh xrpl-cloud patch --no-build --push
+gh workflow run release-plugin.yml --ref main -f plugin=xrpl-cloud -f bump=patch -f no_build=true
 ```
 
-### Сценарий C — большая фича в server-коде, затрагивает cloud + local
+### Сценарий C — фича в серверном коде, затрагивает и cloud, и local
 
 ```bash
-# 1. Закоммитил branch в основной репо, мерджнул в main, запушил.
-# 2. ДЕПЛОЙ CLOUD-сервера — отдельная процедура (DEPLOY.md):
-ssh root@<vps> 'cd /opt/staticbit-xrpl-mcp && docker compose pull && docker compose up -d'
-# Тестируешь cloud endpoint вручную, убеждаешься что работает.
+# 1. Код закоммичен в main и запушен, CI зелёный.
 
-# 3. Релизишь local-плагин с новым self-contained бинарём:
-./release-plugin.sh xrpl-local minor --push
+# 2. ДЕПЛОЙ CLOUD-СЕРВЕРА — Actions → deploy-build (собирает из исходников на хосте):
+gh workflow run deploy-build.yml --ref main
 
-# 4. cloud-плагин в большинстве случаев bumpить НЕ надо —
-#    это просто HTTP wrapper, новый функционал доступен через тот же URL
-#    автоматически. Bumpи если изменился URL/headers в .mcp.json.
+# 3. Проверь, что живой сервер поднял новый билд. /healthz возвращает короткий
+#    SHA задеплоенного коммита (build-arg APP_VERSION), а не semver:
+curl -s https://xrpl.mcp.staticbit.ai/healthz     # {"status":"ok","version":"<short-sha>"}
+git rev-parse --short HEAD                        # должно совпасть
+
+# 4. Релизишь local-плагин с новым self-contained бинарём:
+gh workflow run release-plugin.yml --ref main -f plugin=xrpl-local -f bump=minor
 ```
 
-### Сценарий D — sanity-check без публикации
+Шаг 4 добавляет релизный коммит поверх `main`, поэтому `/healthz` после него будет отставать от HEAD на этот коммит. Перезапусти `deploy-build`, если нужно, чтобы версия на сервере точно совпадала с HEAD — сам код сервера при этом не меняется (релизный коммит трогает только `bin/`, манифесты и CHANGELOG).
+
+**Обычно bump'ать cloud-плагин НЕ нужно** — это просто HTTP-обёртка; новые tools и изменённые схемы tools становятся доступны по тому же URL сразу после деплоя сервера. Bump нужен, только если в `.mcp.json` изменились URL/headers.
+
+### Сценарий D — проверка без публикации
+
+Именно для этого локальный скрипт и нужен:
 
 ```bash
-# Хочешь убедиться что свежий код собирается и проходит тесты,
+# Хочешь убедиться, что свежий код собирается и тесты проходят,
 # и проверить плагин локально перед релизом:
 ./release-plugin.sh xrpl-signer --build-only
 
-# Это пересобрало бинари + скопировало в marketplace, но не делало
-# version bump / коммит / тэг. У тебя в marketplace появится diff,
-# который можно реверснуть (git checkout) или закоммитить как
-# отдельный prep-commit перед нормальным релизом.
+# Пересобрало бинари + скопировало их в marketplace, но НЕ сделало
+# version bump / commit / tag. Увидишь diff в marketplace,
+# который можно откатить (git checkout) либо закоммитить
+# как prep-коммит перед обычным релизом.
 
-# Локально проверить через переустановку плагина:
+# Локальная проверка переустановкой плагина:
 claude plugin marketplace update staticbit-xrpl-mcp
 claude plugin update xrpl-signer@staticbit-xrpl-mcp
-# Перезапустить Claude Code, протестировать вживую.
+# Перезапусти Claude Code, проверь вживую.
 
-# Если всё ок — нормальный релиз:
-./release-plugin.sh xrpl-signer patch --push
+# Если всё ок — релизишь через workflow:
+gh workflow run release-plugin.yml --ref main -f plugin=xrpl-signer -f bump=patch
 ```
 
-### Сценарий E — Multi-plugin release
+### Сценарий E — релиз нескольких плагинов
+
+Workflow релизит **один плагин за запуск**. Диспатчить нужно **по одному, дожидаясь завершения** каждого перед следующим:
 
 ```bash
-# Поменял что-то в Core, и оно затронуло и server, и есть резон
-# актуализировать manifest у обоих:
-./release-plugin.sh xrpl-local,xrpl-signer minor --push
+gh workflow run release-plugin.yml --ref main -f plugin=xrpl-local -f bump=minor
+gh run watch "$(gh run list --workflow=release-plugin.yml --limit 1 --json databaseId --jq '.[0].databaseId')" --exit-status
+
+gh workflow run release-plugin.yml --ref main -f plugin=xrpl-signer -f bump=minor
 ```
-Версии обоих плагинов bumpятся одновременно, бинари каждого собираются, коммит один общий.
 
-## Чего скрипт **не** делает
+Каждый запуск чекаутит SHA на момент диспатча и пушит в `main` без rebase, поэтому одновременный диспатч приводит к non-fast-forward падениям, а общая группа `concurrency: release-plugin` отменяет средний запуск.
 
-| Что | Где сделать |
+## Что релизный workflow **не** делает
+
+| Задача | Где делать |
 |---|---|
-| Передеплоить cloud-сервер на VPS | `ssh root@<vps>` + процедура в `DEPLOY.md` (отдельный шаг — это никак не привязано к плагинам) |
-| Запушить Docker-образ в GHCR | Делает GitHub Actions автоматически при push в main основного репо |
-| Создать GitHub Release (с release notes UI на GitHub) | Только если хочешь. Скрипт создаёт **git tag** — этого обычно достаточно. Можешь руками потом `gh release create <tag>` |
-| Force-push | Намеренно не поддерживается. Если push отклонён (non-fast-forward) — разруливай руками: `git pull --rebase` в нужном репо, затем повтори с `--push` |
+| Передеплой cloud-сервера | Actions → **deploy-build** (`gh workflow run deploy-build.yml`). Собирает из исходников на VPS под non-root `mcpdeploy`; см. `docs/DEPLOY.md`. С релизами плагинов не связано |
+| Пуш Docker-образа | Пушить нечего — cloud-деплой собирает образ **из исходников на хосте**. Образа в GHCR, который надо публиковать или пуллить, нет |
+| Bump gitlink в `mcp-fleet` | Задача суперпроекта: `git add staticbit-xrpl-mcp && git commit && git push` в `mcp-fleet` |
+| Force-push | Намеренно не поддерживается. Если push отбился (non-fast-forward) — разбирайся руками: `git pull --rebase`, затем передиспатчить |
 
-## Что лежит на тебе после релиза
+## После релиза
 
-1. **Cloud deployment**, если затронут server-код и есть live VPS. Скрипт не SSH'ится сам.
-2. **Уведомить пользователей** что обновление доступно (если их больше чем ты сам). Они сделают:
+1. **Деплой cloud**, если затронут серверный код — Actions → `deploy-build`. Релизный workflow не деплоит.
+2. **Bump gitlink** в суперпроекте `mcp-fleet`, чтобы он указывал на релизный коммит.
+3. **Сообщить пользователям**, что обновление доступно. Они выполняют:
    ```
    /plugin marketplace update staticbit-xrpl-mcp
    /plugin update xrpl-signer@staticbit-xrpl-mcp
    ```
-   Форма `<plugin>@<marketplace>` обязательна — короткая
+   Форма `<plugin>@<marketplace>` обязательна — короткий
    `claude plugin update xrpl-signer` падает с `Plugin not found`
-   в текущей версии Claude Code CLI.
-3. **GitHub Release с UI-нотами**, если хочешь — `gh release create xrpl-signer--v0.1.1 --notes-from-tag`. CHANGELOG.md плагина — отличная база для нот.
+   в текущем Claude Code CLI.
 
-## Опции скрипта (полный список)
+Сам GitHub Release (notes из CHANGELOG, тарболы, `.sha256`, SBOM, attestation) создаёт workflow — руками делать нечего.
+
+## Флаги скрипта (полный список)
 
 ```
 ./release-plugin.sh --help
@@ -156,22 +172,23 @@ claude plugin update xrpl-signer@staticbit-xrpl-mcp
 
 | Флаг | Назначение |
 |---|---|
-| `--no-build` | Пропустить пересборку бинарей (docs-only / манифест-only фикс) |
-| `--build-only` | Только сборка + копирование, без bump/commit/tag |
-| `--push` | После всех коммитов сделать fast-forward push в оба репо |
-| `--version X.Y.Z` | Точная версия вместо semver bump |
-| `--dry-run` | Показать что будет сделано, ничего не менять |
+| `--no-build` | Пропустить пересборку (фикс только доков / манифеста) — вход workflow `no_build` |
+| `--build-only` | Только сборка + копирование, без bump/commit/tag — локальная проверка, аналога в workflow нет |
+| `--push` | После всех коммитов сделать fast-forward push обоих репо — **только для CI; см. предупреждение в TL;DR** |
+| `--version X.Y.Z` | Явная версия вместо semver-bump (например, pre-release) |
+| `--dry-run` | Показать, что произойдёт, ничего не меняя — вход workflow `dry_run` |
 
 ## Troubleshooting
 
 | Симптом | Причина | Решение |
 |---|---|---|
-| `Repo … has uncommitted changes` | Скрипт требует чистые репо | `git status` + закоммитить или stash |
+| Тег есть, а GitHub Release / SBOM / attestation нет | Релиз сделан локальным `release-plugin.sh --push` вместо диспатча workflow | `git revert` релизного коммита (он трогает только `bin/`, манифесты и CHANGELOG — код и прод не затронуты), `git push origin --delete <tag>`, затем диспатчить workflow. Он пересоздаст ту же версию начисто; force-push не нужен |
+| `Repo … has uncommitted changes` | Скрипт требует чистых репо | `git status` + закоммить или stash |
 | `Plugin … not found in marketplace.json` | Имя плагина не зарегистрировано в marketplace | Проверь `plugins[].name` в `.claude-plugin/marketplace.json` |
-| `Artifacts not found at …` | Build-скрипт упал или не запускался | Запусти отдельно `bash build-signer-binaries.sh` чтобы видеть ошибки |
-| `non-fast-forward` при push | Кто-то (или ты с другого устройства) запушил раньше | `git pull --rebase` в нужном репо → повтори с `--push` |
-| `claude plugin tag` ругается на validation | Манифест плагина или marketplace entry рассинхронизированы | Открой и проверь что `version` в `plugin.json` и в `marketplace.json/plugins[i]` совпадают (скрипт делает это автоматически — но может быть ручной правки) |
+| `Artifacts not found at …` | Build-скрипт упал или не запускался | Запусти `bash build-signer-binaries.sh` отдельно и посмотри ошибки |
+| `non-fast-forward` при push | Параллельный релизный запуск, либо кто-то запушил раньше | Диспатчь релизы последовательно (сценарий E); `git pull --rebase` → передиспатчить |
+| `claude plugin tag` ругается на валидацию | Манифест плагина и запись в marketplace рассинхронизированы | Открой оба и проверь, что `version` в `plugin.json` совпадает с `marketplace.json/plugins[i]` (скрипт делает это автоматически — но ручная правка могла их рассинхронизировать) |
 
-## Расширение для других плагинов
+## Расширение на другие плагины
 
-Если в этом marketplace появится плагин из **другого** source-репо (например `x-mcp-cloud` из репо `Platonenkov/XMcp`) — нужно такой же `release-plugin.sh` в том source-репо. Он будет знать про свои бинари (если есть) и копировать их в `staticbit-xrpl-mcp/plugins/x-mcp-cloud/`. JSON-helpers / changelog / commit-tag-push логика повторяется один-к-одному — можно скопировать оттуда сюда и подставить свои значения в `PLUGIN_KIND`.
+Если в этот marketplace приезжает плагин из **другого** репо-источника (например, `x-mcp-cloud` из `Platonenkov/XMcp`) — нужен такой же `release-plugin.sh` в том репо-источнике. Он будет знать про свои бинари (если они есть) и копировать их в `staticbit-xrpl-mcp/plugins/x-mcp-cloud/`. Логика JSON-хелперов / changelog / commit-tag-push один в один — можно скопировать и подставить свои значения `PLUGIN_KIND`.

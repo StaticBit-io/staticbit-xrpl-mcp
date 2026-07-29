@@ -1,6 +1,6 @@
 ---
 name: xrpl-local-operations
-description: Use this skill when the user wants XRPL operations to run fully on their own machine without going through the StaticBit cloud server — for privacy, no-server-dependency, or to use custom rippled endpoints. Same surface as `xrpl-cloud-operations`: payments and trust lines; DEX offers, order book and path-finding; AMM (create, deposit, withdraw, vote, bid, clawback, delete, info); NFTs (mint, burn, modify, create/accept/cancel offer, buy/sell offers); MPTs (issuance create/set/destroy, authorize, holdings); Vaults (create, deposit, withdraw, set, clawback, delete); Loans and loan brokers (XLS-66); DIDs (XLS-40); Oracles (set/delete); xChain bridges (create/modify, commit, claim, claim IDs, attestations, AccountCreate); Credentials (XLS-70 create/accept/delete + hash); Permissioned domains (XLS-80); Batches (XLS-56); DelegateSet (XLS-75); DepositPreauth; Escrows; Checks; Payment channels; AccountSet / AccountDelete / SetRegularKey / SignerListSet / TicketCreate; server intel; subscriptions. Recognizes phrases like "use local XRPL", "without the cloud server", "directly via xrplcluster", "offline-first XRPL", and the same intent phrases as the cloud skill ("check balance", "send XRP", "create AMM pool", "mint NFT", "deposit to vault", "issue credential", "set up xchain bridge", "set DID", "create MPT issuance", "сколько XRP у адреса", "создай AMM пул", "выпусти NFT", "положи в vault", "выдай credential", "настрой xchain мост") WHEN the cloud plugin is not installed or the user explicitly asked for local. Routes calls through the local stdio `xrpl-local` MCP. For signing, expects the `xrpl-signer` plugin to be installed alongside.
+description: Use this skill when the user wants XRPL operations to run fully on their own machine without going through the StaticBit cloud server — for privacy, no-server-dependency, or to use custom rippled endpoints. Same surface as `xrpl-cloud-operations` — payments and trust lines; DEX offers, order book and path-finding; AMM (create, deposit, withdraw, vote, bid, clawback, delete, info); NFTs (mint, burn, modify, create/accept/cancel offer, buy/sell offers); MPTs (issuance create/set/destroy, authorize, holdings); Vaults (create, deposit, withdraw, set, clawback, delete); Loans and loan brokers (XLS-66); DIDs (XLS-40); Oracles (set/delete); xChain bridges (create/modify, commit, claim, claim IDs, attestations, AccountCreate); Credentials (XLS-70 create/accept/delete + hash); Permissioned domains (XLS-80); Batches (XLS-56); DelegateSet (XLS-75); DepositPreauth; Escrows; Checks; Payment channels; AccountSet / AccountDelete / SetRegularKey / SignerListSet / TicketCreate; server intel; subscriptions. Recognizes phrases like "use local XRPL", "without the cloud server", "directly via xrplcluster", "offline-first XRPL", and the same intent phrases as the cloud skill ("check balance", "send XRP", "create AMM pool", "mint NFT", "deposit to vault", "issue credential", "set up xchain bridge", "set DID", "create MPT issuance", "сколько XRP у адреса", "создай AMM пул", "выпусти NFT", "положи в vault", "выдай credential", "настрой xchain мост") WHEN the cloud plugin is not installed or the user explicitly asked for local. Routes calls through the local stdio `xrpl-local` MCP. For signing, expects the `xrpl-signer` plugin to be installed alongside.
 ---
 
 # XRPL operations via local stdio MCP
@@ -112,12 +112,25 @@ Every ledger-changing transaction is a three-step flow:
    - `txBlobUnsigned` — canonical hex blob
    - `signingData` — pre-image suitable for hardware-wallet signing
    - `humanSummary` — one-line description
+   - `preview` — full-disclosure approval block (full addresses, drops→XRP, anomalous-fee flag, expiry, untrusted memos) — show this before signing
    - `requiresUserApproval: true`
-2. **Show `humanSummary` to the user. Ask explicit confirmation.** Last chance to catch a wrong address, fee surprise, or drops-vs-XRP confusion.
+2. **Show the `preview` block to the user and get explicit confirmation.** The prepare result includes a full-disclosure `preview` — full (un-truncated) addresses, drops→XRP, the fee with an anomaly flag, Sequence, LastLedgerSequence + an expiry estimate, and decoded **untrusted** memos. Display it verbatim; it is the last chance to catch a wrong address, fee surprise, or drops-vs-XRP confusion. Never sign without showing it.
 3. **Sign** with `mcp__plugin_xrpl-signer_xrpl-signer__xrpl_sign(name=<wallet alias>, transaction=<txJson or txBlobUnsigned>)`. Returns `{txBlob, hash}`.
 4. **Submit** — `xrpl_tx_submit_signed(txBlobSigned=<txBlob>, waitForValidation=true)`. Returns `{engineResult, txHash, validated, ledgerIndex}`.
 
 Surface `engineResult` verbatim — rippled errors like `tecUNFUNDED_PAYMENT`, `tecPATH_DRY`, `tefMAX_LEDGER` are the actual diagnostic.
+
+### Preview & submission discipline
+
+- **Preview before signing.** Always render the prepare result's `preview` block and get an explicit "yes" before calling `xrpl_sign`. Autofill is server-side: if a prepare fails, show the error and stop — never hand-edit or hard-code `Sequence` / `Fee` / `LastLedgerSequence`.
+- **Anomalous fee.** The preview flags a fee above 100 drops. If flagged, pause and confirm the user really intends it (open-ledger escalation vs. a mistake).
+- **submitAndWait, never fire-and-forget.** Submit with `waitForValidation=true`, and note the `hash` **before** submitting so a lost response can be reconciled.
+- **Never double-submit.** If submit times out or throws, do **not** resubmit blindly — look the tx up by `hash` (`xrpl_tx_lookup`) and report the last known state. A blind second submit risks a double-spend.
+- **Interpret the result code:**
+  - `tesSUCCESS` — applied; done.
+  - `tec*` — applied to the ledger and the **fee was burned**; the intent failed (e.g. `tecUNFUNDED_PAYMENT`, `tecPATH_DRY`). Do **not** resubmit the same tx — fix the cause first.
+  - `tef*` / `tel*` / `tem*` — never reached a ledger (malformed / local / fee too low). Safe to fix and resubmit with a **fresh** prepare.
+  - `ter*` — retryable; may still apply within the LastLedgerSequence window. Wait — don't pile on duplicates.
 
 ### Payments, DEX, trust lines, issuer ops
 

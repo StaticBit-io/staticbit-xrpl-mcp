@@ -8,7 +8,7 @@ Self-contained пошаговая инструкция. Передай ссыл�
 
 1. [Предварительные требования](#1-предварительные-требования)
 2. [Выбор сценария — какие плагины ставить](#2-выбор-сценария)
-3. [Получение GitHub PAT](#3-получение-github-pat)
+3. [Доступ к marketplace](#3-доступ-к-marketplace)
 4. [Добавление marketplace](#4-добавление-marketplace)
 5. [Установка плагинов](#5-установка-плагинов)
 6. [Получение доступа — allow-list админа и секреты](#6-получение-доступа)
@@ -29,7 +29,6 @@ Self-contained пошаговая инструкция. Передай ссыл�
 | Claude Code 2.1+ | команды `/plugin` и поддержка plugin MCP появились в этой версии | `claude --version` |
 | Node.js 18+ | плагины `xrpl-local` и `xrpl-signer` запускают .NET-бинарь через Node-launcher | `node --version` |
 | ~600 MB места | self-contained бинарники для 5 платформ внутри плагинов | — |
-| GitHub PAT (Personal Access Token) | репозиторий marketplace приватный, нужен read-доступ | см. §3 |
 
 > Если у тебя Claude Code < 2.1 — обнови через `claude update` или [официальный апдейтер](https://claude.com/claude-code).
 
@@ -47,7 +46,7 @@ Marketplace содержит **три независимых** плагина. �
 | **Read-only локально** | `xrpl-local` | то же без cloud |
 | **Только wallet management** (генерация/импорт/бэкап без сети) | `xrpl-signer` | offline keystore сам по себе |
 
-> Если не уверен — выбери первый вариант (cloud + signer). Это самая лёгкая комбинация и её можно расширить или заменить позже без потери wallet'ов в keystore.
+> Если не уверен — выбери **local + signer**. Это полностью self-contained (не нужен оформленный cloud-доступ), и её можно расширить или заменить позже без потери wallet'ов в keystore.
 
 ### Зачем подписание всегда локальное
 
@@ -81,39 +80,11 @@ Walkthrough ниже использует базовые `xrpl_fee` / `xrpl_paym
 
 ---
 
-## 3. Получение GitHub PAT
+## 3. Доступ к marketplace
 
-Marketplace репозиторий **приватный**, Claude Code запросит токен при первом `marketplace add`. Создай PAT заранее:
+Marketplace **публичный** — `claude plugin marketplace add` не требует GitHub-токена. Переходи сразу к §4.
 
-### 3.1 Сгенерировать PAT
-
-1. Зайди на [github.com/settings/tokens](https://github.com/settings/tokens).
-2. **Generate new token** → **Fine-grained personal access token** (рекомендуется) или **Tokens (classic)**.
-
-**Если fine-grained:**
-- Token name: `staticbit-xrpl-mcp-readonly`
-- Expiration: 90 дней (или больше — это твой выбор)
-- Resource owner: `StaticBit-io`
-- Repository access: **Only select repositories** → `staticbit-xrpl-mcp`
-- Permissions → Repository permissions:
-  - **Contents**: Read-only
-  - **Metadata**: Read-only (auto)
-- **Generate token**. Скопируй и сохрани (показывается **один раз**).
-
-**Если classic:**
-- Note: `staticbit-xrpl-mcp-readonly`
-- Expiration: 90 дней
-- Scopes: только `repo` (Full control of private repositories — других не надо)
-- **Generate token**. Скопируй.
-
-### 3.2 Куда положить токен
-
-PAT нужен **дважды**:
-
-1. **Для `claude plugin marketplace add`** — Claude Code сохранит его в свой credential-store. Не нужно класть в ENV вручную, просто введёшь когда CLI спросит (§4).
-2. **Опционально** — для `git clone` если когда-нибудь захочешь работать с marketplace вручную.
-
-Сохрани токен в твоём менеджере паролей (1Password / Bitwarden / KeePass) — пригодится при rotation.
+> Хостишь свой *приватный* форк? Тогда read-only GitHub PAT — стандартный способ, которым Claude Code аутентифицируется к приватному marketplace-репо, но для официального StaticBit-marketplace ничего не нужно.
 
 ---
 
@@ -123,7 +94,7 @@ PAT нужен **дважды**:
 claude plugin marketplace add https://github.com/StaticBit-io/staticbit-xrpl-mcp
 ```
 
-Claude Code спросит токен — введи PAT из §3.
+Marketplace публичный — токен не запрашивается.
 
 **Проверка:**
 
@@ -175,13 +146,13 @@ claude plugin list
 
 ## 6. Получение доступа
 
-### 6.1 Allow-list — только для `xrpl-cloud`
+### 6.1 `xrpl-cloud` — хостится StaticBit, по договорённости
 
-Если ставишь `xrpl-cloud`, cloud-сервер (`xrpl-mcp.staticbit.io`) защищён **OAuth 2.1** против `auth.mcp.staticbit.io`. **Никакого bearer-токена и ENV-переменной** задавать не нужно — вместо этого твой аккаунт должен быть в **allow-list** сервера. Попроси админа `xrpl-mcp.staticbit.io` добавить тебя.
+`xrpl-cloud` обращается к серверу, **который хостит StaticBit** (`xrpl.mcp.staticbit.ai`), защищённому **OAuth 2.1** против `auth.mcp.staticbit.ai`. Этот hosted-эндпоинт **не открыт для публичного self-service** — доступ оформляется со StaticBit, аккаунт должен быть в allow-list сервера.
 
-Как только ты в allow-list, вход выполняется интерактивно из Claude Code через `/mcp` (см. §9) — браузерный flow проведёт тебя через `auth.mcp.staticbit.io`, Claude Code сделает dynamic client registration, сохранит полученный токен и будет обновлять его автоматически. Ничего копировать или вставлять не нужно, в менеджере паролей хранить нечего.
+**Для self-serve этот раздел не нужен.** Используй `xrpl-local` (никакого шага доступа — он ходит к публичным XRPL-нодам с твоей машины) или подними тот же сервер сам для своей команды (см. [DEPLOY.md](DEPLOY.md)). Поверхность инструментов идентична.
 
-Если доступ позже отзовут (админ отключит твой аккаунт) — твои токены немедленно инвалидируются и `/mcp` начнёт падать; запроси доступ у админа заново.
+Если доступ по договорённости **уже есть** — войди интерактивно из Claude Code через `/mcp` (см. §9): браузерный flow проходит через `auth.mcp.staticbit.ai`, Claude Code делает dynamic client registration и обновляет токен автоматически — ничего копировать/вставлять не нужно.
 
 ### 6.2 `XRPL_SIGNER_PASSPHRASE` — только для `xrpl-signer`
 
@@ -285,17 +256,17 @@ echo $XRPL_SIGNER_PASSPHRASE
 В зависимости от того что поставил, увидишь одну или несколько строк:
 
 ```
-xrpl-cloud   https://xrpl-mcp.staticbit.io/mcp (HTTP)   ⚠ Needs login
+xrpl-cloud   https://xrpl.mcp.staticbit.ai/mcp (HTTP)   ⚠ Needs login
 xrpl-local   node …/bin/server.js                       ✓ Connected
 xrpl-signer  node …/bin/signer.js                       ✓ Connected
 ```
 
 ### OAuth-вход для `xrpl-cloud`
 
-Если поставил `xrpl-cloud`, при первом запуске он попросит аутентифицироваться. Не выходя из `/mcp`, выбери `xrpl-cloud` и следуй приглашению ко входу — откроется окно браузера на `auth.mcp.staticbit.io`. Войди там; Claude Code сделает dynamic client registration, сохранит токен и дальше будет обновлять его автоматически. После входа `/mcp` покажет:
+Если поставил `xrpl-cloud`, при первом запуске он попросит аутентифицироваться. Не выходя из `/mcp`, выбери `xrpl-cloud` и следуй приглашению ко входу — откроется окно браузера на `auth.mcp.staticbit.ai`. Войди там; Claude Code сделает dynamic client registration, сохранит токен и дальше будет обновлять его автоматически. После входа `/mcp` покажет:
 
 ```
-xrpl-cloud   https://xrpl-mcp.staticbit.io/mcp (HTTP)   ✓ Connected
+xrpl-cloud   https://xrpl.mcp.staticbit.ai/mcp (HTTP)   ✓ Connected
 ```
 
 Если вход отклонён — твоего аккаунта нет в allow-list, попроси админа добавить (§6.1).
@@ -439,7 +410,7 @@ Copy-Item "$env:USERPROFILE\.staticbit-xrpl-signer\keystore.json" "<куда-н�
 
 ### 11.6 Добавить ещё клиент (новый MCP-пользователь)
 
-Если коллега хочет подключиться к тому же cloud-серверу — попроси админа добавить **его** аккаунт в allow-list. Каждый входит через собственную браузерную сессию на `auth.mcp.staticbit.io`; доступ выдаётся и отзывается по аккаунтам независимо. Общего секрета раздавать не нужно.
+Если коллега хочет подключиться к тому же cloud-серверу — попроси админа добавить **его** аккаунт в allow-list. Каждый входит через собственную браузерную сессию на `auth.mcp.staticbit.ai`; доступ выдаётся и отзывается по аккаунтам независимо. Общего секрета раздавать не нужно.
 
 ### 11.7 Установка на втором ПК / миграция
 
@@ -459,8 +430,7 @@ Copy-Item "$env:USERPROFILE\.staticbit-xrpl-signer\keystore.json" "<куда-н�
 
 **Что НЕ переносится:**
 - ENV-переменные — задаём заново через `[Environment]::SetEnvironmentVariable(...)`.
-- PAT для GitHub — у каждого устройства свой.
-- Cloud-аутентификация — копировать нечего. На втором ПК просто войди через `/mcp` на `auth.mcp.staticbit.io` тем же allow-listed аккаунтом; Claude Code зарегистрирует и сохранит токен для каждого устройства отдельно.
+- Cloud-аутентификация — копировать нечего. На втором ПК просто войди через `/mcp` на `auth.mcp.staticbit.ai` тем же allow-listed аккаунтом; Claude Code зарегистрирует и сохранит токен для каждого устройства отдельно.
 
 **Алгоритм:**
 
@@ -570,7 +540,7 @@ unset XRPL_SIGNER_PASSPHRASE
 
 ### 12.5 Отозвать cloud-доступ
 
-Для `xrpl-cloud` локального секрета для стирания нет. Чтобы полностью отрезать доступ: попроси админа отключить твой аккаунт в allow-list `xrpl-mcp.staticbit.io` (это отзовёт твои refresh-токены) и очисти токен, сохранённый Claude Code, — `/mcp` → выбери `xrpl-cloud` → clear authentication.
+Для `xrpl-cloud` локального секрета для стирания нет. Чтобы полностью отрезать доступ: попроси админа отключить твой аккаунт в allow-list `xrpl.mcp.staticbit.ai` (это отзовёт твои refresh-токены) и очисти токен, сохранённый Claude Code, — `/mcp` → выбери `xrpl-cloud` → clear authentication.
 
 ---
 
@@ -580,10 +550,10 @@ unset XRPL_SIGNER_PASSPHRASE
 
 | Что проверить | Команда |
 |---|---|
-| Вошёл через OAuth | `/mcp` → выбери `xrpl-cloud` → пройди браузерный вход на `auth.mcp.staticbit.io` |
-| Аккаунт в allow-list | Если вход отклонён — попроси админа `xrpl-mcp.staticbit.io` добавить (или вернуть) твой аккаунт |
+| Вошёл через OAuth | `/mcp` → выбери `xrpl-cloud` → пройди браузерный вход на `auth.mcp.staticbit.ai` |
+| Аккаунт в allow-list | Если вход отклонён — попроси админа `xrpl.mcp.staticbit.ai` добавить (или вернуть) твой аккаунт |
 | Токен устарел | `/mcp` → выбери `xrpl-cloud` → clear authentication, затем войди заново |
-| Сервер жив | `curl https://xrpl-mcp.staticbit.io/healthz` — должно вернуть `{"status":"ok"}` |
+| Сервер жив | `curl https://xrpl.mcp.staticbit.ai/healthz` — должно вернуть `{"status":"ok"}` |
 | Рестартил Claude Code после установки | Закрыть полностью и запустить заново |
 
 ### `/mcp` показывает `disconnected` для xrpl-local или xrpl-signer
@@ -601,14 +571,13 @@ unset XRPL_SIGNER_PASSPHRASE
 - Верни старую passphrase.
 - Если потерял — кошелёк потерян (для этого keystore же шифровать). Восстанови из seed-бэкапа если был.
 
-### Marketplace add падает с `authentication required`
+### Marketplace add падает
 
-PAT не сохранился или просрочился. Удали и добавь заново:
+Marketplace **публичный** — токен не нужен. Если `add` падает — проверь сетевой доступ к GitHub и точность URL, затем удали и добавь заново:
 ```powershell
 claude plugin marketplace remove staticbit-xrpl-mcp
 claude plugin marketplace add https://github.com/StaticBit-io/staticbit-xrpl-mcp
 ```
-Введи свежий PAT.
 
 ### `command not found: claude`
 
