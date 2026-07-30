@@ -1,3 +1,8 @@
+## v0.4.2 — 2026-07-30
+
+### Fixes
+- launcher no longer silently overrides the default keystore location with an empty path. Affects a user who sets a real `XRPL_SIGNER_PASSPHRASE` but never customized `XRPL_SIGNER_KEYSTORE_PATH`: Claude Code substitutes an unset `${VAR}` placeholder with an empty string rather than omitting it, and `SignerOptions.ResolveFromEnvironment`'s `Environment.GetEnvironmentVariable(...) ?? GetDefaultKeystorePath()` only falls back on `null`, not on `""` — so the signer failed to start ("Keystore initialization failed", exit 3) instead of using `~/.staticbit-xrpl-signer/keystore.json`. `bin/signer.js` now strips the three declared `.mcp.json` overrides (`XRPL_SIGNER_PASSPHRASE`, `XRPL_SIGNER_PASSPHRASE_FILE`, `XRPL_SIGNER_KEYSTORE_PATH`) from the child environment when they are exactly `""`. The other two were already handled gracefully by `SignerOptions`'s own null/empty checks; this closes the one real gap and hardens the launcher to match `xrpl-local`'s fix. A genuinely-set override (any non-empty value) is unaffected.
+
 ## v0.4.1 — 2026-06-23
 
 ### Documentation

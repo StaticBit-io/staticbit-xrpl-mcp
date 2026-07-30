@@ -1,3 +1,8 @@
+## v0.6.1 — 2026-07-30
+
+### Fixes
+- launcher no longer crashes on startup when none of the five optional `.mcp.json` env overrides (`XRPL_LOCAL_DEFAULT_NETWORK`, `XRPL_LOCAL_MAINNET_URL`, `XRPL_LOCAL_TESTNET_URL`, `XRPL_LOCAL_DEVNET_URL`, `XRPL_LOCAL_REQUEST_TIMEOUT`) are set on the host. Affects every user who never customized these — the plugin failed to connect at all (`claude mcp list` showed "Failed to connect"), because Claude Code substitutes an unset `${VAR}` placeholder with an empty string rather than omitting it, and `StaticBitXrplMcp__RequestTimeoutSeconds=""` crashed the .NET configuration binder (`Failed to convert configuration value '' ... to type 'System.Int32'`) before the server ever served a request. `bin/server.js` now strips these five declared overrides from the child environment when they are exactly `""`, so an unconfigured host gets the built-in defaults instead. A genuinely-set override (any non-empty value) is unaffected.
+
 ## v0.6.0 — 2026-07-17
 
 ### Fixes

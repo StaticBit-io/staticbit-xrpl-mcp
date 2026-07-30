@@ -78,6 +78,32 @@ public class EnvBindingTestsU
         Assert.AreEqual(60, BindSection<XrplMcpOptions>(BuildConfig(), XrplMcpOptions.SectionName).RequestTimeoutSeconds);
     }
 
+    /// <summary>
+    /// History: <c>plugins/xrpl-local/.mcp.json</c> declares this as an optional
+    /// <c>${XRPL_LOCAL_REQUEST_TIMEOUT}</c> override. Claude Code substitutes an unset
+    /// placeholder with an empty string rather than omitting the key, so every user who
+    /// never customized it launched the plugin with
+    /// <c>StaticBitXrplMcp__RequestTimeoutSeconds=""</c>. Bound through <c>Get&lt;T&gt;()</c>
+    /// (used by <c>ValidateOnStart</c> at real startup — see <c>AddStaticBitXrplMcp</c>), that
+    /// throws instead of leaving the property at its default, crashing the whole host with an
+    /// unhandled exception before it serves a single request. Fixed at the launcher
+    /// (<c>plugins/xrpl-local/bin/server.js</c> strips the five declared optional overrides
+    /// when they are exactly <c>""</c>), not here — <c>int</c> binding an empty string is
+    /// correct, expected .NET behavior; the launcher must never hand it an empty string for a
+    /// property that has no meaningful empty value. This test pins that expectation so a
+    /// future change to either side (a binder upgrade that starts tolerating empty ints, or a
+    /// launcher regression that stops stripping) is caught here instead of silently
+    /// reintroducing the crash.
+    /// </summary>
+    [TestMethod]
+    public void TestU_StaticBitXrplMcp__RequestTimeoutSeconds_EmptyString_ThrowsOnBind()
+    {
+        using EnvVarScope _ = EnvVarScope.Set("StaticBitXrplMcp__RequestTimeoutSeconds", string.Empty);
+
+        Assert.ThrowsExactly<InvalidOperationException>(
+            () => BindSection<XrplMcpOptions>(BuildConfig(), XrplMcpOptions.SectionName));
+    }
+
     [TestMethod]
     public void TestU_StaticBitXrplMcp__FeeBumpMultiplier_BindsAsDecimal()
     {
