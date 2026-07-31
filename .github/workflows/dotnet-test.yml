@@ -30,3 +30,6 @@ jobs:
 
       - name: Unit tests
         run: dotnet test StaticBitXrplMcp.sln --no-build --configuration Release --filter "FullyQualifiedName~TestU" --logger "console;verbosity=normal"
+
+      - name: Plugin launcher unit tests
+        run: node --test plugins/xrpl-local/bin/server.test.js plugins/xrpl-signer/bin/signer.test.js
