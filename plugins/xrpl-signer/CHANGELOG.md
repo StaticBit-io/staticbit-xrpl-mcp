@@ -1,3 +1,34 @@
+## v0.4.3 — 2026-07-30
+
+### Fixes
+- **supersedes v0.4.2 with the actual, confirmed failure shape for this plugin's launcher — not a
+  connection failure, but a silent misconfiguration.** Both v0.4.2 (this changelog) and the sibling
+  `xrpl-local` fix assumed Claude Code always substitutes an unset `${VAR}` placeholder with an
+  empty string. It doesn't always: reproduced by spawning `bin/signer.js` with all three declared
+  overrides set to their own literal, unexpanded placeholder text, e.g.
+  `XRPL_SIGNER_KEYSTORE_PATH="${XRPL_SIGNER_KEYSTORE_PATH}"`. Unlike `xrpl-local`, this did **not**
+  make the signer fail to connect — `SignerOptions.ResolveFromEnvironment`'s
+  `Environment.GetEnvironmentVariable(...) ?? GetDefaultKeystorePath()` only treats `null` as
+  unset, so the non-empty literal placeholder text passed through as a real (if nonsensical) value:
+  the signer's own startup log confirms it verbatim — `Keystore at ${XRPL_SIGNER_KEYSTORE_PATH},
+  wallets=0, audit=disabled.` — a syntactically valid relative path on every target OS, so every
+  wallet created under it would silently land at `./${XRPL_SIGNER_KEYSTORE_PATH}/keystore.json`
+  relative to the process's cwd instead of the documented default
+  `~/.staticbit-xrpl-signer/keystore.json`. `XRPL_SIGNER_PASSPHRASE`/`_FILE` degrade the same way:
+  the literal placeholder text is non-empty, so it is read as *the* passphrase rather than "not
+  provided" — a real, silent misconfiguration for anyone who never actually set a passphrase.
+  `bin/signer.js` now strips a value that is the empty string **or** matches
+  `^\$\{[A-Za-z_][A-Za-z0-9_]*\}$` — the literal `${VAR}` placeholder syntax, matched against the
+  *entire* value so a real value that merely contains the substring `${` somewhere is never
+  mistaken for it. One user-visible behavior change follows directly from this: a user who never
+  configured a real passphrase now gets the documented `FATAL: keystore passphrase is not
+  configured` message immediately (exit 2) instead of an MCP connection that "succeeds" while
+  quietly pointed at the wrong keystore location — the same outcome the empty-string shape already
+  produced in v0.4.2, now consistent for both shapes. A user with a genuinely-set
+  `XRPL_SIGNER_PASSPHRASE` and an unset `XRPL_SIGNER_KEYSTORE_PATH` now correctly falls back to the
+  real default keystore path regardless of which shape Claude Code substituted. Verified end to
+  end for both cases.
+
 ## v0.4.2 — 2026-07-30
 
 ### Fixes

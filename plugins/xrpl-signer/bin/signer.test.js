@@ -48,6 +48,42 @@ test('stripEmptyOptionalOverrides leaves a genuine (non-empty) override untouche
   assert.equal(result.XRPL_SIGNER_KEYSTORE_PATH, 'C:\\custom\\keystore.json');
 });
 
+test('isUnsetOverrideValue recognizes undefined, "", and the literal unexpanded placeholder text', () => {
+  assert.equal(signer.isUnsetOverrideValue(undefined), true);
+  assert.equal(signer.isUnsetOverrideValue(''), true);
+  assert.equal(signer.isUnsetOverrideValue('${XRPL_SIGNER_KEYSTORE_PATH}'), true);
+  assert.equal(signer.isUnsetOverrideValue('${SOME_VAR}'), true, 'the inner name need not match the outer key');
+
+  assert.equal(signer.isUnsetOverrideValue('correct horse battery staple'), false);
+  assert.equal(signer.isUnsetOverrideValue('C:\\custom\\keystore.json'), false);
+  assert.equal(signer.isUnsetOverrideValue(' '), false, 'whitespace is not the empty string');
+  assert.equal(signer.isUnsetOverrideValue('prefix-${FOO}-suffix'), false);
+});
+
+test('stripEmptyOptionalOverrides removes the three declared overrides when set to the literal unexpanded placeholder text', () => {
+  // Confirmed by direct reproduction: with XRPL_SIGNER_KEYSTORE_PATH set to its own literal
+  // placeholder text, the signer connects (unlike xrpl-local's crash) but logs "Keystore at
+  // ${XRPL_SIGNER_KEYSTORE_PATH}, wallets=0, audit=disabled." — the unexpanded text used
+  // verbatim as a relative filesystem path instead of falling back to the documented default.
+  const source = {
+    XRPL_SIGNER_PASSPHRASE: '${XRPL_SIGNER_PASSPHRASE}',
+    XRPL_SIGNER_PASSPHRASE_FILE: '${XRPL_SIGNER_PASSPHRASE_FILE}',
+    XRPL_SIGNER_KEYSTORE_PATH: '${XRPL_SIGNER_KEYSTORE_PATH}',
+    // Not one of the three declared names — must survive untouched even though it looks like
+    // the same shape.
+    XRPL_SIGNER_AUDIT_LOG: '${XRPL_SIGNER_AUDIT_LOG}',
+    PATH: '/usr/bin',
+  };
+
+  const result = signer.stripEmptyOptionalOverrides(source);
+
+  assert.equal('XRPL_SIGNER_PASSPHRASE' in result, false);
+  assert.equal('XRPL_SIGNER_PASSPHRASE_FILE' in result, false);
+  assert.equal('XRPL_SIGNER_KEYSTORE_PATH' in result, false);
+  assert.equal(result.XRPL_SIGNER_AUDIT_LOG, '${XRPL_SIGNER_AUDIT_LOG}');
+  assert.equal(result.PATH, '/usr/bin');
+});
+
 test("OPTIONAL_ENV_OVERRIDES matches exactly the placeholders declared in .mcp.json's env block", () => {
   const mcpJson = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '.mcp.json'), 'utf8'));
   const declared = Object.keys(mcpJson.mcpServers['xrpl-signer'].env);

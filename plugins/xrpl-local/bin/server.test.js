@@ -62,6 +62,50 @@ test('stripEmptyOptionalOverrides treats whitespace-only values as a genuine ove
   assert.equal(result.StaticBitXrplMcp__DefaultNetwork, ' ');
 });
 
+test('isUnsetOverrideValue recognizes undefined, "", and the literal unexpanded placeholder text', () => {
+  assert.equal(srv.isUnsetOverrideValue(undefined), true);
+  assert.equal(srv.isUnsetOverrideValue(''), true);
+  assert.equal(srv.isUnsetOverrideValue('${XRPL_LOCAL_REQUEST_TIMEOUT}'), true);
+  assert.equal(srv.isUnsetOverrideValue('${XRPL_LOCAL_DEFAULT_NETWORK}'), true);
+  assert.equal(srv.isUnsetOverrideValue('${SOME_VAR}'), true, 'the inner name need not match the outer key');
+
+  assert.equal(srv.isUnsetOverrideValue('testnet'), false);
+  assert.equal(srv.isUnsetOverrideValue('45'), false);
+  assert.equal(srv.isUnsetOverrideValue('wss://custom.example.com'), false);
+  assert.equal(srv.isUnsetOverrideValue(' '), false, 'whitespace is not the empty string');
+  assert.equal(srv.isUnsetOverrideValue('prefix-${FOO}-suffix'), false);
+  assert.equal(srv.isUnsetOverrideValue('${not a valid identifier}'), false);
+  assert.equal(srv.isUnsetOverrideValue('${}'), false);
+});
+
+test('stripEmptyOptionalOverrides removes the five declared overrides when set to the literal unexpanded placeholder text', () => {
+  // This is the exact shape reproduced from Claude Code's own MCP connection logs: when the
+  // backing host variable is unset, the child process receives the literal string
+  // `${XRPL_LOCAL_REQUEST_TIMEOUT}` rather than an empty string or an absent key, which crashed
+  // the .NET configuration binder trying to parse it as an Int32.
+  const source = {
+    StaticBitXrplMcp__DefaultNetwork: '${XRPL_LOCAL_DEFAULT_NETWORK}',
+    StaticBitXrplMcp__Networks__mainnet: '${XRPL_LOCAL_MAINNET_URL}',
+    StaticBitXrplMcp__Networks__testnet: '${XRPL_LOCAL_TESTNET_URL}',
+    StaticBitXrplMcp__Networks__devnet: '${XRPL_LOCAL_DEVNET_URL}',
+    StaticBitXrplMcp__RequestTimeoutSeconds: '${XRPL_LOCAL_REQUEST_TIMEOUT}',
+    // Not one of the five declared names — must survive untouched even though it looks like
+    // the same shape.
+    StaticBitXrplMcp__ConnectionTtlMinutes: '${SOME_OTHER_VAR}',
+    PATH: '/usr/bin',
+  };
+
+  const result = srv.stripEmptyOptionalOverrides(source);
+
+  assert.equal('StaticBitXrplMcp__DefaultNetwork' in result, false);
+  assert.equal('StaticBitXrplMcp__Networks__mainnet' in result, false);
+  assert.equal('StaticBitXrplMcp__Networks__testnet' in result, false);
+  assert.equal('StaticBitXrplMcp__Networks__devnet' in result, false);
+  assert.equal('StaticBitXrplMcp__RequestTimeoutSeconds' in result, false);
+  assert.equal(result.StaticBitXrplMcp__ConnectionTtlMinutes, '${SOME_OTHER_VAR}');
+  assert.equal(result.PATH, '/usr/bin');
+});
+
 test("OPTIONAL_ENV_OVERRIDES matches exactly the placeholders declared in .mcp.json's env block", () => {
   // Ties the stripped name list to the actual manifest, so a future .mcp.json edit
   // that adds another `${VAR}` optional-override placeholder without updating this
