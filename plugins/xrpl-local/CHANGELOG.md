@@ -1,3 +1,27 @@
+## v0.6.2 — 2026-07-30
+
+### Fixes
+- **the v0.6.1 fix targeted the wrong failure mode — this supersedes it with the actual, confirmed
+  cause.** v0.6.1 assumed Claude Code always substitutes an unset `${VAR}` placeholder with an
+  empty string. Claude Code's own MCP connection log for this plugin showed otherwise: with
+  `XRPL_LOCAL_REQUEST_TIMEOUT` unset on the host, the launcher received the *literal, unexpanded*
+  text `${XRPL_LOCAL_REQUEST_TIMEOUT}` — not an empty string, not an absent key — and the .NET
+  configuration binder crashed the same way it did before v0.6.1 shipped: `Failed to convert
+  configuration value '${XRPL_LOCAL_REQUEST_TIMEOUT}' at 'StaticBitXrplMcp:RequestTimeoutSeconds'
+  to type 'System.Int32'`, taking down the whole host before it served a single request.
+  Reproduced exactly by spawning `bin/server.js` with all five declared overrides set to their own
+  literal placeholder text. `stripEmptyOptionalOverrides` now strips a value that is the empty
+  string **or** matches `^\$\{[A-Za-z_][A-Za-z0-9_]*\}$` — the literal `${VAR}` placeholder syntax,
+  matched against the *entire* value so a real value that merely contains the substring `${`
+  somewhere (a URL, say) is never mistaken for it. None of these five settings (a network name, a
+  URL, an integer) could ever legitimately equal that syntax in full, so the check applies
+  unconditionally to all five declared names, same as the empty-string case already did. The
+  empty-string handling from v0.6.1 is unchanged and still correct — this only adds the second
+  shape. Verified end-to-end: spawning `bin/server.js` with all five overrides set to their literal
+  placeholder text now completes a full MCP `initialize` + `tools/list` handshake; real
+  (non-placeholder) values and empty-string values were re-verified to still work exactly as in
+  v0.6.1.
+
 ## v0.6.1 — 2026-07-30
 
 ### Fixes
