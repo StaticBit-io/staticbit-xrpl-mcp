@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="Mcp.Auth.ResourceServer" Version="0.4.0" />
-    <PackageReference Include="ModelContextProtocol" Version="1.4.0" />
+    <PackageReference Include="ModelContextProtocol" Version="2.0.0" />
     <PackageReference Include="ModelContextProtocol.AspNetCore" Version="1.4.0" />
     <PackageReference Include="Telegram.Bot" Version="22.10.1" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.16.0" />
