@@ -44,6 +44,16 @@ public sealed class PaymentTools
 
         List<string>? credentialIds = ParseCredentialIds(credentialIdsJson);
 
+        // sfInvoiceID is a Hash256, and nothing on this path checks its shape. The SDK's
+        // ValidatePayment only asserts the value is a string — unlike ValidateCheckCreate, which
+        // matches ^[0-9A-Fa-f]{64}$ — and the validators are opt-in regardless: no prepare path
+        // calls them. Unchecked, a malformed id surfaces as an XrplBinaryCodec encoding error
+        // instead of a named bad argument.
+        if (invoiceId is not null)
+        {
+            LoanBrokerTools.ValidateHash256(invoiceId, nameof(invoiceId));
+        }
+
         Payment payment = new Payment
         {
             Account = account,
