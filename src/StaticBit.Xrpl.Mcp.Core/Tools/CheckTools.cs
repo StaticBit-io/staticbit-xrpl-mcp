@@ -38,6 +38,14 @@ public sealed class CheckTools
     {
         Currency parsed = CurrencyParser.Parse(sendMax);
 
+        // sfInvoiceID is a Hash256. The SDK's ValidateCheckCreate enforces the same 64-hex rule,
+        // but its validators are opt-in and nothing on the prepare path calls them — an unchecked
+        // value would surface as a binary-codec failure instead of a named bad argument.
+        if (invoiceId is not null)
+        {
+            LoanBrokerTools.ValidateHash256(invoiceId, nameof(invoiceId));
+        }
+
         CheckCreate tx = new CheckCreate
         {
             Account = account,
