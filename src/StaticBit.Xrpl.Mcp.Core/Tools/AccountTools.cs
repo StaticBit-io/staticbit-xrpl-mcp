@@ -47,7 +47,7 @@ public sealed class AccountTools
             SignerLists = signerLists,
         };
 
-        AccountInfo response = await client.AccountInfo(request, cancellationToken).ConfigureAwait(false);
+        AccountInfo response = (await client.AccountInfo(request, cancellationToken).ConfigureAwait(false)).Result;
         return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:account_info:{network}:{account}");
     }
 
@@ -77,7 +77,7 @@ public sealed class AccountTools
             Marker = marker,
         };
 
-        AccountLines response = await client.AccountLines(request, cancellationToken).ConfigureAwait(false);
+        AccountLines response = (await client.AccountLines(request, cancellationToken).ConfigureAwait(false)).Result;
         return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:account_lines:{network}:{account}");
     }
 
@@ -107,7 +107,7 @@ public sealed class AccountTools
             Binary = binary,
         };
 
-        AccountTransactions response = await client.AccountTransactions(request, cancellationToken).ConfigureAwait(false);
+        AccountTransactions response = (await client.AccountTransactions(request, cancellationToken).ConfigureAwait(false)).Result;
         return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:account_tx:{network}:{account}");
     }
 
@@ -131,7 +131,7 @@ public sealed class AccountTools
             Marker = marker,
         };
 
-        AccountOffers response = await client.AccountOffers(request, cancellationToken).ConfigureAwait(false);
+        AccountOffers response = (await client.AccountOffers(request, cancellationToken).ConfigureAwait(false)).Result;
         return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:account_offers:{network}:{account}");
     }
 
@@ -172,7 +172,7 @@ public sealed class AccountTools
             DeletionBlockersOnly = deletionBlockersOnly,
         };
 
-        AccountObjects response = await client.AccountObjects(request, cancellationToken).ConfigureAwait(false);
+        AccountObjects response = (await client.AccountObjects(request, cancellationToken).ConfigureAwait(false)).Result;
         return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:account_objects:{network}:{account}");
     }
 
@@ -196,7 +196,7 @@ public sealed class AccountTools
             LedgerIndex = LedgerIndexParser.Parse(ledgerIndex),
         };
 
-        GatewayBalancesResponse response = await client.GatewayBalances(request, cancellationToken).ConfigureAwait(false);
+        GatewayBalancesResponse response = (await client.GatewayBalances(request, cancellationToken).ConfigureAwait(false)).Result;
         return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:gateway_balances:{network}:{account}");
     }
 

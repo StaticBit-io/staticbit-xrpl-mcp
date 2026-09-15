@@ -55,7 +55,7 @@ public sealed class DexTools
             Limit = limit,
         };
 
-        BookOffers response = await client.BookOffers(request, cancellationToken).ConfigureAwait(false);
+        BookOffers response = (await client.BookOffers(request, cancellationToken).ConfigureAwait(false)).Result;
         return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:book_offers:{network}");
     }
 

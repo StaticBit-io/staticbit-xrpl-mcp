@@ -122,7 +122,7 @@ A DeFi vault primitive: the owner creates a vault with a single asset (XRP / IOU
 - `xrpl_vault_deposit_prepare` — deposit asset, receive shares-MPT.
 - `xrpl_vault_withdraw_prepare` — dual-mode: `amountKind='asset'` (exact asset amount, shares burned at rate) or `'shares'` (redeem N shares for asset). Shares mode requires `shareMptIssuanceId` (48-hex, from `vault.ShareMPTID`). Optional `destination` + `destinationTag`.
 - `xrpl_vault_clawback_prepare` — issuer clawback from the vault. Omit amount → max available. XRP cannot be clawed back.
-- **Read helper** `xrpl_account_vaults` (see §2) — returns `vaultId`, `pseudoAccount`, `asset`, `assetsTotal/Available/Maximum`, `lossUnrealized`, `shareMptIssuanceId`, `withdrawalPolicy`, `scale`, `dataHex` + `dataUtf8`, `domainId`.
+- **Read helper** `xrpl_account_vaults` (see §2) — returns `vaultId`, `pseudoAccount`, `asset`, `assetsTotal/Available/Maximum`, `lossUnrealized`, `shareMptIssuanceId`, `withdrawalPolicy`, `scale`, `dataHex` + `dataUtf8`.
 
 ### 1.14. XChain bridges (XLS-38)
 
@@ -162,7 +162,7 @@ Bleeding-edge DeFi lending: a LoanBroker sits on top of a Vault and manages a po
 **Read helpers (see §2):**
 
 - `xrpl_account_loan_brokers` — `loanBrokerId`, `pseudoAccount`, `vaultId`, debt counters (`debtTotal`/`debtMaximum`), `coverAvailable`, cover-rates, `managementFeeRate`, `activeLoanCount`, `dataUtf8`.
-- `xrpl_account_loans` — `loanId`, `borrower`, `loanBrokerId`, all interest/fee rates, principal counters (`principalOutstanding`/`principalRequested`/`totalValueOutstanding`), `periodicPayment`, `managementFeeOutstanding`, schedule (`startDate`/`previousPaymentDueDate`/`nextPaymentDueDate` UTC ISO-8601, `paymentInterval`/`gracePeriod`/`paymentRemaining`), `loanScale`.
+- `xrpl_account_loans` — `loanId`, `borrower`, `loanBrokerId`, all interest/fee rates, principal counters (`principalOutstanding`/`totalValueOutstanding`), `periodicPayment`, `managementFeeOutstanding`, schedule (`startDate`/`previousPaymentDueDate`/`nextPaymentDueDate` UTC ISO-8601, `paymentInterval`/`gracePeriod`/`paymentRemaining`), `loanScale`.
 
 **`xrpl_tx_explain` (§3)** recognises all 9 types. **`xrpl_tx_preflight` (§3)** — type-specific warnings: LoanBrokerID/LoanID/VaultID 64-hex, CoverRates ≤100000 + liquidation ≤ minimum, ManagementFeeRate ≤10000, LoanSet rate fields ≤100000, Counterparty ≠ Account, LoanManage exactly-one action flag, LoanPay payment-kind mutual exclusivity, LoanBrokerCoverClawback requires at least one of ID/Amount.
 

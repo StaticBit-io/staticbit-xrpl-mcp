@@ -135,7 +135,7 @@ Lists every LoanBroker ledger object owned by 'account' (XLS-66). Each entry inc
 
 <sub>Source: `src/StaticBit.Xrpl.Mcp.Core/Tools/AccountObjectsHelperTools.cs`</sub>
 
-Lists every Loan ledger object touching 'account' (XLS-66) — typically as borrower (account == Loan.Borrower) or via the broker pseudo-account. Each entry includes 64-hex LoanID (use for manage/pay/delete), Borrower, LoanBrokerID, loan sequence, all interest/fee rates and fees, principal counters (PrincipalRequested / PrincipalOutstanding / TotalValueOutstanding), PeriodicPayment, ManagementFeeOutstanding, payment schedule (PaymentInterval / GracePeriod / PaymentRemaining), StartDate / PreviousPaymentDueDate / NextPaymentDueDate (UTC ISO-8601), LoanScale, previousTxnId.
+Lists every Loan ledger object touching 'account' (XLS-66) — typically as borrower (account == Loan.Borrower) or via the broker pseudo-account. Each entry includes 64-hex LoanID (use for manage/pay/delete), Borrower, LoanBrokerID, loan sequence, all interest/fee rates and fees, principal counters (PrincipalOutstanding / TotalValueOutstanding), PeriodicPayment, ManagementFeeOutstanding, payment schedule (PaymentInterval / GracePeriod / PaymentRemaining), StartDate / PreviousPaymentDueDate / NextPaymentDueDate (UTC ISO-8601), LoanScale, previousTxnId.
 
 | Param | Type | Required | Default | Description |
 |---|---|---|---|---|
@@ -286,7 +286,7 @@ Polling-based account monitor. Returns transactions affecting the account starti
 
 <sub>Source: `src/StaticBit.Xrpl.Mcp.Core/Tools/AccountObjectsHelperTools.cs`</sub>
 
-Lists every Vault ledger object owned by 'account' (XLS-65). Each entry includes the 64-hex VaultID (use for set/delete/deposit/etc.), pseudo-account, asset spec, AssetsTotal / AssetsAvailable / AssetsMaximum / LossUnrealized (STNumber strings), the share-MPTokenIssuanceID (ShareMPTID), withdrawal policy, scale, data (hex + parsed VaultDataFormat {n,w} when present), and the optional permissioned-domain id.
+Lists every Vault ledger object owned by 'account' (XLS-65). Each entry includes the 64-hex VaultID (use for set/delete/deposit/etc.), pseudo-account, asset spec, AssetsTotal / AssetsAvailable / AssetsMaximum / LossUnrealized (STNumber strings), the share-MPTokenIssuanceID (ShareMPTID), withdrawal policy, scale, and data (hex + parsed VaultDataFormat {n,w} when present). A vault carries no permissioned-domain id: rippled stores it on the linked share MPTokenIssuance.
 
 | Param | Type | Required | Default | Description |
 |---|---|---|---|---|
@@ -503,7 +503,7 @@ Prepares an UNSIGNED CheckCreate. sendMax = upper bound the sender allows to be 
 | `sendMax` | `string` | **yes** | — | SendMax: max amount the Check can debit. Drops string for XRP, JSON {value,currency,issuer} for tokens. |
 | `destinationTag` | `uint?` | no | `null` | Optional destination tag. |
 | `expirationUtc` | `DateTime?` | no | `null` | Optional UTC expiration; the Check is invalid after this time. |
-| `invoiceId` | `uint?` | no | `null` | Optional InvoiceID (uint32). |
+| `invoiceId` | `string?` | no | `null` | Optional invoice ID (32-byte hex). |
 
 ### `xrpl_clawback_prepare`
 

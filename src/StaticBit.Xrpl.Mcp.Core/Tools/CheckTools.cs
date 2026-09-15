@@ -33,7 +33,7 @@ public sealed class CheckTools
         [Description("SendMax: max amount the Check can debit. Drops string for XRP, JSON {value,currency,issuer} for tokens.")] string sendMax,
         [Description("Optional destination tag.")] uint? destinationTag = null,
         [Description("Optional UTC expiration; the Check is invalid after this time.")] DateTime? expirationUtc = null,
-        [Description("Optional InvoiceID (uint32).")] uint? invoiceId = null,
+        [Description("Optional invoice ID (32-byte hex).")] string? invoiceId = null,
         CancellationToken cancellationToken = default)
     {
         Currency parsed = CurrencyParser.Parse(sendMax);

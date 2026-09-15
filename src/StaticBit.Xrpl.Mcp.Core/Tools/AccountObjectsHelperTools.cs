@@ -52,7 +52,7 @@ public sealed class AccountObjectsHelperTools
             Marker = marker,
         };
 
-        AccountObjects response = await client.AccountObjects(request, cancellationToken).ConfigureAwait(false);
+        AccountObjects response = (await client.AccountObjects(request, cancellationToken).ConfigureAwait(false)).Result;
 
         // Reshape from typed LOEscrow entries into a compact agent-readable form.
         // We split by direction so the agent can present "what others owe me" vs
@@ -136,7 +136,7 @@ public sealed class AccountObjectsHelperTools
             LedgerIndex = LedgerIndexParser.Parse(ledgerIndex),
         };
 
-        AccountObjects response = await client.AccountObjects(request, cancellationToken).ConfigureAwait(false);
+        AccountObjects response = (await client.AccountObjects(request, cancellationToken).ConfigureAwait(false)).Result;
 
         LOSignerList? signerList = response.AccountObjectList?
             .OfType<LOSignerList>()
@@ -193,17 +193,27 @@ public sealed class AccountObjectsHelperTools
             }
         }
 
-        long deltaToQuorum = (long)signerList.SignerQuorum - (long)collectedWeight;
+        // SignerQuorum is SoeRequired on the SignerList ledger entry, but the model types it
+        // nullable since Xrpl 11.0.0 — it no longer invents a zero the node never sent. Absence
+        // means a malformed response, and this whole tool answers "is the quorum met": a missing
+        // quorum read as zero would report every unsigned transaction as ready to submit.
+        if (signerList.SignerQuorum is not uint signerQuorum)
+        {
+            throw new InvalidOperationException(
+                $"SignerList for {account} carries no SignerQuorum — the node returned a malformed ledger entry.");
+        }
+
+        long deltaToQuorum = (long)signerQuorum - (long)collectedWeight;
 
         JsonObject result = new JsonObject
         {
             ["account"] = account,
             ["hasSignerList"] = true,
-            ["quorum"] = signerList.SignerQuorum,
+            ["quorum"] = signerQuorum,
             ["totalAvailableWeight"] = totalAvailableWeight,
             ["collectedWeight"] = collectedWeight,
             ["deltaToQuorum"] = deltaToQuorum < 0 ? 0 : deltaToQuorum,
-            ["quorumReached"] = collectedWeight >= signerList.SignerQuorum,
+            ["quorumReached"] = collectedWeight >= signerQuorum,
             ["signers"] = signers,
             ["unknownSignersIgnored"] = new JsonArray(unknownSigners.Select(s => (JsonNode?)s).ToArray()),
             ["ledgerHash"] = response.LedgerHash,
@@ -234,7 +244,7 @@ public sealed class AccountObjectsHelperTools
             Marker = marker,
         };
 
-        AccountObjects response = await client.AccountObjects(request, cancellationToken).ConfigureAwait(false);
+        AccountObjects response = (await client.AccountObjects(request, cancellationToken).ConfigureAwait(false)).Result;
 
         JsonArray issuances = new JsonArray();
         if (response.AccountObjectList is not null)
@@ -250,7 +260,7 @@ public sealed class AccountObjectsHelperTools
                     ["issuer"] = entry.Issuer,
                     ["assetScale"] = entry.AssetScale,
                     ["maximumAmount"] = entry.MaximumAmount is null ? null : entry.MaximumAmount.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                    ["outstandingAmount"] = entry.OutstandingAmount.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    ["outstandingAmount"] = entry.OutstandingAmount is null ? null : entry.OutstandingAmount.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
                     ["lockedAmount"] = entry.LockedAmount is null ? null : entry.LockedAmount.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
                     ["transferFee"] = entry.TransferFee,
                     ["flagsBitmask"] = entry.Flags is null ? 0u : (uint)entry.Flags.Value,
@@ -299,7 +309,7 @@ public sealed class AccountObjectsHelperTools
             Marker = marker,
         };
 
-        AccountObjects response = await client.AccountObjects(request, cancellationToken).ConfigureAwait(false);
+        AccountObjects response = (await client.AccountObjects(request, cancellationToken).ConfigureAwait(false)).Result;
 
         JsonArray holdings = new JsonArray();
         if (response.AccountObjectList is not null)
@@ -361,7 +371,7 @@ public sealed class AccountObjectsHelperTools
             Marker = marker,
         };
 
-        AccountObjects response = await client.AccountObjects(request, cancellationToken).ConfigureAwait(false);
+        AccountObjects response = (await client.AccountObjects(request, cancellationToken).ConfigureAwait(false)).Result;
 
         JsonArray issued = new JsonArray();
         JsonArray held = new JsonArray();
@@ -435,7 +445,7 @@ public sealed class AccountObjectsHelperTools
             LedgerIndex = LedgerIndexParser.Parse(ledgerIndex),
         };
 
-        AccountObjects response = await client.AccountObjects(request, cancellationToken).ConfigureAwait(false);
+        AccountObjects response = (await client.AccountObjects(request, cancellationToken).ConfigureAwait(false)).Result;
 
         LODID? did = response.AccountObjectList?.OfType<LODID>().FirstOrDefault();
 
@@ -492,7 +502,7 @@ public sealed class AccountObjectsHelperTools
             Marker = marker,
         };
 
-        AccountObjects response = await client.AccountObjects(request, cancellationToken).ConfigureAwait(false);
+        AccountObjects response = (await client.AccountObjects(request, cancellationToken).ConfigureAwait(false)).Result;
 
         JsonArray domains = new JsonArray();
         if (response.AccountObjectList is not null)
@@ -544,7 +554,7 @@ public sealed class AccountObjectsHelperTools
     }
 
     [McpServerTool(Name = "xrpl_account_vaults")]
-    [Description("Lists every Vault ledger object owned by 'account' (XLS-65). Each entry includes the 64-hex VaultID (use for set/delete/deposit/etc.), pseudo-account, asset spec, AssetsTotal / AssetsAvailable / AssetsMaximum / LossUnrealized (STNumber strings), the share-MPTokenIssuanceID (ShareMPTID), withdrawal policy, scale, data (hex + parsed VaultDataFormat {n,w} when present), and the optional permissioned-domain id.")]
+    [Description("Lists every Vault ledger object owned by 'account' (XLS-65). Each entry includes the 64-hex VaultID (use for set/delete/deposit/etc.), pseudo-account, asset spec, AssetsTotal / AssetsAvailable / AssetsMaximum / LossUnrealized (STNumber strings), the share-MPTokenIssuanceID (ShareMPTID), withdrawal policy, scale, and data (hex + parsed VaultDataFormat {n,w} when present). A vault carries no permissioned-domain id: rippled stores it on the linked share MPTokenIssuance.")]
     public async Task<string> AccountVaultsAsync(
         [Description(ToolDescriptions.Network)] string network,
         [Description("Classic XRP address — vault owner.")] string account,
@@ -564,7 +574,7 @@ public sealed class AccountObjectsHelperTools
             Marker = marker,
         };
 
-        AccountObjects response = await client.AccountObjects(request, cancellationToken).ConfigureAwait(false);
+        AccountObjects response = (await client.AccountObjects(request, cancellationToken).ConfigureAwait(false)).Result;
 
         JsonArray vaults = new JsonArray();
         if (response.AccountObjectList is not null)
@@ -589,7 +599,6 @@ public sealed class AccountObjectsHelperTools
                     ["scale"] = v.Scale,
                     ["dataHex"] = v.Data,
                     ["dataUtf8"] = v.DataRaw,
-                    ["domainId"] = v.DomainID,
                     ["sequence"] = v.Sequence,
                     ["previousTxnId"] = v.PreviousTxnID,
                     ["previousTxnLgrSeq"] = v.PreviousTxnLgrSeq,
@@ -632,7 +641,7 @@ public sealed class AccountObjectsHelperTools
             Marker = marker,
         };
 
-        AccountObjects response = await client.AccountObjects(request, cancellationToken).ConfigureAwait(false);
+        AccountObjects response = (await client.AccountObjects(request, cancellationToken).ConfigureAwait(false)).Result;
 
         JsonArray bridges = new JsonArray();
         if (response.AccountObjectList is not null)
@@ -691,7 +700,7 @@ public sealed class AccountObjectsHelperTools
             Marker = marker,
         };
 
-        AccountObjects response = await client.AccountObjects(request, cancellationToken).ConfigureAwait(false);
+        AccountObjects response = (await client.AccountObjects(request, cancellationToken).ConfigureAwait(false)).Result;
 
         JsonArray brokers = new JsonArray();
         if (response.AccountObjectList is not null)
@@ -738,7 +747,7 @@ public sealed class AccountObjectsHelperTools
     }
 
     [McpServerTool(Name = "xrpl_account_loans")]
-    [Description("Lists every Loan ledger object touching 'account' (XLS-66) — typically as borrower (account == Loan.Borrower) or via the broker pseudo-account. Each entry includes 64-hex LoanID (use for manage/pay/delete), Borrower, LoanBrokerID, loan sequence, all interest/fee rates and fees, principal counters (PrincipalRequested / PrincipalOutstanding / TotalValueOutstanding), PeriodicPayment, ManagementFeeOutstanding, payment schedule (PaymentInterval / GracePeriod / PaymentRemaining), StartDate / PreviousPaymentDueDate / NextPaymentDueDate (UTC ISO-8601), LoanScale, previousTxnId.")]
+    [Description("Lists every Loan ledger object touching 'account' (XLS-66) — typically as borrower (account == Loan.Borrower) or via the broker pseudo-account. Each entry includes 64-hex LoanID (use for manage/pay/delete), Borrower, LoanBrokerID, loan sequence, all interest/fee rates and fees, principal counters (PrincipalOutstanding / TotalValueOutstanding), PeriodicPayment, ManagementFeeOutstanding, payment schedule (PaymentInterval / GracePeriod / PaymentRemaining), StartDate / PreviousPaymentDueDate / NextPaymentDueDate (UTC ISO-8601), LoanScale, previousTxnId.")]
     public async Task<string> AccountLoansAsync(
         [Description(ToolDescriptions.Network)] string network,
         [Description("Classic XRP address — borrower or broker pseudo-account.")] string account,
@@ -758,7 +767,7 @@ public sealed class AccountObjectsHelperTools
             Marker = marker,
         };
 
-        AccountObjects response = await client.AccountObjects(request, cancellationToken).ConfigureAwait(false);
+        AccountObjects response = (await client.AccountObjects(request, cancellationToken).ConfigureAwait(false)).Result;
 
         JsonArray loans = new JsonArray();
         if (response.AccountObjectList is not null)
@@ -780,7 +789,6 @@ public sealed class AccountObjectsHelperTools
                     ["overpaymentInterestRate"] = l.OverpaymentInterestRate,
                     ["overpaymentFee"] = l.OverpaymentFee,
                     ["principalOutstanding"] = l.PrincipalOutstanding,
-                    ["principalRequested"] = l.PrincipalRequested,
                     ["totalValueOutstanding"] = l.TotalValueOutstanding,
                     ["periodicPayment"] = l.PeriodicPayment,
                     ["managementFeeOutstanding"] = l.ManagementFeeOutstanding,
