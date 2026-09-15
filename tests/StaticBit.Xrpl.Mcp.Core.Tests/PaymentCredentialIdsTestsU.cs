@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using StaticBit.Xrpl.Mcp.Core.Tools;
 
 namespace StaticBit.Xrpl.Mcp.Core.Tests;
@@ -8,6 +9,45 @@ namespace StaticBit.Xrpl.Mcp.Core.Tests;
 public class PaymentCredentialIdsTestsU
 {
     private const string GoodHash = "ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789";
+
+    // The preparer is null on purpose: reaching transaction preparation would throw
+    // NullReferenceException, so an ArgumentException proves the guard rejected the input
+    // before any Payment was built or autofilled.
+    private static PaymentTools NewTool() => new PaymentTools(preparer: null!);
+
+    [TestMethod]
+    public async Task TestU_PaymentPrepare_MalformedInvoiceId_ThrowsNamingTheParameter()
+    {
+        PaymentTools tool = NewTool();
+
+        ArgumentException ex = await Assert.ThrowsAsync<ArgumentException>(() => tool.PaymentPrepareAsync(
+            "testnet", "rA", "rB", amount: "1000", invoiceId: "not-a-hash"));
+
+        Assert.AreEqual("invoiceId", ex.ParamName);
+    }
+
+    [TestMethod]
+    public async Task TestU_PaymentPrepare_ShortInvoiceId_ThrowsNamingTheParameter()
+    {
+        PaymentTools tool = NewTool();
+
+        ArgumentException ex = await Assert.ThrowsAsync<ArgumentException>(() => tool.PaymentPrepareAsync(
+            "testnet", "rA", "rB", amount: "1000", invoiceId: GoodHash.Substring(1)));
+
+        Assert.AreEqual("invoiceId", ex.ParamName);
+    }
+
+    [TestMethod]
+    public async Task TestU_PaymentPrepare_WellFormedInvoiceId_PassesTheGuard()
+    {
+        PaymentTools tool = NewTool();
+
+        // Not ArgumentException: a 64-hex id clears the guard, and preparation then fails on the
+        // null preparer. That distinction is the assertion — the guard neither rejects a valid id
+        // nor is skipped for one.
+        await Assert.ThrowsAsync<NullReferenceException>(() => tool.PaymentPrepareAsync(
+            "testnet", "rA", "rB", amount: "1000", invoiceId: GoodHash));
+    }
 
     [TestMethod]
     public void TestU_ParseCredentialIds_NullOrEmpty_ReturnsNull()
