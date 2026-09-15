@@ -296,7 +296,7 @@ public sealed class NftTools
             LedgerIndex = LedgerIndexParser.Parse(ledgerIndex),
         };
 
-        AccountNFTs response = await client.AccountNFTs(request, cancellationToken).ConfigureAwait(false);
+        AccountNFTs response = (await client.AccountNFTs(request, cancellationToken).ConfigureAwait(false)).Result;
         return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:account_nfts:{network}:{account}");
     }
 
@@ -310,7 +310,7 @@ public sealed class NftTools
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
 
         NFTBuyOffersRequest request = new NFTBuyOffersRequest(nfTokenId);
-        NFTBuyOffers response = await client.NFTBuyOffers(request, cancellationToken).ConfigureAwait(false);
+        NFTBuyOffers response = (await client.NFTBuyOffers(request, cancellationToken).ConfigureAwait(false)).Result;
         return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:nft_buy_offers:{network}:{nfTokenId}");
     }
 
@@ -324,7 +324,7 @@ public sealed class NftTools
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
 
         NFTSellOffersRequest request = new NFTSellOffersRequest(nfTokenId);
-        NFTSellOffers response = await client.NFTSellOffers(request, cancellationToken).ConfigureAwait(false);
+        NFTSellOffers response = (await client.NFTSellOffers(request, cancellationToken).ConfigureAwait(false)).Result;
         return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:nft_sell_offers:{network}:{nfTokenId}");
     }
 

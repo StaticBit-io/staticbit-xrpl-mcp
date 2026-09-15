@@ -58,9 +58,9 @@ public sealed class TransactionTools
             FailHard = failHard,
         };
 
-        Submit response = await client
+        Submit response = (await client
             .GRequest<Submit, SubmitRequest>(request, cancellationToken)
-            .ConfigureAwait(false);
+            .ConfigureAwait(false)).Result;
 
         string txHash = TryGetTxHash(response.TxJson);
 
@@ -87,9 +87,9 @@ public sealed class TransactionTools
 
             try
             {
-                TransactionResponse lookup = await client
-                    .Tx(new TxRequest(txHash), cancellationToken)
-                    .ConfigureAwait(false);
+                TransactionResponse lookup = (await client
+                    .TxV1(new TxRequest(txHash), cancellationToken)
+                    .ConfigureAwait(false)).Result;
 
                 if (lookup is null)
                 {

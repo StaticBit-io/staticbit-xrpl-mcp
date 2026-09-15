@@ -59,7 +59,7 @@ public sealed class AmmTools
             request.Asset2 = BuildAsset(asset2Currency!, asset2Issuer);
         }
 
-        AMMInfoResponse response = await client.AmmInfo(request, cancellationToken).ConfigureAwait(false);
+        AMMInfoResponse response = (await client.AmmInfo(request, cancellationToken).ConfigureAwait(false)).Result;
         return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:amm_info:{network}:{ammAccount ?? $"{asset1Currency}/{asset2Currency}"}");
     }
 

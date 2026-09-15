@@ -36,7 +36,7 @@ public sealed class LedgerTools
         CancellationToken cancellationToken = default)
     {
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
-        ServerInfo response = await client.ServerInfo(new ServerInfoRequest(), cancellationToken).ConfigureAwait(false);
+        ServerInfo response = (await client.ServerInfo(new ServerInfoRequest(), cancellationToken).ConfigureAwait(false)).Result;
         return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:server_info:{network}");
     }
 
@@ -47,7 +47,7 @@ public sealed class LedgerTools
         CancellationToken cancellationToken = default)
     {
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
-        ServerState response = await client.ServerState(new ServerStateRequest(), cancellationToken).ConfigureAwait(false);
+        ServerState response = (await client.ServerState(new ServerStateRequest(), cancellationToken).ConfigureAwait(false)).Result;
         return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:server_state:{network}");
     }
 
@@ -59,9 +59,9 @@ public sealed class LedgerTools
         CancellationToken cancellationToken = default)
     {
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
-        ServerDefinitionsResponse response = await client
+        ServerDefinitionsResponse response = (await client
             .ServerDefinitions(new ServerDefinitionsRequest { Hash = hash }, cancellationToken)
-            .ConfigureAwait(false);
+            .ConfigureAwait(false)).Result;
         return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:server_definitions:{network}");
     }
 
@@ -79,9 +79,9 @@ public sealed class LedgerTools
 
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
         ManifestRequest request = new ManifestRequest(publicKey);
-        JsonNode? response = await client
+        JsonNode? response = (await client
             .GRequest<JsonNode, ManifestRequest>(request, cancellationToken)
-            .ConfigureAwait(false);
+            .ConfigureAwait(false)).Result;
         return UntrustedContent.Wrap(response?.ToJsonString() ?? "null", $"xrpl:manifest:{network}:{publicKey}");
     }
 
@@ -92,7 +92,7 @@ public sealed class LedgerTools
         CancellationToken cancellationToken = default)
     {
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
-        Fee response = await client.Fee(cancellationToken).ConfigureAwait(false);
+        Fee response = (await client.Fee(cancellationToken).ConfigureAwait(false)).Result;
         return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:fee:{network}");
     }
 
@@ -114,7 +114,7 @@ public sealed class LedgerTools
             Expand = expand,
         };
 
-        LOLedger response = await client.Ledger(request, cancellationToken).ConfigureAwait(false);
+        LOLedger response = (await client.Ledger(request, cancellationToken).ConfigureAwait(false)).Result;
         return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:ledger:{network}:{ledgerIndex ?? "validated"}");
     }
 
@@ -133,7 +133,7 @@ public sealed class LedgerTools
             Binary = binary,
         };
 
-        TransactionResponse response = await client.Tx(request, cancellationToken).ConfigureAwait(false);
+        TransactionResponse response = (await client.TxV1(request, cancellationToken).ConfigureAwait(false)).Result;
         return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:tx:{network}:{txHash}");
     }
 }

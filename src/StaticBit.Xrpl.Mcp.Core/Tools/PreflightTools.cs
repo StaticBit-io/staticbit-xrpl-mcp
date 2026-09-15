@@ -75,7 +75,7 @@ public sealed class PreflightTools
                     if (!string.IsNullOrEmpty(sourceAccount) && !string.IsNullOrEmpty(destination))
                     {
                         RipplePathFindRequest req = new RipplePathFindRequest(sourceAccount, destination, parsedAmount);
-                        RipplePathFindResponse resp = await client.RipplePathFind(req, cancellationToken).ConfigureAwait(false);
+                        RipplePathFindResponse resp = (await client.RipplePathFind(req, cancellationToken).ConfigureAwait(false)).Result;
                         suggestedPath = JsonNode.Parse(XrplJson.Serialize(resp));
                         if (resp.Alternatives is null || resp.Alternatives.Count == 0)
                         {
@@ -93,7 +93,7 @@ public sealed class PreflightTools
         Fee feeResp;
         try
         {
-            feeResp = await client.Fee(cancellationToken).ConfigureAwait(false);
+            feeResp = (await client.Fee(cancellationToken).ConfigureAwait(false)).Result;
         }
         catch (Exception ex)
         {
@@ -138,9 +138,9 @@ public sealed class PreflightTools
         AccountInfo sourceInfo;
         try
         {
-            sourceInfo = await client
+            sourceInfo = (await client
                 .AccountInfo(new AccountInfoRequest(account), cancellationToken)
-                .ConfigureAwait(false);
+                .ConfigureAwait(false)).Result;
         }
         catch (Exception ex)
         {
@@ -158,9 +158,9 @@ public sealed class PreflightTools
         // Reserves come from the network — they shift across amendments, so always fetch.
         try
         {
-            ServerState serverState = await client
+            ServerState serverState = (await client
                 .ServerState(new ServerStateRequest(), cancellationToken)
-                .ConfigureAwait(false);
+                .ConfigureAwait(false)).Result;
             report.ReserveBaseXrp = serverState.State?.ValidatedLedger?.ReserveBase ?? 0u;
             report.ReserveIncXrp = serverState.State?.ValidatedLedger?.ReserveInc ?? 0u;
         }
@@ -207,9 +207,9 @@ public sealed class PreflightTools
                 AccountInfo? destInfo = null;
                 try
                 {
-                    destInfo = await client
+                    destInfo = (await client
                         .AccountInfo(new AccountInfoRequest(destination), cancellationToken)
-                        .ConfigureAwait(false);
+                        .ConfigureAwait(false)).Result;
                 }
                 catch (Exception ex)
                 {
@@ -428,13 +428,13 @@ public sealed class PreflightTools
                     DeletionBlockersOnly = true,
                     LedgerIndex = new LedgerIndex(LedgerIndexType.Validated),
                 };
-                AccountObjects objResp = await client.AccountObjects(objReq, cancellationToken).ConfigureAwait(false);
+                AccountObjects objResp = (await client.AccountObjects(objReq, cancellationToken).ConfigureAwait(false)).Result;
                 if (objResp.AccountObjectList is not null && objResp.AccountObjectList.Count > 0)
                 {
                     List<string> blockerTypes = new List<string>();
                     foreach (BaseLedgerEntry entry in objResp.AccountObjectList)
                     {
-                        blockerTypes.Add(entry.LedgerEntryType.ToString());
+                        blockerTypes.Add(entry.LedgerEntryType?.ToString() ?? "unknown");
                     }
                     report.Warnings.Add(
                         $"AccountDelete will fail: account owns {objResp.AccountObjectList.Count} deletion-blocker object(s): " +

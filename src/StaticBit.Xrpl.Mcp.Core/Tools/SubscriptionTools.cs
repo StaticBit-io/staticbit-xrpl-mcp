@@ -109,7 +109,7 @@ public sealed class SubscriptionTools
             Forward = forward,
         };
 
-        AccountTransactions response = await client.AccountTransactions(request, cancellationToken).ConfigureAwait(false);
+        AccountTransactions response = (await client.AccountTransactions(request, cancellationToken).ConfigureAwait(false)).Result;
         return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:account_tx_since:{network}:{account}");
     }
 

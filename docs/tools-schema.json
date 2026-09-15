@@ -348,7 +348,7 @@
     },
     {
       "name": "xrpl_account_loans",
-      "description": "Lists every Loan ledger object touching 'account' (XLS-66) — typically as borrower (account == Loan.Borrower) or via the broker pseudo-account. Each entry includes 64-hex LoanID (use for manage/pay/delete), Borrower, LoanBrokerID, loan sequence, all interest/fee rates and fees, principal counters (PrincipalRequested / PrincipalOutstanding / TotalValueOutstanding), PeriodicPayment, ManagementFeeOutstanding, payment schedule (PaymentInterval / GracePeriod / PaymentRemaining), StartDate / PreviousPaymentDueDate / NextPaymentDueDate (UTC ISO-8601), LoanScale, previousTxnId.",
+      "description": "Lists every Loan ledger object touching 'account' (XLS-66) — typically as borrower (account == Loan.Borrower) or via the broker pseudo-account. Each entry includes 64-hex LoanID (use for manage/pay/delete), Borrower, LoanBrokerID, loan sequence, all interest/fee rates and fees, principal counters (PrincipalOutstanding / TotalValueOutstanding), PeriodicPayment, ManagementFeeOutstanding, payment schedule (PaymentInterval / GracePeriod / PaymentRemaining), StartDate / PreviousPaymentDueDate / NextPaymentDueDate (UTC ISO-8601), LoanScale, previousTxnId.",
       "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.AccountObjectsHelperTools",
       "inputSchema": {
         "type": "object",
@@ -863,7 +863,7 @@
     },
     {
       "name": "xrpl_account_vaults",
-      "description": "Lists every Vault ledger object owned by 'account' (XLS-65). Each entry includes the 64-hex VaultID (use for set/delete/deposit/etc.), pseudo-account, asset spec, AssetsTotal / AssetsAvailable / AssetsMaximum / LossUnrealized (STNumber strings), the share-MPTokenIssuanceID (ShareMPTID), withdrawal policy, scale, data (hex + parsed VaultDataFormat {n,w} when present), and the optional permissioned-domain id.",
+      "description": "Lists every Vault ledger object owned by 'account' (XLS-65). Each entry includes the 64-hex VaultID (use for set/delete/deposit/etc.), pseudo-account, asset spec, AssetsTotal / AssetsAvailable / AssetsMaximum / LossUnrealized (STNumber strings), the share-MPTokenIssuanceID (ShareMPTID), withdrawal policy, scale, and data (hex + parsed VaultDataFormat {n,w} when present). A vault carries no permissioned-domain id: rippled stores it on the linked share MPTokenIssuance.",
       "sourceClass": "StaticBit.Xrpl.Mcp.Core.Tools.AccountObjectsHelperTools",
       "inputSchema": {
         "type": "object",
@@ -1604,11 +1604,10 @@
           },
           "invoiceId": {
             "type": [
-              "integer",
+              "string",
               "null"
             ],
-            "format": "uint",
-            "description": "Optional InvoiceID (uint32)."
+            "description": "Optional invoice ID (32-byte hex)."
           }
         },
         "required": [

@@ -58,7 +58,7 @@ public sealed class PathTools
             LedgerIndex = LedgerIndexParser.Parse(ledgerIndex),
         };
 
-        RipplePathFindResponse response = await client.RipplePathFind(request, cancellationToken).ConfigureAwait(false);
+        RipplePathFindResponse response = (await client.RipplePathFind(request, cancellationToken).ConfigureAwait(false)).Result;
         return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:ripple_path_find:{network}:{sourceAccount}->{destinationAccount}");
     }
 
@@ -81,7 +81,7 @@ public sealed class PathTools
             SendMax = sendMax is null ? null! : CurrencyParser.Parse(sendMax),
         };
 
-        PathFindResponse response = await client.PathFind(request, cancellationToken).ConfigureAwait(false);
+        PathFindResponse response = (await client.PathFind(request, cancellationToken).ConfigureAwait(false)).Result;
         return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:path_find_create:{network}:{sourceAccount}->{destinationAccount}");
     }
 
@@ -92,7 +92,7 @@ public sealed class PathTools
         CancellationToken cancellationToken = default)
     {
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
-        PathFindResponse response = await client.PathFindStatus(new PathFindStatusRequest(), cancellationToken).ConfigureAwait(false);
+        PathFindResponse response = (await client.PathFindStatus(new PathFindStatusRequest(), cancellationToken).ConfigureAwait(false)).Result;
         return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:path_find_status:{network}");
     }
 
@@ -103,7 +103,7 @@ public sealed class PathTools
         CancellationToken cancellationToken = default)
     {
         IXrplClient client = await _pool.GetAsync(new NetworkRef(network), cancellationToken).ConfigureAwait(false);
-        PathFindResponse response = await client.PathFindClose(new PathFindCloseRequest(), cancellationToken).ConfigureAwait(false);
+        PathFindResponse response = (await client.PathFindClose(new PathFindCloseRequest(), cancellationToken).ConfigureAwait(false)).Result;
         return UntrustedContent.Wrap(XrplJson.Serialize(response), $"xrpl:path_find_close:{network}");
     }
 
