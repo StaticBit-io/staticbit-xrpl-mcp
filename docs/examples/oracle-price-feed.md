@@ -10,7 +10,7 @@ Reference: [TestIOracle.cs](https://github.com/StaticBit-io/XrplCSharp/blob/rele
 
 | Plugin | Tools |
 |---|---|
-| **xrpl-cloud** or **xrpl-local** | `xrpl_oracle_set_prepare`, `xrpl_oracle_delete_prepare`, `xrpl_tx_preflight`, `xrpl_tx_submit_signed`, `xrpl_ledger` (for close-time), `xrpl_account_objects` (to verify Oracle existence) |
+| **xrpl-cloud** | `xrpl_oracle_set_prepare`, `xrpl_oracle_delete_prepare`, `xrpl_tx_preflight`, `xrpl_tx_submit_signed`, `xrpl_ledger` (for close-time), `xrpl_account_objects` (to verify Oracle existence) |
 | **xrpl-signer** | `xrpl_sign` |
 | **HTTP fetch** | external (via a generic tool or curl wrapper — depends on the deployment) |
 | **scheduler** | `/loop` or `/schedule` (slash-commands harness) for periodic invocation |

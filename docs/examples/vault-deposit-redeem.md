@@ -12,7 +12,7 @@ Reference: [TestIVault.cs](https://github.com/StaticBit-io/XrplCSharp/blob/relea
 
 | Plugin | Tools |
 |---|---|
-| **xrpl-cloud** or **xrpl-local** | `xrpl_vault_create_prepare`, `xrpl_vault_set_prepare`, `xrpl_vault_delete_prepare`, `xrpl_vault_deposit_prepare`, `xrpl_vault_withdraw_prepare`, `xrpl_vault_clawback_prepare`, `xrpl_account_vaults`, `xrpl_account_mpts` (to verify share-MPT holdings), `xrpl_tx_preflight`, `xrpl_tx_submit_signed`, `xrpl_tx_lookup` |
+| **xrpl-cloud** | `xrpl_vault_create_prepare`, `xrpl_vault_set_prepare`, `xrpl_vault_delete_prepare`, `xrpl_vault_deposit_prepare`, `xrpl_vault_withdraw_prepare`, `xrpl_vault_clawback_prepare`, `xrpl_account_vaults`, `xrpl_account_mpts` (to verify share-MPT holdings), `xrpl_tx_preflight`, `xrpl_tx_submit_signed`, `xrpl_tx_lookup` |
 | **xrpl-signer** | `xrpl_sign` |
 
 ## Concept (XLS-65)

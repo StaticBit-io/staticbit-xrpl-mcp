@@ -12,7 +12,7 @@ Cowork-агент собирает несколько Payment'ов от разн
 
 | Плагин | Tools |
 |---|---|
-| **xrpl-cloud** или **xrpl-local** | `xrpl_payment_prepare` ×N (для inner-tx), `xrpl_batch_prepare`, `xrpl_tx_preflight`, `xrpl_tx_submit_signed`, `xrpl_account_info` (для получения Sequence) |
+| **xrpl-cloud** | `xrpl_payment_prepare` ×N (для inner-tx), `xrpl_batch_prepare`, `xrpl_tx_preflight`, `xrpl_tx_submit_signed`, `xrpl_account_info` (для получения Sequence) |
 | **xrpl-signer** | `xrpl_sign` для outer Batch, `xrpl_sign_multi` для multi-account BatchSigners |
 
 ## Режимы Batch

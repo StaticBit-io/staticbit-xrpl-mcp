@@ -2,7 +2,7 @@
 
 # Cowork-agent recipes for StaticBit XRPL MCP
 
-Each recipe is a ready-made workflow for a Cowork agent covering one use-case through a combination of MCP tools from the `xrpl-cloud` / `xrpl-local` / `xrpl-signer` plugins. All sequences are cross-checked against integration tests in the upstream [XrplCSharp](https://github.com/StaticBit-io/XrplCSharp/tree/release/Tests/Xrpl.Tests/Integration/transactions) project — every step matches a real on-chain sequence verified by testnet/devnet runs.
+Each recipe is a ready-made workflow for a Cowork agent covering one use-case through a combination of MCP tools from the `xrpl-cloud` / `xrpl-signer` plugins. All sequences are cross-checked against integration tests in the upstream [XrplCSharp](https://github.com/StaticBit-io/XrplCSharp/tree/release/Tests/Xrpl.Tests/Integration/transactions) project — every step matches a real on-chain sequence verified by testnet/devnet runs.
 
 ## Catalogue
 

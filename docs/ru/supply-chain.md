@@ -2,7 +2,7 @@
 
 # Supply chain — release artifacts и верификация
 
-Каждый release плагина (`xrpl-cloud` / `xrpl-local` / `xrpl-signer`) сопровождается набором supply-chain-артефактов. Часть включена всегда, часть — только когда настроены секреты Apple / Authenticode certificate authority.
+Каждый release плагина (`xrpl-cloud` / `xrpl-signer`) сопровождается набором supply-chain-артефактов. Часть включена всегда, часть — только когда настроены секреты Apple / Authenticode certificate authority.
 
 Конвенция тегов: `<plugin>--v<X.Y.Z>` (например `xrpl-signer--v0.1.2`).
 
@@ -13,10 +13,10 @@
 | Артефакт | Когда | Как верифицировать |
 |---|---|---|
 | **CHANGELOG-entry** в release notes | всегда | Сгруппирован по conventional-commit type (feat / fix / docs / refactor / test / perf / build / ci / other). См. `release-plugin.sh::group_by_conventional_commit`. |
-| **Per-RID tarballs** `<plugin>-v<X>-<rid>.tar.gz` | для `xrpl-signer` и `xrpl-local` | `tar -tzf` чтобы посмотреть; `sha256sum -c <file>.sha256` для целостности. |
+| **Per-RID tarballs** `<plugin>-v<X>-<rid>.tar.gz` | для `xrpl-signer` | `tar -tzf` чтобы посмотреть; `sha256sum -c <file>.sha256` для целостности. |
 | **SHA-256 sidecars** `<tarball>.sha256` | всегда вместе с tarballs | `sha256sum -c` сравнит локальный хеш с тем, что был на момент сборки. |
-| **SBOM (CycloneDX)** `<plugin>-v<X>.cdx.json` | для `xrpl-signer` и `xrpl-local` | `cyclonedx-cli analyze`, `grype sbom:<file>`, импорт в Dependency-Track. |
-| **SLSA build provenance attestation** | для `xrpl-signer` и `xrpl-local` — **только если репо public или org на paid плане** (см. ниже) | `gh attestation verify <tarball> --repo StaticBit-io/staticbit-xrpl-mcp` (GitHub CLI). Подтверждает что бинарь действительно собран этим workflow на этом коммите. |
+| **SBOM (CycloneDX)** `<plugin>-v<X>.cdx.json` | для `xrpl-signer` | `cyclonedx-cli analyze`, `grype sbom:<file>`, импорт в Dependency-Track. |
+| **SLSA build provenance attestation** | для `xrpl-signer` — **только если репо public или org на paid плане** (см. ниже) | `gh attestation verify <tarball> --repo StaticBit-io/staticbit-xrpl-mcp` (GitHub CLI). Подтверждает что бинарь действительно собран этим workflow на этом коммите. |
 | **macOS notarization** | если настроены `APPLE_*` secrets | `codesign --verify --deep --strict <binary>`, `spctl --assess --type execute <binary>` (Gatekeeper). Apple notary lookup онлайн при первом запуске. |
 | **Windows Authenticode** | если настроены `WINDOWS_PFX*` secrets | `signtool verify /pa /v <binary>.exe`, или `osslsigncode verify -in <binary>.exe` на Linux. |
 

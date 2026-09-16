@@ -9,7 +9,6 @@ on:
         type: choice
         options:
           - xrpl-cloud
-          - xrpl-local
           - xrpl-signer
       bump:
         description: 'Semver bump'
@@ -211,9 +210,6 @@ jobs:
           case "${{ inputs.plugin }}" in
             xrpl-signer)
               PROJECT="src/StaticBit.Xrpl.Mcp.Signer/StaticBit.Xrpl.Mcp.Signer.csproj"
-              ;;
-            xrpl-local)
-              PROJECT="src/StaticBit.Xrpl.Mcp.Server/StaticBit.Xrpl.Mcp.Server.csproj"
               ;;
           esac
 

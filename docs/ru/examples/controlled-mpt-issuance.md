@@ -10,7 +10,7 @@ Cowork-агент управляет жизненным циклом Multi-Purpo
 
 | Плагин | Tools |
 |---|---|
-| **xrpl-cloud** или **xrpl-local** | `xrpl_mpt_issuance_create_prepare`, `xrpl_mpt_authorize_prepare`, `xrpl_mpt_issuance_set_prepare`, `xrpl_payment_prepare`, `xrpl_mpt_issuance_destroy_prepare`, `xrpl_account_mpt_issuances`, `xrpl_account_mpts`, `xrpl_tx_preflight`, `xrpl_tx_submit_signed`, `xrpl_tx_lookup` |
+| **xrpl-cloud** | `xrpl_mpt_issuance_create_prepare`, `xrpl_mpt_authorize_prepare`, `xrpl_mpt_issuance_set_prepare`, `xrpl_payment_prepare`, `xrpl_mpt_issuance_destroy_prepare`, `xrpl_account_mpt_issuances`, `xrpl_account_mpts`, `xrpl_tx_preflight`, `xrpl_tx_submit_signed`, `xrpl_tx_lookup` |
 | **xrpl-signer** | `xrpl_sign` ×N |
 
 ## Архитектура и роли

@@ -8,7 +8,7 @@ Catalogue of implemented functionality. Not a roadmap — only features that alr
 
 - **<!-- toolcount:total -->131<!-- /toolcount:total --> MCP tools** (machine-readable JSON-Schema catalogue: [docs/tools-schema.json](tools-schema.json)).
 - **432 unit tests** (Core: 357, Server: 47, Signer: 28) + **34 integration smoke** tests against testnet (23 more `[Ignore]`'d for draft amendments — Vault / XChain / Loan).
-- All 4 projects (Abstractions, Core, Server, Signer) + 4 test projects + the `tools/SchemaGen` utility + plugin marketplace with 3 plugins (`xrpl-cloud`, `xrpl-local`, `xrpl-signer`).
+- All 4 projects (Abstractions, Core, Server, Signer) + 4 test projects + the `tools/SchemaGen` utility + plugin marketplace with 2 plugins (`xrpl-cloud`, `xrpl-signer`).
 
 Related documents:
 
@@ -249,7 +249,7 @@ The tool is kept as plumbing for future server-side watchers / admin alerts (e.g
 Full summary + setup guide: [docs/supply-chain.md](supply-chain.md).
 
 - **Auto-generated GitHub release notes** — `release-plugin.sh::group_by_conventional_commit` parses conventional commits (feat/fix/perf/refactor/docs/test/build/ci/chore) between tags and groups them under `### Features` / `### Fixes` / ... `### Other` subheadings.
-- **SBOM (CycloneDX)** — `dotnet CycloneDX` in the release workflow generates `<plugin>-v<X>.cdx.json` for `xrpl-signer` and `xrpl-local` (skipped for `xrpl-cloud` — no shipped binaries). Attached to the Release.
+- **SBOM (CycloneDX)** — `dotnet CycloneDX` in the release workflow generates `<plugin>-v<X>.cdx.json` for `xrpl-signer` (skipped for `xrpl-cloud` — no shipped binaries). Attached to the Release.
 - **SLSA build provenance attestation** — `actions/attest-build-provenance@v2` via GitHub OIDC. No secrets. Verified by `gh attestation verify`.
 - **Per-RID tarballs + SHA-256 sidecars** — each `plugins/<name>/bin/<rid>/` is bundled into `<plugin>-v<X>-<rid>.tar.gz` + `.sha256` alongside.
 - **Reproducible builds** — `Deterministic=true` always, `ContinuousIntegrationBuild=true` when `CI=true`/`GITHUB_ACTIONS=true`. Bit-identity for managed builds between runs of the same commit on the same SDK version.

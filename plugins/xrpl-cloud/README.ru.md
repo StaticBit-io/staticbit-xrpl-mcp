@@ -10,7 +10,6 @@
 - **Mobile / lightweight** — не хочешь скачивать ~100 MB local-сервера.
 - **Multi-device** — вход через OAuth на каждом устройстве; одна XRPL-конфигурация на сервере.
 
-Если ты privacy-sensitive (не хочешь чтобы админ cloud-сервера видел traffic к XRPL нодам), смотри в сторону `xrpl-local`.
 
 ## Установка
 

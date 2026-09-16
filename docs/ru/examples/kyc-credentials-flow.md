@@ -10,7 +10,7 @@
 
 | Плагин | Tools |
 |---|---|
-| **xrpl-cloud** или **xrpl-local** | `xrpl_credential_create_prepare`, `xrpl_credential_accept_prepare`, `xrpl_credential_delete_prepare`, `xrpl_account_set_prepare`, `xrpl_deposit_preauth_prepare`, `xrpl_payment_prepare` (с `credentialIdsJson`), `xrpl_hash_credential` (pure-local helper), `xrpl_account_credentials`, `xrpl_tx_preflight`, `xrpl_tx_submit_signed` |
+| **xrpl-cloud** | `xrpl_credential_create_prepare`, `xrpl_credential_accept_prepare`, `xrpl_credential_delete_prepare`, `xrpl_account_set_prepare`, `xrpl_deposit_preauth_prepare`, `xrpl_payment_prepare` (с `credentialIdsJson`), `xrpl_hash_credential` (pure-local helper), `xrpl_account_credentials`, `xrpl_tx_preflight`, `xrpl_tx_submit_signed` |
 | **xrpl-signer** | `xrpl_sign` |
 
 ## Концепция (XLS-70)

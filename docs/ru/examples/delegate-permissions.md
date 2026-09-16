@@ -10,7 +10,7 @@ Owner делегирует право submit'ить транзакции опр�
 
 | Плагин | Tools |
 |---|---|
-| **xrpl-cloud** или **xrpl-local** | `xrpl_delegate_set_prepare`, `xrpl_account_objects` (тип Delegate), `xrpl_payment_prepare` (или другие tx), `xrpl_tx_preflight`, `xrpl_tx_submit_signed` |
+| **xrpl-cloud** | `xrpl_delegate_set_prepare`, `xrpl_account_objects` (тип Delegate), `xrpl_payment_prepare` (или другие tx), `xrpl_tx_preflight`, `xrpl_tx_submit_signed` |
 | **xrpl-signer** | `xrpl_sign` |
 
 ## Концепция (XLS-75)

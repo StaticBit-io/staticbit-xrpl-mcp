@@ -10,7 +10,6 @@ A lightweight HTTP MCP client for our cloud XRPL server at `xrpl.mcp.staticbit.a
 - **Mobile / lightweight** — you don't want to download a ~100 MB local server.
 - **Multi-device** — sign in via OAuth on each device; a single XRPL configuration lives on the server.
 
-If you are privacy-sensitive (you don't want the cloud server admin to see traffic to XRPL nodes), look at `xrpl-local` instead.
 
 ## Installation
 

@@ -10,7 +10,7 @@ Cowork-агент координирует процесс сбора подпи�
 
 | Плагин | Tools |
 |---|---|
-| **xrpl-cloud** или **xrpl-local** | `xrpl_signer_list_set_prepare`, `xrpl_account_set_prepare` (для DisableMaster), `xrpl_payment_prepare` (или любой другой write), `xrpl_signer_list_status`, `xrpl_tx_preflight`, `xrpl_tx_submit_signed` |
+| **xrpl-cloud** | `xrpl_signer_list_set_prepare`, `xrpl_account_set_prepare` (для DisableMaster), `xrpl_payment_prepare` (или любой другой write), `xrpl_signer_list_status`, `xrpl_tx_preflight`, `xrpl_tx_submit_signed` |
 | **xrpl-signer** | `xrpl_sign_multi` (per signer), `xrpl_sign_combine` (склейка) |
 
 ## Концепция

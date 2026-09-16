@@ -2,8 +2,7 @@
 
 >  🌐 **Language**: **English** | [Русский](ru/OPERATIONS.md)
 
-Day-two runbook for the **xrpl-cloud** server (`xrpl.mcp.staticbit.ai`). The `xrpl-local` and
-`xrpl-signer` plugins are local stdio processes on the user's machine — they have no server-side
+Day-two runbook for the **xrpl-cloud** server (`xrpl.mcp.staticbit.ai`). The `xrpl-signer` plugin is a local stdio process on the user's machine — it has no server-side
 operations. First-time bring-up from a clean VPS is [DEPLOY.md](DEPLOY.md).
 
 ## Deploy / redeploy

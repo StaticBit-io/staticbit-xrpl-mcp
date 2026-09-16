@@ -46,10 +46,9 @@ Workflow принимает `patch` / `minor` / `major`. Точная верси
 | Плагин | Исходники | Bump при изменении |
 |---|---|---|
 | `xrpl-cloud` | манифест плагина + skill + .mcp.json (URL/headers) | только манифест/skill — `no_build` |
-| `xrpl-local` | `src/StaticBit.Xrpl.Mcp.{Abstractions,Core,Server}` | весь серверный проект |
 | `xrpl-signer` | `src/StaticBit.Xrpl.Mcp.Signer` | только проект сигнера (независим) |
 
-Меняешь `StaticBit.Xrpl.Mcp.Core` — затронут только `xrpl-local` (сигнер от Core не зависит). Меняешь `StaticBit.Xrpl.Mcp.Server` — только `xrpl-local`. Меняешь `StaticBit.Xrpl.Mcp.Signer` — только `xrpl-signer`. `xrpl-cloud` зависит лишь от URL эндпоинта и текста манифеста.
+`StaticBit.Xrpl.Mcp.Core` и `StaticBit.Xrpl.Mcp.Server` обслуживают хостящийся сервер, а не бинарь плагина. Меняешь `StaticBit.Xrpl.Mcp.Signer` — только `xrpl-signer`. `xrpl-cloud` зависит лишь от URL эндпоинта и текста манифеста.
 
 ## Типовые сценарии
 
@@ -95,7 +94,7 @@ curl -s https://xrpl.mcp.staticbit.ai/healthz     # {"status":"ok","version":"<s
 git rev-parse --short HEAD                        # должно совпасть
 
 # 4. Релизишь local-плагин с новым self-contained бинарём:
-gh workflow run release-plugin.yml --ref main -f plugin=xrpl-local -f bump=minor
+gh workflow run release-plugin.yml --ref main -f plugin=xrpl-signer -f bump=minor
 ```
 
 Шаг 4 добавляет релизный коммит поверх `main`, поэтому `/healthz` после него будет отставать от HEAD на этот коммит. Перезапусти `deploy-build`, если нужно, чтобы версия на сервере точно совпадала с HEAD — сам код сервера при этом не меняется (релизный коммит трогает только `bin/`, манифесты и CHANGELOG).
@@ -130,7 +129,7 @@ gh workflow run release-plugin.yml --ref main -f plugin=xrpl-signer -f bump=patc
 Workflow релизит **один плагин за запуск**. Диспатчить нужно **по одному, дожидаясь завершения** каждого перед следующим:
 
 ```bash
-gh workflow run release-plugin.yml --ref main -f plugin=xrpl-local -f bump=minor
+gh workflow run release-plugin.yml --ref main -f plugin=xrpl-signer -f bump=minor
 gh run watch "$(gh run list --workflow=release-plugin.yml --limit 1 --json databaseId --jq '.[0].databaseId')" --exit-status
 
 gh workflow run release-plugin.yml --ref main -f plugin=xrpl-signer -f bump=minor

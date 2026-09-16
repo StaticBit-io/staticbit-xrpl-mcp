@@ -10,7 +10,7 @@ Cowork-агент периодически (раз в N минут) pull'ит ц
 
 | Плагин | Tools |
 |---|---|
-| **xrpl-cloud** или **xrpl-local** | `xrpl_oracle_set_prepare`, `xrpl_oracle_delete_prepare`, `xrpl_tx_preflight`, `xrpl_tx_submit_signed`, `xrpl_ledger` (для close-time), `xrpl_account_objects` (для проверки существования Oracle) |
+| **xrpl-cloud** | `xrpl_oracle_set_prepare`, `xrpl_oracle_delete_prepare`, `xrpl_tx_preflight`, `xrpl_tx_submit_signed`, `xrpl_ledger` (для close-time), `xrpl_account_objects` (для проверки существования Oracle) |
 | **xrpl-signer** | `xrpl_sign` |
 | **HTTP fetch** | внешний (через generic tool или curl wrapper — зависит от deployment'а) |
 | **scheduler** | `/loop` или `/schedule` (slash-commands harness) для periodic invocation |

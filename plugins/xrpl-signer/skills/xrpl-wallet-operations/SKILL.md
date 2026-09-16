@@ -1,6 +1,6 @@
 ---
 name: xrpl-wallet-operations
-description: Use this skill when the user wants to manage XRPL wallets (create, import, list, remove, backup) or sign transactions locally. Recognizes phrases like "create a new XRPL wallet", "import seed", "import mnemonic", "import Xumm secret numbers", "import from text passphrase", "list my XRPL wallets", "back up wallet seed", "sign this transaction", "multi-sign transaction", "combine signatures". Routes through the offline stdio `xrpl-signer` MCP. Pairs with `xrpl-cloud` or `xrpl-local` for the prepare/submit halves of write flows.
+description: Use this skill when the user wants to manage XRPL wallets (create, import, list, remove, backup) or sign transactions locally. Recognizes phrases like "create a new XRPL wallet", "import seed", "import mnemonic", "import Xumm secret numbers", "import from text passphrase", "list my XRPL wallets", "back up wallet seed", "sign this transaction", "multi-sign transaction", "combine signatures". Routes through the offline stdio `xrpl-signer` MCP. Pairs with `xrpl-cloud` for the prepare/submit halves of write flows.
 ---
 
 # XRPL wallet & signing — local, offline, keystore-backed
@@ -38,7 +38,7 @@ The signer SDK supports five distinct entropy sources — use the one matching h
 - **NEVER** call `xrpl_wallet_export` with `confirm=true` unless the user explicitly asked to back up the seed in plaintext — the seed will appear in the conversation transcript.
 - **NEVER** suggest committing the keystore file or passphrase to git / cloud sync without encryption awareness.
 
-## Signing flow (used by xrpl-cloud / xrpl-local skills)
+## Signing flow (used by xrpl-cloud skills)
 
 When the user wants to send a transaction, you're called from the prepare/submit skill:
 
@@ -55,7 +55,7 @@ For **multi-sign** (multi-signer accounts):
 
 ## Signing ceremony — non-negotiables
 
-The signer only does crypto; `xrpl-cloud` / `xrpl-local` own autofill and submission. Regardless of which skill calls you, **every** signature obeys these, in order:
+The signer only does crypto; `xrpl-cloud` own autofill and submission. Regardless of which skill calls you, **every** signature obeys these, in order:
 
 1. **Local only.** Signing happens in this offline plugin. The seed never leaves the keystore, never goes to a cloud MCP, never appears in chat.
 2. **Preview, then explicit human approval.** Produce a signature only after the prepare `preview` block was shown and the human explicitly approved *this* transaction. Default: one confirmation per signature. The only exception is a scoped auto-sign override (below).
@@ -87,9 +87,8 @@ By default every signature needs explicit human approval (step 2 above). An over
 This plugin is half the picture — alone it can't read the ledger or submit. Pair with:
 
 - **`xrpl-cloud`** for read/prepare/submit via the StaticBit HTTPS server. Smaller, no local server bin.
-- **`xrpl-local`** for fully-local read/prepare/submit. Bigger (~110 MB binary), no cloud dependency.
 
-The user can install both side by side; this signer works with either.
+This signer pairs with it.
 
 ## Example: create wallet + send testnet payment
 
@@ -97,7 +96,7 @@ The user can install both side by side; this signer works with either.
 >
 > 1. `mcp__plugin_xrpl-signer_xrpl-signer__xrpl_wallet_generate(name=test1, algorithm=ed25519)`
 > 2. Report: "Created wallet test1, address rNewlyGenerated. Fund it via https://xrpl.org/xrp-testnet-faucet.html and tell me when it's funded so we can proceed with the payment."
-> 3. After user confirms funding — fall into the prepare/submit flow (via xrpl-cloud or xrpl-local skill as appropriate):
+> 3. After user confirms funding — fall into the prepare/submit flow (via the xrpl-cloud skill):
 >    - cloud-or-local prepare with `account=<test1's address>`, `destination=rDestination`, `amount=5000000`
 >    - Show summary, ask confirm
 >    - `xrpl_sign(name=test1, transaction=<txJson>)`

@@ -8,7 +8,7 @@
 
 - **<!-- toolcount:total -->131<!-- /toolcount:total --> MCP-tools** (полный машинно-читаемый JSON-Schema каталог: [docs/tools-schema.json](../tools-schema.json)).
 - **432 unit-теста** (Core: 357, Server: 47, Signer: 28) + **34 integration smoke** против testnet (23 ещё ignore'нуты за draft-amendments Vault / XChain / Loan).
-- Все 4 проекта (Abstractions, Core, Server, Signer) + 4 тестовых проекта + утилита `tools/SchemaGen` + плагин-маркетплейс на 3 плагина (`xrpl-cloud`, `xrpl-local`, `xrpl-signer`).
+- Все 4 проекта (Abstractions, Core, Server, Signer) + 4 тестовых проекта + утилита `tools/SchemaGen` + плагин-маркетплейс на 2 плагина (`xrpl-cloud`, `xrpl-signer`).
 
 Связанные документы:
 
@@ -247,7 +247,7 @@ Tool оставлен как plumbing для будущих server-side watchers
 Полная сводка + setup-гайд: [docs/supply-chain.ru.md](supply-chain.md).
 
 - **Автогенерация GitHub release notes** — `release-plugin.sh::group_by_conventional_commit` парсит conventional commits (feat/fix/perf/refactor/docs/test/build/ci/chore) между тегами и группирует под подзаголовки `### Features` / `### Fixes` / ... `### Other`.
-- **SBOM (CycloneDX)** — `dotnet CycloneDX` в release workflow генерит `<plugin>-v<X>.cdx.json` для `xrpl-signer` и `xrpl-local` (для `xrpl-cloud` пропускается — у него нет shipped бинарей). Аттачится к Release.
+- **SBOM (CycloneDX)** — `dotnet CycloneDX` в release workflow генерит `<plugin>-v<X>.cdx.json` для `xrpl-signer` (для `xrpl-cloud` пропускается — у него нет shipped бинарей). Аттачится к Release.
 - **SLSA build provenance attestation** — `actions/attest-build-provenance@v2` через GitHub OIDC. Без секретов. Верифицируется `gh attestation verify`.
 - **Per-RID tarballs + SHA-256 sidecars** — каждый `plugins/<name>/bin/<rid>/` бандлится в `<plugin>-v<X>-<rid>.tar.gz` + `.sha256` рядом.
 - **Reproducible builds** — `Deterministic=true` всегда, `ContinuousIntegrationBuild=true` при `CI=true`/`GITHUB_ACTIONS=true`. Bit-identity для managed-сборок между запусками одного коммита на одной версии SDK.

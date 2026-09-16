@@ -20,7 +20,6 @@ Then install the local toolkit + signer (recommended for everyone — fully self
 
 ```
 # read / prepare / submit, runs locally; talks straight to public XRPL nodes:
-/plugin install xrpl-local@staticbit-xrpl-mcp
 # offline wallet management + signing (encrypted keystore):
 /plugin install xrpl-signer@staticbit-xrpl-mcp
 ```
@@ -35,15 +34,14 @@ Full instructions with every ENV variable — in [INSTALL.md](docs/INSTALL.md).
 
 ### `xrpl-cloud` and self-hosting
 
-`xrpl-cloud` is a thin HTTP client for a server **hosted by StaticBit** at `xrpl.mcp.staticbit.ai`. That hosted endpoint is operated by StaticBit and is **not open to public self-service** — it requires an account arranged with StaticBit. For a self-serve setup, `xrpl-local` does everything the cloud does, entirely on your machine. If you want a shared, cloud-like HTTP endpoint for your own team, **self-host the same server** (identical code to `xrpl-local`) — see [DEPLOY.md](docs/DEPLOY.md).
+`xrpl-cloud` is a thin HTTP client for a server **hosted by StaticBit** at `xrpl.mcp.staticbit.ai`. That hosted endpoint is operated by StaticBit and is **not open to public self-service** — it requires an account arranged with StaticBit. If you want a shared, cloud-like HTTP endpoint for your own team, **self-host the same server** — see [DEPLOY.md](docs/DEPLOY.md).
 
 ## Marketplace plugins
 
 | Plugin | What it does | Size |
 |---|---|---|
-| [`xrpl-cloud`](plugins/xrpl-cloud/) | Thin HTTP client for the **StaticBit-hosted** server at `xrpl.mcp.staticbit.ai` — hosted access by arrangement (not open self-service; use `xrpl-local` or self-host). | ~10 KB |
-| [`xrpl-local`](plugins/xrpl-local/) | Local stdio MCP — same tools, but entirely on your machine; WebSocket directly to public XRPL nodes. | ~260 MB (5 RIDs) |
-| [`xrpl-signer`](plugins/xrpl-signer/) | Offline stdio MCP for wallet management and signing — encrypted keystore, zero network code. Pairs with cloud or local. | ~200 MB (5 RIDs) |
+| [`xrpl-cloud`](plugins/xrpl-cloud/) | Thin HTTP client for the **StaticBit-hosted** server at `xrpl.mcp.staticbit.ai` — hosted access by arrangement (not open self-service; self-host otherwise). | ~10 KB |
+| [`xrpl-signer`](plugins/xrpl-signer/) | Offline stdio MCP for wallet management and signing — encrypted keystore, zero network code. Pairs with xrpl-cloud. | ~200 MB (5 RIDs) |
 
 ## How they compose
 
@@ -57,17 +55,6 @@ Full instructions with every ENV variable — in [INSTALL.md](docs/INSTALL.md).
 │                      ├─ sign locally                   │
 │   xrpl-cloud (HTTP) ─┘                                 │
 │                      └─ submit_signed                  │
-└────────────────────────────────────────────────────────┘
-
-┌────────────────────────────────────────────────────────┐
-│ Local + Signer (fully offline-ish, no cloud middleman) │
-│                                                        │
-│   xrpl-local (stdio) ─┐                                │
-│                       ├─ prepare → user-confirm        │
-│   xrpl-signer (stdio) ┘                                │
-│                       ├─ sign locally                  │
-│   xrpl-local (stdio) ─┘                                │
-│                       └─ submit_signed                  │
 └────────────────────────────────────────────────────────┘
 ```
 
@@ -95,7 +82,6 @@ staticbit-xrpl-mcp/
 ├── .github/dependabot.yml                 ← weekly NuGet + actions updates
 ├── plugins/
 │   ├── xrpl-cloud/      (manifest + skill, no binaries)
-│   ├── xrpl-local/      (+ bin/<rid>/ for 5 RIDs)
 │   └── xrpl-signer/     (+ bin/<rid>/ for 5 RIDs)
 ├── src/
 │   ├── StaticBit.Xrpl.Mcp.Abstractions/   ← shared models

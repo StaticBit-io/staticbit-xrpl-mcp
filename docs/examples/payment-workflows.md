@@ -16,7 +16,7 @@ Reference: [TestIPayment.cs](https://github.com/StaticBit-io/XrplCSharp/blob/rel
 
 | Plugin | Tools |
 |---|---|
-| **xrpl-cloud** or **xrpl-local** | `xrpl_xrp_balance`, `xrpl_account_lines`, `xrpl_fee`, `xrpl_payment_prepare`, `xrpl_ripple_path_find`, `xrpl_path_find_create`, `xrpl_path_find_status`, `xrpl_path_find_close`, `xrpl_trustset_prepare`, `xrpl_account_set_prepare`, `xrpl_deposit_preauth_prepare`, `xrpl_permissioned_domain_set_prepare`, `xrpl_credential_accept_prepare`, `xrpl_hash_credential`, `xrpl_tx_prepare_generic`, `xrpl_tx_preflight`, `xrpl_tx_simulate`, `xrpl_tx_submit_signed`, `xrpl_tx_lookup` |
+| **xrpl-cloud** | `xrpl_xrp_balance`, `xrpl_account_lines`, `xrpl_fee`, `xrpl_payment_prepare`, `xrpl_ripple_path_find`, `xrpl_path_find_create`, `xrpl_path_find_status`, `xrpl_path_find_close`, `xrpl_trustset_prepare`, `xrpl_account_set_prepare`, `xrpl_deposit_preauth_prepare`, `xrpl_permissioned_domain_set_prepare`, `xrpl_credential_accept_prepare`, `xrpl_hash_credential`, `xrpl_tx_prepare_generic`, `xrpl_tx_preflight`, `xrpl_tx_simulate`, `xrpl_tx_submit_signed`, `xrpl_tx_lookup` |
 | **xrpl-signer** | `xrpl_sign` |
 
 ## Architecture

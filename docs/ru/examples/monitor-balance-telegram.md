@@ -8,7 +8,7 @@
 
 | Плагин | Что нужно для рецепта |
 |---|---|
-| **xrpl-cloud** (или `xrpl-local`) | `xrpl_account_tx_since` для polling, `xrpl_tx_explain` для форматирования |
+| **xrpl-cloud** | `xrpl_account_tx_since` для polling, `xrpl_tx_explain` для форматирования |
 | **telegram** (отдельный плагин) | `mcp__telegram-cloud__send_message` для уведомлений |
 
 `xrpl-signer` не нужен — только чтение.

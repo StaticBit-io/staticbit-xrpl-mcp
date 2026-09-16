@@ -1,7 +1,7 @@
 # CLAUDE.md — repo conventions for AI agents
 
-XRPL MCP. Three plugins: **xrpl-cloud** (cloud HTTP MCP, OAuth 2.1), **xrpl-local** (local
-stdio MCP), **xrpl-signer** (offline stdio signer, encrypted keystore). Server is
+XRPL MCP. Two plugins: **xrpl-cloud** (cloud HTTP MCP, OAuth 2.1) and **xrpl-signer**
+(offline stdio signer, encrypted keystore). Server is
 `src/StaticBit.Xrpl.Mcp.Server`. XRPL coding rules: see the user/global CLAUDE.md (read SDK
 sources from `E:\GIT\XRPL\XrplCSharp`, never decompile NuGet).
 

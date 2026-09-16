@@ -2,8 +2,7 @@
 
 >  🌐 **Язык**: [English](../OPERATIONS.md) | **Русский**
 
-Day-two runbook для **xrpl-cloud** сервера (`xrpl.mcp.staticbit.ai`). Плагины `xrpl-local` и
-`xrpl-signer` — локальные stdio-процессы на машине пользователя, серверной эксплуатации у них нет.
+Day-two runbook для **xrpl-cloud** сервера (`xrpl.mcp.staticbit.ai`). Плагин `xrpl-signer` — локальный stdio-процесс на машине пользователя, серверной эксплуатации у него нет.
 Первичное развёртывание с чистого VPS — [DEPLOY.md](DEPLOY.md).
 
 ## Деплой / передеплой

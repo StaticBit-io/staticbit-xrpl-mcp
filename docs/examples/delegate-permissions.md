@@ -10,7 +10,7 @@ Reference: [TestIDelegateSet.cs](https://github.com/StaticBit-io/XrplCSharp/blob
 
 | Plugin | Tools |
 |---|---|
-| **xrpl-cloud** or **xrpl-local** | `xrpl_delegate_set_prepare`, `xrpl_account_objects` (type Delegate), `xrpl_payment_prepare` (or other tx), `xrpl_tx_preflight`, `xrpl_tx_submit_signed` |
+| **xrpl-cloud** | `xrpl_delegate_set_prepare`, `xrpl_account_objects` (type Delegate), `xrpl_payment_prepare` (or other tx), `xrpl_tx_preflight`, `xrpl_tx_submit_signed` |
 | **xrpl-signer** | `xrpl_sign` |
 
 ## Concept (XLS-75)
