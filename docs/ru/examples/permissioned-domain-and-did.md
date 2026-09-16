@@ -10,7 +10,7 @@
 
 | Плагин | Tools |
 |---|---|
-| **xrpl-cloud** или **xrpl-local** | `xrpl_did_set_prepare`, `xrpl_did_delete_prepare`, `xrpl_permissioned_domain_set_prepare`, `xrpl_permissioned_domain_delete_prepare`, `xrpl_account_did`, `xrpl_account_permissioned_domains`, `xrpl_tx_preflight`, `xrpl_tx_submit_signed` |
+| **xrpl-cloud** | `xrpl_did_set_prepare`, `xrpl_did_delete_prepare`, `xrpl_permissioned_domain_set_prepare`, `xrpl_permissioned_domain_delete_prepare`, `xrpl_account_did`, `xrpl_account_permissioned_domains`, `xrpl_tx_preflight`, `xrpl_tx_submit_signed` |
 | **xrpl-signer** | `xrpl_sign` |
 
 ## Концепция

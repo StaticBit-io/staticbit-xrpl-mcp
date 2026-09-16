@@ -27,7 +27,7 @@ Self-contained step-by-step guide. Share a link to this file with a new user —
 | What | Why | How to check |
 |---|---|---|
 | Claude Code 2.1+ | `/plugin` commands and plugin MCP support were added in this version | `claude --version` |
-| Node.js 18+ | `xrpl-local` and `xrpl-signer` launch the .NET binary via a Node launcher | `node --version` |
+| Node.js 18+ | `xrpl-signer` launches the .NET binary via a Node launcher | `node --version` |
 | ~600 MB of disk | self-contained binaries for 5 platforms bundled inside the plugins | — |
 
 > If you're on Claude Code < 2.1 — update via `claude update` or the [official updater](https://claude.com/claude-code).
@@ -41,9 +41,7 @@ The marketplace contains **three independent** plugins. You can install them in 
 | What you want | Install | Why |
 |---|---|---|
 | **Hosted setup**: simpler, lighter, Cowork agents available — but the cloud server sees request metadata | `xrpl-cloud` + `xrpl-signer` | cloud handles prepare/submit, signer signs locally |
-| **Privacy-first**: nothing goes through our VPS; the WebSocket to XRPL nodes opens from your machine | `xrpl-local` + `xrpl-signer` | the local server does what cloud does but locally |
 | **Read-only via cloud**: dashboards, balance monitors, no signing | `xrpl-cloud` | reads only without the signer |
-| **Read-only locally** | `xrpl-local` | same without cloud |
 | **Wallet management only** (generate/import/back up, no network) | `xrpl-signer` | offline keystore on its own |
 
 > If unsure — go with **local + signer**. It's fully self-contained (no arranged cloud access needed), and you can extend or swap later without losing the wallets in your keystore.
@@ -54,7 +52,7 @@ The cloud server **never** accepts a seed or a private key — all write tools r
 
 ### What the tools cover (at a glance)
 
-The walkthrough below uses the basic `xrpl_fee` / `xrpl_payment_prepare` / `xrpl_sign` / `xrpl_tx_submit_signed` tools as a hello-world, but the surface is much bigger — **<!-- toolcount:total -->131<!-- /toolcount:total --> tools** across `xrpl-cloud` / `xrpl-local` (<!-- toolcount:xrpl -->116<!-- /toolcount:xrpl -->) and `xrpl-signer` (<!-- toolcount:xrpl-signer -->15<!-- /toolcount:xrpl-signer -->). Categories you can reach with the same `prepare → sign → submit` flow:
+The walkthrough below uses the basic `xrpl_fee` / `xrpl_payment_prepare` / `xrpl_sign` / `xrpl_tx_submit_signed` tools as a hello-world, but the surface is much bigger — **<!-- toolcount:total -->131<!-- /toolcount:total --> tools** across `xrpl-cloud` (<!-- toolcount:xrpl -->116<!-- /toolcount:xrpl -->) and `xrpl-signer` (<!-- toolcount:xrpl-signer -->15<!-- /toolcount:xrpl-signer -->). Categories you can reach with the same `prepare → sign → submit` flow:
 
 | Domain | Representative tools |
 |---|---|
@@ -76,7 +74,7 @@ The walkthrough below uses the basic `xrpl_fee` / `xrpl_payment_prepare` / `xrpl
 | **Subscriptions** | `subscribe`, `unsubscribe`, `path_find_{create,status,close}` |
 | **Signer / wallet** | `wallet_{generate,generate_mnemonic,import_seed,import_mnemonic,import_text,import_xumm,export,export_index,address,derive_address,list,remove}`, `sign`, `sign_multi`, `sign_combine` |
 
-Full per-parameter reference is auto-generated: [`docs/TOOLS.generated.md`](TOOLS.generated.md). Category breakdown with usage notes lives in [`plugins/xrpl-cloud/README.md`](../plugins/xrpl-cloud/README.md). The agent picks the right tool from `xrpl-cloud-operations` / `xrpl-local-operations` / `xrpl-wallet-operations` skills — you describe the intent in natural language, the skill maps it to a tool.
+Full per-parameter reference is auto-generated: [`docs/TOOLS.generated.md`](TOOLS.generated.md). Category breakdown with usage notes lives in [`plugins/xrpl-cloud/README.md`](../plugins/xrpl-cloud/README.md). The agent picks the right tool from `xrpl-cloud-operations` / `xrpl-wallet-operations` skills — you describe the intent in natural language, the skill maps it to a tool.
 
 ---
 
@@ -119,11 +117,6 @@ claude plugin install xrpl-cloud@staticbit-xrpl-mcp
 claude plugin install xrpl-signer@staticbit-xrpl-mcp
 ```
 
-### Local + signing (privacy-first)
-```powershell
-claude plugin install xrpl-local@staticbit-xrpl-mcp
-claude plugin install xrpl-signer@staticbit-xrpl-mcp
-```
 
 ### Cloud only (read-only)
 ```powershell
@@ -150,7 +143,7 @@ Every installed plugin must show `Status: ✔ enabled`.
 
 `xrpl-cloud` talks to a server **hosted by StaticBit** (`xrpl.mcp.staticbit.ai`), protected by **OAuth 2.1** against `auth.mcp.staticbit.ai`. That hosted endpoint is **not open to public self-service** — access is arranged with StaticBit and the account must be on the server allow-list.
 
-**For self-serve you don't need this section.** Use `xrpl-local` (no access step — it talks to public XRPL nodes from your own machine) or self-host the same server for your team (see [DEPLOY.md](DEPLOY.md)). Both expose the identical tool surface.
+**If you don't have hosted access**, self-host the same server for your team (see [DEPLOY.md](DEPLOY.md)) — identical tool surface.
 
 If you *have* arranged hosted access, log in interactively from Claude Code via `/mcp` (see §9): the browser flow goes through `auth.mcp.staticbit.ai`, Claude Code performs dynamic client registration and refreshes the token automatically — nothing to copy or paste.
 
@@ -257,7 +250,6 @@ Depending on what you installed, you'll see one or more lines:
 
 ```
 xrpl-cloud   https://xrpl.mcp.staticbit.ai/mcp (HTTP)   ⚠ Needs login
-xrpl-local   node …/bin/server.js                       ✓ Connected
 xrpl-signer  node …/bin/signer.js                       ✓ Connected
 ```
 
@@ -280,7 +272,7 @@ In the chat, ask Claude to make a read-only call:
 What is the current XRPL fee on mainnet?
 ```
 
-The agent will pick the `xrpl-cloud-operations` (or `xrpl-local-operations`) skill and call `xrpl_fee`. It should return `base_fee: 10` (drops) and a ledger sequence.
+The agent will pick the `xrpl-cloud-operations` skill and call `xrpl_fee`. It should return `base_fee: 10` (drops) and a ledger sequence.
 
 ---
 
@@ -503,7 +495,6 @@ The keystore is a **local file**. Changes on one PC (added a wallet, removed one
 
 ```powershell
 claude plugin uninstall xrpl-cloud
-claude plugin uninstall xrpl-local
 claude plugin uninstall xrpl-signer
 ```
 
@@ -556,7 +547,7 @@ For `xrpl-cloud` there's no local secret to wipe. To fully cut access: ask the a
 | Server is up | `curl https://xrpl.mcp.staticbit.ai/healthz` — should return `{"status":"ok"}` |
 | Restarted Claude Code after install | Close fully and relaunch |
 
-### `/mcp` shows `disconnected` for xrpl-local or xrpl-signer
+### `/mcp` shows `disconnected` for xrpl-signer
 
 | Check | How |
 |---|---|
@@ -643,7 +634,6 @@ Same story — binary without Authenticode signing. Options:
    ```powershell
    # Run as admin
    Add-MpPreference -ExclusionPath "$env:USERPROFILE\.claude\plugins\xrpl-signer"
-   Add-MpPreference -ExclusionPath "$env:USERPROFILE\.claude\plugins\xrpl-local"
    ```
 
    A self-contained AOT-style .NET binary sometimes trips a false positive due to native library self-extraction — known behaviour, not a plugin bug.
@@ -691,7 +681,6 @@ Add it to `~/.bashrc` / `~/.zshrc` or to the plugin's env block to make it persi
 
 - [README.md](../README.md) — marketplace overview and available plugins
 - [plugins/xrpl-cloud/README.md](../plugins/xrpl-cloud/README.md) — cloud plugin details
-- [plugins/xrpl-local/README.md](../plugins/xrpl-local/README.md) — local plugin details
 - [plugins/xrpl-signer/README.md](../plugins/xrpl-signer/README.md) — signer plugin details
 - [StaticBit-io/staticbit-xrpl-mcp](https://github.com/StaticBit-io/staticbit-xrpl-mcp) — cloud server and signer sources
 - [StaticBit-io/staticbit-xrpl-mcp/DEPLOY.md](https://github.com/StaticBit-io/staticbit-xrpl-mcp/blob/main/docs/DEPLOY.md) — for the cloud-server admin: how to deploy your own instance

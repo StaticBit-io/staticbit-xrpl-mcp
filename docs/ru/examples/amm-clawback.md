@@ -10,7 +10,7 @@ Token issuer возвращает свои tokens из AMM-пула когда h
 
 | Плагин | Tools |
 |---|---|
-| **xrpl-cloud** или **xrpl-local** | `xrpl_account_set_prepare` (enable AllowTrustLineClawback), `xrpl_trustset_prepare`, `xrpl_amm_create_prepare`, `xrpl_amm_deposit_prepare`, `xrpl_amm_clawback_prepare`, `xrpl_amm_info`, `xrpl_account_lines`, `xrpl_tx_preflight`, `xrpl_tx_submit_signed` |
+| **xrpl-cloud** | `xrpl_account_set_prepare` (enable AllowTrustLineClawback), `xrpl_trustset_prepare`, `xrpl_amm_create_prepare`, `xrpl_amm_deposit_prepare`, `xrpl_amm_clawback_prepare`, `xrpl_amm_info`, `xrpl_account_lines`, `xrpl_tx_preflight`, `xrpl_tx_submit_signed` |
 | **xrpl-signer** | `xrpl_sign` |
 
 ## Концепция (XLS-37)

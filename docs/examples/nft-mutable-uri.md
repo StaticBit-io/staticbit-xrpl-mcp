@@ -10,7 +10,7 @@ Without the `tfMutable=16` flag on NFTokenMint, the URI is **immutable** after c
 
 | Plugin | Tools |
 |---|---|
-| **xrpl-cloud** or **xrpl-local** | `xrpl_nft_mint_prepare` (with flag), `xrpl_nft_modify_prepare`, `xrpl_account_nfts`, `xrpl_tx_preflight`, `xrpl_tx_submit_signed`, `xrpl_tx_lookup` |
+| **xrpl-cloud** | `xrpl_nft_mint_prepare` (with flag), `xrpl_nft_modify_prepare`, `xrpl_account_nfts`, `xrpl_tx_preflight`, `xrpl_tx_submit_signed`, `xrpl_tx_lookup` |
 | **xrpl-signer** | `xrpl_sign` |
 
 ## Concept (XLS-46)

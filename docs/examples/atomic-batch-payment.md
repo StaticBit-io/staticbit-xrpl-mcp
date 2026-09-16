@@ -12,7 +12,7 @@ Reference: [TestIBatch.cs](https://github.com/StaticBit-io/XrplCSharp/blob/relea
 
 | Plugin | Tools |
 |---|---|
-| **xrpl-cloud** or **xrpl-local** | `xrpl_payment_prepare` ×N (for inner-tx), `xrpl_batch_prepare`, `xrpl_tx_preflight`, `xrpl_tx_submit_signed`, `xrpl_account_info` (to fetch Sequence) |
+| **xrpl-cloud** | `xrpl_payment_prepare` ×N (for inner-tx), `xrpl_batch_prepare`, `xrpl_tx_preflight`, `xrpl_tx_submit_signed`, `xrpl_account_info` (to fetch Sequence) |
 | **xrpl-signer** | `xrpl_sign` for outer Batch, `xrpl_sign_multi` for multi-account BatchSigners |
 
 ## Batch modes

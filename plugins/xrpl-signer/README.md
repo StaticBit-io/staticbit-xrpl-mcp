@@ -6,7 +6,7 @@ An offline stdio MCP — XRPL wallet management and transaction signing. Runs lo
 
 ## Why
 
-A companion plugin to `xrpl-cloud` or `xrpl-local`. Those do `prepare` and `submit_signed`; this one does `sign`. The cloud/local servers **never** see your seed: they receive only a signed hex blob as output.
+A companion plugin to `xrpl-cloud`. Those do `prepare` and `submit_signed`; this one does `sign`. The cloud/local servers **never** see your seed: they receive only a signed hex blob as output.
 
 ## Installation
 
@@ -113,11 +113,6 @@ With the cloud flow:
 /plugin install xrpl-signer@staticbit-xrpl-mcp
 ```
 
-With the local flow (no external service):
-```
-/plugin install xrpl-local@staticbit-xrpl-mcp
-/plugin install xrpl-signer@staticbit-xrpl-mcp
-```
 
 In both cases the agent itself routes calls between the prepare server and the signer.
 

@@ -46,10 +46,9 @@ The workflow takes `patch` / `minor` / `major`. An exact version (e.g. a pre-rel
 | Plugin | Source | Bump when changing |
 |---|---|---|
 | `xrpl-cloud` | plugin manifest + skill + .mcp.json (URL/headers) | manifest/skill only — `no_build` |
-| `xrpl-local` | `src/StaticBit.Xrpl.Mcp.{Abstractions,Core,Server}` | the whole server project |
 | `xrpl-signer` | `src/StaticBit.Xrpl.Mcp.Signer` | the signer project only (independent) |
 
-If you change `StaticBit.Xrpl.Mcp.Core` — only `xrpl-local` is affected (the signer does not depend on Core). If you change `StaticBit.Xrpl.Mcp.Server` — only `xrpl-local`. If you change `StaticBit.Xrpl.Mcp.Signer` — only `xrpl-signer`. `xrpl-cloud` depends only on the URL endpoint and the manifest text.
+`StaticBit.Xrpl.Mcp.Core` and `StaticBit.Xrpl.Mcp.Server` back the hosted server, not a shipped plugin binary. If you change `StaticBit.Xrpl.Mcp.Signer` — only `xrpl-signer`. `xrpl-cloud` depends only on the URL endpoint and the manifest text.
 
 ## Typical scenarios
 
@@ -95,7 +94,7 @@ curl -s https://xrpl.mcp.staticbit.ai/healthz     # {"status":"ok","version":"<s
 git rev-parse --short HEAD                        # must match
 
 # 4. Release the local plugin with the new self-contained binary:
-gh workflow run release-plugin.yml --ref main -f plugin=xrpl-local -f bump=minor
+gh workflow run release-plugin.yml --ref main -f plugin=xrpl-signer -f bump=minor
 ```
 
 Step 4 adds a release commit on top of `main`, so `/healthz` will then trail HEAD by that commit. Re-run `deploy-build` if you want the reported version to match HEAD exactly — the server code itself is unaffected (the release commit only touches `bin/` + manifests + CHANGELOG).
@@ -129,7 +128,7 @@ gh workflow run release-plugin.yml --ref main -f plugin=xrpl-signer -f bump=patc
 The workflow releases **one plugin per run**. Dispatch them **one at a time, waiting for each to complete** before starting the next:
 
 ```bash
-gh workflow run release-plugin.yml --ref main -f plugin=xrpl-local -f bump=minor
+gh workflow run release-plugin.yml --ref main -f plugin=xrpl-signer -f bump=minor
 gh run watch "$(gh run list --workflow=release-plugin.yml --limit 1 --json databaseId --jq '.[0].databaseId')" --exit-status
 
 gh workflow run release-plugin.yml --ref main -f plugin=xrpl-signer -f bump=minor

@@ -8,7 +8,7 @@ A cross-plugin recipe. The agent runs in the background, polls for new transacti
 
 | Plugin | What the recipe needs |
 |---|---|
-| **xrpl-cloud** (or `xrpl-local`) | `xrpl_account_tx_since` for polling, `xrpl_tx_explain` for formatting |
+| **xrpl-cloud** | `xrpl_account_tx_since` for polling, `xrpl_tx_explain` for formatting |
 | **telegram** (separate plugin) | `mcp__telegram-cloud__send_message` for notifications |
 
 `xrpl-signer` is not needed — read-only.

@@ -2,7 +2,7 @@
 
 # Supply chain — release artifacts and verification
 
-Every plugin release (`xrpl-cloud` / `xrpl-local` / `xrpl-signer`) ships with a set of supply-chain artifacts. Some are always included; some only when Apple / Authenticode certificate-authority secrets are configured.
+Every plugin release (`xrpl-cloud` / `xrpl-signer`) ships with a set of supply-chain artifacts. Some are always included; some only when Apple / Authenticode certificate-authority secrets are configured.
 
 Tag convention: `<plugin>--v<X.Y.Z>` (e.g. `xrpl-signer--v0.1.2`).
 
@@ -13,10 +13,10 @@ Built by [`.github/workflows/release-plugin.yml`](../.github/workflows/release-p
 | Artifact | When | How to verify |
 |---|---|---|
 | **CHANGELOG entry** in the release notes | always | Grouped by conventional-commit type (feat / fix / docs / refactor / test / perf / build / ci / other). See `release-plugin.sh::group_by_conventional_commit`. |
-| **Per-RID tarballs** `<plugin>-v<X>-<rid>.tar.gz` | for `xrpl-signer` and `xrpl-local` | `tar -tzf` to inspect; `sha256sum -c <file>.sha256` for integrity. |
+| **Per-RID tarballs** `<plugin>-v<X>-<rid>.tar.gz` | for `xrpl-signer` | `tar -tzf` to inspect; `sha256sum -c <file>.sha256` for integrity. |
 | **SHA-256 sidecars** `<tarball>.sha256` | always alongside tarballs | `sha256sum -c` compares the local hash against the build-time hash. |
-| **SBOM (CycloneDX)** `<plugin>-v<X>.cdx.json` | for `xrpl-signer` and `xrpl-local` | `cyclonedx-cli analyze`, `grype sbom:<file>`, import into Dependency-Track. |
-| **SLSA build provenance attestation** | for `xrpl-signer` and `xrpl-local` — **only when the repo is public or the org is on a paid plan** (see below) | `gh attestation verify <tarball> --repo StaticBit-io/staticbit-xrpl-mcp` (GitHub CLI). Confirms the binary really was built by this workflow on this commit. |
+| **SBOM (CycloneDX)** `<plugin>-v<X>.cdx.json` | for `xrpl-signer` | `cyclonedx-cli analyze`, `grype sbom:<file>`, import into Dependency-Track. |
+| **SLSA build provenance attestation** | for `xrpl-signer` — **only when the repo is public or the org is on a paid plan** (see below) | `gh attestation verify <tarball> --repo StaticBit-io/staticbit-xrpl-mcp` (GitHub CLI). Confirms the binary really was built by this workflow on this commit. |
 | **macOS notarization** | when `APPLE_*` secrets are set | `codesign --verify --deep --strict <binary>`, `spctl --assess --type execute <binary>` (Gatekeeper). Apple notary online lookup on first launch. |
 | **Windows Authenticode** | when `WINDOWS_PFX*` secrets are set | `signtool verify /pa /v <binary>.exe`, or `osslsigncode verify -in <binary>.exe` on Linux. |
 

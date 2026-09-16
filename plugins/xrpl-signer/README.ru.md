@@ -6,7 +6,7 @@ Offline stdio MCP — управление XRPL кошельками и подп
 
 ## Зачем
 
-Парный плагин к `xrpl-cloud` или `xrpl-local`. Тот делает `prepare` и `submit_signed`, этот — `sign`. Cloud/local-серверы **никогда** не видят твоего seed: они получают на выход только подписанный hex blob.
+Парный плагин к `xrpl-cloud`. Тот делает `prepare` и `submit_signed`, этот — `sign`. Cloud/local-серверы **никогда** не видят твоего seed: они получают на выход только подписанный hex blob.
 
 ## Установка
 
@@ -113,11 +113,6 @@ Node.js launcher `bin/signer.js` выбирает нужный по `os.platform
 /plugin install xrpl-signer@staticbit-xrpl-mcp
 ```
 
-С local-flow (никакого внешнего сервиса):
-```
-/plugin install xrpl-local@staticbit-xrpl-mcp
-/plugin install xrpl-signer@staticbit-xrpl-mcp
-```
 
 В обоих случаях агент сам разводит вызовы между prepare-сервером и signer'ом.
 

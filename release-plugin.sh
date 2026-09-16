@@ -24,7 +24,7 @@
 #   ./release-plugin.sh <plugin>[,<plugin>...] --version X.Y.Z [flags]
 #
 # Positional:
-#   plugin    one of: xrpl-cloud, xrpl-local, xrpl-signer (comma-separated for multi)
+#   plugin    one of: xrpl-cloud, xrpl-signer (comma-separated for multi)
 #   bump      one of: patch, minor, major   (mutually exclusive with --version)
 #
 # Flags:
@@ -39,7 +39,7 @@
 #   ./release-plugin.sh xrpl-signer patch                # bump 0.1.1 → 0.1.2, build, commit, tag
 #   ./release-plugin.sh xrpl-signer patch --push         # …and push
 #   ./release-plugin.sh xrpl-cloud  patch --no-build     # docs-only fix in a non-binary plugin
-#   ./release-plugin.sh xrpl-local,xrpl-signer minor --push
+#   ./release-plugin.sh xrpl-cloud,xrpl-signer minor --push
 #   ./release-plugin.sh xrpl-signer --build-only         # local sanity check
 #   ./release-plugin.sh xrpl-signer --version 1.0.0-rc.1 --push
 
@@ -55,7 +55,6 @@ REPO_ROOT="$SCRIPT_DIR"
 # Maps a plugin name to the "kind" of binary it ships (or "none" for HTTP-only).
 declare -A PLUGIN_KIND=(
   [xrpl-cloud]="none"
-  [xrpl-local]="server"
   [xrpl-signer]="signer"
 )
 
@@ -223,7 +222,6 @@ write_marketplace_plugin_version() {
 build_for_kind() {
   local kind="$1"
   case "$kind" in
-    server)   step "Building server binaries (5 RIDs)"; run bash "$REPO_ROOT/build-server-binaries.sh" ;;
     signer)   step "Building signer binaries (5 RIDs)"; run bash "$REPO_ROOT/build-signer-binaries.sh" ;;
     none)     dim   "Plugin has no binaries (HTTP wrapper) — skip build." ;;
     *)        fail  "Unknown build kind: $kind" ;;

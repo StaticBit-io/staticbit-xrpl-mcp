@@ -10,7 +10,7 @@ Resilient batch agent: резервирует пул Tickets, потом submit'
 
 | Плагин | Tools |
 |---|---|
-| **xrpl-cloud** или **xrpl-local** | `xrpl_account_info`, `xrpl_ticket_create_prepare`, `xrpl_tx_prepare_generic` (для tx с TicketSequence), `xrpl_payment_prepare` (если payment), `xrpl_tx_preflight`, `xrpl_tx_submit_signed`, `xrpl_account_objects` (тип `Ticket`) |
+| **xrpl-cloud** | `xrpl_account_info`, `xrpl_ticket_create_prepare`, `xrpl_tx_prepare_generic` (для tx с TicketSequence), `xrpl_payment_prepare` (если payment), `xrpl_tx_preflight`, `xrpl_tx_submit_signed`, `xrpl_account_objects` (тип `Ticket`) |
 | **xrpl-signer** | `xrpl_sign` |
 
 ## Зачем нужны Tickets

@@ -20,7 +20,6 @@ XRPL toolkit for Claude Code — **исходники + три плагина в
 
 ```
 # read / prepare / submit, работает локально; напрямую к публичным XRPL-нодам:
-/plugin install xrpl-local@staticbit-xrpl-mcp
 # offline-управление кошельками + подпись (encrypted keystore):
 /plugin install xrpl-signer@staticbit-xrpl-mcp
 ```
@@ -35,14 +34,13 @@ XRPL toolkit for Claude Code — **исходники + три плагина в
 
 ### `xrpl-cloud` и self-hosting
 
-`xrpl-cloud` — это тонкий HTTP-клиент к серверу, **который хостит StaticBit** (`xrpl.mcp.staticbit.ai`). Этот hosted-эндпоинт управляется StaticBit и **не открыт для публичного self-service** — нужен аккаунт по договорённости со StaticBit. Для self-serve `xrpl-local` делает всё то же, что cloud, целиком на твоей машине. Если нужен общий cloud-подобный HTTP-эндпоинт для своей команды — **подними тот же сервер сам** (идентичный код `xrpl-local`), см. [DEPLOY.ru.md](docs/ru/DEPLOY.md).
+`xrpl-cloud` — это тонкий HTTP-клиент к серверу, **который хостит StaticBit** (`xrpl.mcp.staticbit.ai`). Этот hosted-эндпоинт управляется StaticBit и **не открыт для публичного self-service** — нужен аккаунт по договорённости со StaticBit. Если нужен общий cloud-подобный HTTP-эндпоинт для своей команды — **подними тот же сервер сам**, см. [DEPLOY.ru.md](docs/ru/DEPLOY.md).
 
 ## Плагины marketplace
 
 | Plugin | What it does | Size |
 |---|---|---|
-| [`xrpl-cloud`](plugins/xrpl-cloud/) | Тонкий HTTP-клиент к серверу, **который хостит StaticBit**, по адресу `xrpl.mcp.staticbit.ai` — hosted-доступ по договорённости (не open self-service; используй `xrpl-local` или self-host). | ~10 KB |
-| [`xrpl-local`](plugins/xrpl-local/) | Local stdio MCP — те же <!-- toolcount:xrpl -->116<!-- /toolcount:xrpl --> tools, но полностью на твоей машине, WebSocket напрямую к публичным XRPL нодам. | ~260 MB (5 RIDs) |
+| [`xrpl-cloud`](plugins/xrpl-cloud/) | Тонкий HTTP-клиент к серверу, **который хостит StaticBit**, по адресу `xrpl.mcp.staticbit.ai` — hosted-доступ по договорённости (не open self-service; иначе self-host). | ~10 KB |
 | [`xrpl-signer`](plugins/xrpl-signer/) | Offline stdio MCP для управления кошельками и подписания — encrypted keystore, zero network code. Парится с cloud либо local. | ~200 MB (5 RIDs) |
 
 ## How they compose
@@ -57,17 +55,6 @@ XRPL toolkit for Claude Code — **исходники + три плагина в
 │                      ├─ sign locally                   │
 │   xrpl-cloud (HTTP) ─┘                                 │
 │                      └─ submit_signed                  │
-└────────────────────────────────────────────────────────┘
-
-┌────────────────────────────────────────────────────────┐
-│ Local + Signer (fully offline-ish, no cloud middleman) │
-│                                                        │
-│   xrpl-local (stdio) ─┐                                │
-│                       ├─ prepare → user-confirm        │
-│   xrpl-signer (stdio) ┘                                │
-│                       ├─ sign locally                  │
-│   xrpl-local (stdio) ─┘                                │
-│                       └─ submit_signed                  │
 └────────────────────────────────────────────────────────┘
 ```
 
@@ -93,7 +80,6 @@ staticbit-xrpl-mcp/
 ├── .github/workflows/                     ← CI: docker, dotnet-test, release-plugin
 ├── plugins/
 │   ├── xrpl-cloud/      (manifest + skill, без бинарей)
-│   ├── xrpl-local/      (+ bin/<rid>/ для 5 RIDs)
 │   └── xrpl-signer/     (+ bin/<rid>/ для 5 RIDs)
 ├── src/
 │   ├── StaticBit.Xrpl.Mcp.Abstractions/   ← shared models

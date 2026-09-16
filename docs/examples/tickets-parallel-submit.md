@@ -10,7 +10,7 @@ Reference: `ticketCreate.cs` (lowercase file) and the entire pattern of using `T
 
 | Plugin | Tools |
 |---|---|
-| **xrpl-cloud** or **xrpl-local** | `xrpl_account_info`, `xrpl_ticket_create_prepare`, `xrpl_tx_prepare_generic` (for tx with TicketSequence), `xrpl_payment_prepare` (if a payment), `xrpl_tx_preflight`, `xrpl_tx_submit_signed`, `xrpl_account_objects` (type `Ticket`) |
+| **xrpl-cloud** | `xrpl_account_info`, `xrpl_ticket_create_prepare`, `xrpl_tx_prepare_generic` (for tx with TicketSequence), `xrpl_payment_prepare` (if a payment), `xrpl_tx_preflight`, `xrpl_tx_submit_signed`, `xrpl_account_objects` (type `Ticket`) |
 | **xrpl-signer** | `xrpl_sign` |
 
 ## Why Tickets

@@ -10,7 +10,7 @@ NFT с обновляемой metadata URI. Owner или authorized minter мо�
 
 | Плагин | Tools |
 |---|---|
-| **xrpl-cloud** или **xrpl-local** | `xrpl_nft_mint_prepare` (с flag), `xrpl_nft_modify_prepare`, `xrpl_account_nfts`, `xrpl_tx_preflight`, `xrpl_tx_submit_signed`, `xrpl_tx_lookup` |
+| **xrpl-cloud** | `xrpl_nft_mint_prepare` (с flag), `xrpl_nft_modify_prepare`, `xrpl_account_nfts`, `xrpl_tx_preflight`, `xrpl_tx_submit_signed`, `xrpl_tx_lookup` |
 | **xrpl-signer** | `xrpl_sign` |
 
 ## Концепция (XLS-46)
