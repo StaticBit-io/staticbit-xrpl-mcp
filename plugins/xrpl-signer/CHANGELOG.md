@@ -1,3 +1,46 @@
+## v0.5.0 — 2026-09-16
+
+### Features
+- xrpl-x402-payments skill (stdio+cloud) + generic-prepare fix (#26) (01d1e71)
+
+### Fixes
+- validate invoiceId as Hash256 before preparing Payment (#57) (7dc7f42)
+- treat literal ${VAR} placeholder text as an unset optional override (0506dee)
+- strip empty .mcp.json env overrides on launch (f4519f7)
+- make issuer params optional so XRP side can be omitted (c862f77)
+- valid YAML frontmatter in skill descriptions (79f0d49)
+
+### Documentation
+- update untrusted-content marker format to nonce-qualified scheme (e078193)
+- make the workflow the canonical release path (2591c46)
+- move Install to the top for plugin users (reorder; doc links → Documentation section) (d6caaca)
+
+### Tests
+- drop the cluster-dependent noPermission acceptance test (#58) (31da7d2)
+
+### Build / CI
+- bump github/codeql-action from 3 to 4 (#29) (917045f)
+- bump actions/upload-artifact from 4 to 7 (#28) (e04f3c5)
+- bump actions/checkout from 6 to 7 (#27) (6377d3c)
+- add workflow_dispatch to security-audit (manual re-audit; pick up fixed reusable) (a9a5eea)
+- add zizmor+actionlint security-audit gate (16889e4)
+
+### Other
+- release: xrpl-local v0.7.0 (9ad37e6)
+- deps: Bump mcp.injectionguard and 14 others (#59) (74db5b4)
+- chore(deps)!: migrate to Xrpl 11.5.1 (#56) (8f0127b)
+- Merge pull request #37 from StaticBit-io/claude/fix-placeholder-env-overrides-xrpl (3e076ef)
+- Merge pull request #36 from StaticBit-io/claude/fix-xrpl-local-empty-env-override-ccc7a8 (bc8f5f7)
+- Merge pull request #35 from StaticBit-io/claude/bump-mcp-auth-resourceserver-0.4.0 (c161177)
+- Merge remote-tracking branch 'origin/main' into claude/bump-mcp-auth-resourceserver-0.4.0 (12256b9)
+- deps: bump Mcp.Auth.ResourceServer 0.3.0 -> 0.4.0 (untrusted-content nonce hardening) (e77ad25)
+- release: xrpl-local v0.6.0 (f405b59)
+- Revert "release: xrpl-local v0.6.0" (4fac28e)
+- release: xrpl-local v0.6.0 (44473d7)
+- chore: bump mcp.skilllint pin to 0.2.0 (frontmatter validation) (5495ef4)
+- release: xrpl-cloud v0.5.0 (74dab98)
+- release: xrpl-local v0.5.0 (418c387)
+
 ## v0.4.3 — 2026-07-30
 
 ### Fixes
