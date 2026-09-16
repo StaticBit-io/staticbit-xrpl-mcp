@@ -1,3 +1,31 @@
+## v0.7.0 — 2026-09-16
+
+### Fixes
+- validate invoiceId as Hash256 before preparing Payment (#57) (7dc7f42)
+- treat literal ${VAR} placeholder text as an unset optional override (0506dee)
+- strip empty .mcp.json env overrides on launch (f4519f7)
+
+### Documentation
+- update untrusted-content marker format to nonce-qualified scheme (e078193)
+- make the workflow the canonical release path (2591c46)
+
+### Tests
+- drop the cluster-dependent noPermission acceptance test (#58) (31da7d2)
+
+### Build / CI
+- bump github/codeql-action from 3 to 4 (#29) (917045f)
+- bump actions/upload-artifact from 4 to 7 (#28) (e04f3c5)
+- bump actions/checkout from 6 to 7 (#27) (6377d3c)
+
+### Other
+- deps: Bump mcp.injectionguard and 14 others (#59) (74db5b4)
+- chore(deps)!: migrate to Xrpl 11.5.1 (#56) (8f0127b)
+- Merge pull request #37 from StaticBit-io/claude/fix-placeholder-env-overrides-xrpl (3e076ef)
+- Merge pull request #36 from StaticBit-io/claude/fix-xrpl-local-empty-env-override-ccc7a8 (bc8f5f7)
+- Merge pull request #35 from StaticBit-io/claude/bump-mcp-auth-resourceserver-0.4.0 (c161177)
+- Merge remote-tracking branch 'origin/main' into claude/bump-mcp-auth-resourceserver-0.4.0 (12256b9)
+- deps: bump Mcp.Auth.ResourceServer 0.3.0 -> 0.4.0 (untrusted-content nonce hardening) (e77ad25)
+
 ## v0.6.2 — 2026-07-30
 
 ### Fixes
