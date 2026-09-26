@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 
@@ -32,12 +33,19 @@ public sealed class SignerOptions
     public string Passphrase { get; init; } = string.Empty;
 
     /// <summary>
-    /// Optional path to an append-only JSON-lines audit log of every successful or
-    /// failed signing operation. Empty (default) disables the audit log entirely.
-    /// Override with <c>XRPL_SIGNER_AUDIT_LOG</c> env var; the conventional value
-    /// is <c>&lt;keystore_dir&gt;/signer-audit.log</c>.
+    /// Path to an append-only JSON-lines audit log of every successful or failed signing
+    /// operation. Empty disables the audit log. When <c>XRPL_SIGNER_AUDIT_LOG</c> is unset it
+    /// defaults to <c>&lt;keystore_dir&gt;/signer-audit.log</c>; set the variable to a path to move
+    /// it, or to <c>off</c> to disable it.
     /// </summary>
     public string AuditLogPath { get; init; } = string.Empty;
+
+    /// <summary>
+    /// High-risk transaction kinds (see <see cref="Policy.SigningPolicy.HighRiskKinds"/>) the
+    /// operator explicitly allows the signer to sign. Empty (default) refuses all of them.
+    /// Comma- or semicolon-separated list in <c>XRPL_SIGNER_ALLOW_TX_TYPES</c>.
+    /// </summary>
+    public IReadOnlyList<string> AllowedHighRiskKinds { get; init; } = Array.Empty<string>();
 
     public static SignerOptions ResolveFromEnvironment()
     {
@@ -54,16 +62,44 @@ public sealed class SignerOptions
         string keystorePath = Environment.GetEnvironmentVariable("XRPL_SIGNER_KEYSTORE_PATH")
             ?? GetDefaultKeystorePath();
 
-        // Audit log is opt-in. Empty value = disabled. The conventional place is
-        // alongside the keystore so a single backup script catches both.
-        string auditLogPath = Environment.GetEnvironmentVariable("XRPL_SIGNER_AUDIT_LOG") ?? string.Empty;
-
         return new SignerOptions
         {
             KeystorePath = keystorePath,
             Passphrase = passphrase,
-            AuditLogPath = auditLogPath,
+            AuditLogPath = ResolveAuditLogPath(
+                Environment.GetEnvironmentVariable("XRPL_SIGNER_AUDIT_LOG"), keystorePath),
+            AllowedHighRiskKinds = ParseList(Environment.GetEnvironmentVariable("XRPL_SIGNER_ALLOW_TX_TYPES")),
         };
+    }
+
+    /// <summary>
+    /// Audit log is on by default, next to the keystore so a single backup catches both.
+    /// Unset or empty → default path; <c>off</c> / <c>none</c> / <c>false</c> → disabled.
+    /// </summary>
+    public static string ResolveAuditLogPath(string? configured, string keystorePath)
+    {
+        if (string.IsNullOrWhiteSpace(configured))
+        {
+            string directory = Path.GetDirectoryName(keystorePath) ?? string.Empty;
+            return Path.Combine(directory, "signer-audit.log");
+        }
+
+        string value = configured.Trim();
+        return value.Equals("off", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("none", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("false", StringComparison.OrdinalIgnoreCase)
+            ? string.Empty
+            : value;
+    }
+
+    public static IReadOnlyList<string> ParseList(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return Array.Empty<string>();
+        }
+
+        return raw.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     }
 
     public static string GetDefaultKeystorePath()

@@ -48,6 +48,23 @@ To override:
 [Environment]::SetEnvironmentVariable("XRPL_SIGNER_KEYSTORE_PATH", "C:\my\keystore.json", "User")
 ```
 
+### Signing policy (enforced in code)
+
+The signer refuses, whatever the chat says:
+
+- a transaction whose `Account` is not the address of the wallet it is signed with (`xrpl_sign`);
+- transactions that hand control of the account to another key or account in one signature: `SetRegularKey`, `SignerListSet`, `AccountDelete`, `DelegateSet` and `AccountSet` with `asfDisableMaster` — also when wrapped in a `Batch` (`xrpl_sign`, `xrpl_sign_multi`).
+
+To allow a kind, list it in `XRPL_SIGNER_ALLOW_TX_TYPES` (comma-separated; tokens `SetRegularKey`, `SignerListSet`, `AccountDelete`, `DelegateSet`, `DisableMaster`) and restart Claude Code. An unknown token stops the signer at startup. The variable belongs to the signer process, so it cannot be changed from the chat — only the operator can widen the policy.
+
+```powershell
+[Environment]::SetEnvironmentVariable("XRPL_SIGNER_ALLOW_TX_TYPES", "SetRegularKey", "User")
+```
+
+### Audit log
+
+Every signature, refusal and failed decryption is appended to `signer-audit.log` next to the keystore (JSON lines, mode 0600 on Unix). Set `XRPL_SIGNER_AUDIT_LOG` to another path to move it, or to `off` to disable it.
+
 ## Verification
 
 ```

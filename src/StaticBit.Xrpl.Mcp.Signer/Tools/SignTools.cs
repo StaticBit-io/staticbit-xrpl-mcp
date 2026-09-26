@@ -8,6 +8,7 @@ using System.Text.Json.Nodes;
 using ModelContextProtocol.Server;
 using StaticBit.Xrpl.Mcp.Signer.Audit;
 using StaticBit.Xrpl.Mcp.Signer.Keystore;
+using StaticBit.Xrpl.Mcp.Signer.Policy;
 using Xrpl.BinaryCodec;
 using Xrpl.Wallet;
 
@@ -27,22 +28,26 @@ public sealed class SignTools
 
     private readonly IKeystore _keystore;
     private readonly IAuditLogger _audit;
+    private readonly SigningPolicy _policy;
 
-    public SignTools(IKeystore keystore, IAuditLogger audit)
+    public SignTools(IKeystore keystore, IAuditLogger audit, SigningPolicy policy)
     {
         _keystore = keystore;
         _audit = audit;
+        _policy = policy;
     }
 
     [McpServerTool(Name = "xrpl_sign")]
-    [Description("Signs a transaction with the named wallet's private key. The transaction can be supplied as a JSON object or as an unsigned hex blob (the same value xrpl_payment_prepare returns as 'txBlobUnsigned'). For HD (mnemonic-kind) wallets, pass 'index' to select which derived account to sign with (default 0). Returns the signed hex blob and its hash — ready to feed to xrpl_tx_submit_signed.")]
+    [Description("Signs a transaction with the named wallet's private key. The transaction can be supplied as a JSON object or as an unsigned hex blob (the same value xrpl_payment_prepare returns as 'txBlobUnsigned'). For HD (mnemonic-kind) wallets, pass 'index' to select which derived account to sign with (default 0). Returns the signed hex blob and its hash — ready to feed to xrpl_tx_submit_signed. The transaction's Account must be the wallet's own address. SetRegularKey, SignerListSet, AccountDelete, DelegateSet and AccountSet asfDisableMaster (also inside a Batch) are refused unless the operator allowed them via the XRPL_SIGNER_ALLOW_TX_TYPES environment variable.")]
     public object Sign(
         [Description("Wallet alias from the keystore.")] string name,
         [Description("Transaction to sign. Either a JSON object with 'TransactionType', 'Account', etc., OR a hex blob string from a *_prepare tool.")] string transaction,
         [Description("HD account index (0..2^31-1) for mnemonic-kind wallets. Ignored for seed-kind wallets. Default 0.")] int index = 0)
     {
         Dictionary<string, object> tx = ParseTransaction(transaction);
+        EnsurePolicyOrAuditFail(name, tx);
         XrplWallet wallet = LoadWalletOrAuditFail(name, index);
+        EnsureOwnAccountOrAuditFail(name, tx, wallet);
 
         SignatureResult result;
         try
@@ -69,7 +74,7 @@ public sealed class SignTools
     }
 
     [McpServerTool(Name = "xrpl_sign_multi")]
-    [Description("Produces a single-slot multi-sign for a transaction. Each authorized signer runs this once; the resulting partial-signed transactions are then aggregated with xrpl_sign_combine before submission. Returns the signed hex blob containing this signer's Signers entry.")]
+    [Description("Produces a single-slot multi-sign for a transaction. Each authorized signer runs this once; the resulting partial-signed transactions are then aggregated with xrpl_sign_combine before submission. Returns the signed hex blob containing this signer's Signers entry. The same high-risk kinds as xrpl_sign are refused unless allowed via XRPL_SIGNER_ALLOW_TX_TYPES.")]
     public object SignMulti(
         [Description("Wallet alias from the keystore — used as one of the multi-sign authorized accounts.")] string name,
         [Description("Transaction to sign — JSON object or hex blob. The transaction's SigningPubKey must be empty string for multi-sign.")] string transaction,
@@ -77,6 +82,7 @@ public sealed class SignTools
         [Description("HD account index for mnemonic-kind wallets. Ignored for seed-kind. Default 0.")] int index = 0)
     {
         Dictionary<string, object> tx = ParseTransaction(transaction);
+        EnsurePolicyOrAuditFail(name, tx);
         XrplWallet wallet = LoadWalletOrAuditFail(name, index);
 
         SignatureResult result;
@@ -136,6 +142,44 @@ public sealed class SignTools
     }
 
     // ────────────────────────────────────────────────────────────────────────
+
+    private void EnsurePolicyOrAuditFail(string name, Dictionary<string, object> tx)
+    {
+        try
+        {
+            _policy.EnsureAllowed(tx);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _audit.LogSignError(name, ex.Message);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// A single signature only authorizes the wallet's own account. Signing for a different
+    /// Account never yields a valid transaction, so a mismatch means the input was tampered with.
+    /// </summary>
+    private void EnsureOwnAccountOrAuditFail(string name, Dictionary<string, object> tx, XrplWallet wallet)
+    {
+        string? account = tx.TryGetValue("Account", out object? value) ? value switch
+        {
+            string s => s,
+            JsonElement { ValueKind: JsonValueKind.String } e => e.GetString(),
+            _ => null,
+        } : null;
+
+        if (string.Equals(account, wallet.ClassicAddress, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        string message =
+            $"Refusing to sign: transaction Account '{account ?? "<missing>"}' is not the address " +
+            $"'{wallet.ClassicAddress}' of wallet '{name}'.";
+        _audit.LogSignError(name, message);
+        throw new ArgumentException(message, "transaction");
+    }
 
     /// <summary>
     /// Decrypts the wallet for signing. For seed-kind wallets the index must be 0.
