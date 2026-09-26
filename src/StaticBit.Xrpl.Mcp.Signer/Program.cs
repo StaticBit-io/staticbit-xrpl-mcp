@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using StaticBit.Xrpl.Mcp.Signer.Audit;
 using StaticBit.Xrpl.Mcp.Signer.Configuration;
 using StaticBit.Xrpl.Mcp.Signer.Keystore;
+using StaticBit.Xrpl.Mcp.Signer.Policy;
 using StaticBit.Xrpl.Mcp.Signer.Tools;
 
 namespace StaticBit.Xrpl.Mcp.Signer;
@@ -29,6 +30,17 @@ internal static class Program
             return 2;
         }
 
+        SigningPolicy policy;
+        try
+        {
+            policy = new SigningPolicy(options.AllowedHighRiskKinds);
+        }
+        catch (ArgumentException ex)
+        {
+            await Console.Error.WriteLineAsync("FATAL: " + ex.Message).ConfigureAwait(false);
+            return 2;
+        }
+
         HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
         // STDIO is the protocol channel. All log output MUST go to stderr.
@@ -36,10 +48,11 @@ internal static class Program
         builder.Logging.AddConsole(o => o.LogToStandardErrorThreshold = LogLevel.Trace);
 
         builder.Services.AddSingleton(options);
+        builder.Services.AddSingleton(policy);
         builder.Services.AddSingleton<IKeystore, EncryptedFileKeystore>();
 
-        // Audit logger is opt-in via SignerOptions.AuditLogPath. When empty,
-        // wire the no-op so the call sites can depend on IAuditLogger unconditionally.
+        // Audit logger is on by default (SignerOptions.AuditLogPath). When explicitly
+        // disabled, wire the no-op so the call sites can depend on IAuditLogger unconditionally.
         if (string.IsNullOrWhiteSpace(options.AuditLogPath))
         {
             builder.Services.AddSingleton<IAuditLogger, NullAuditLogger>();
@@ -73,9 +86,10 @@ internal static class Program
             IKeystore keystore = host.Services.GetRequiredService<IKeystore>();
             int count = keystore.List().Count;
             startupLog.LogInformation(
-                "StaticBitXrplMcp.Signer stdio ready. Keystore at {Path}, wallets={Count}, audit={AuditState}.",
+                "StaticBitXrplMcp.Signer stdio ready. Keystore at {Path}, wallets={Count}, audit={AuditState}, allowedHighRisk={Allowed}.",
                 options.KeystorePath, count,
-                string.IsNullOrEmpty(options.AuditLogPath) ? "disabled" : options.AuditLogPath);
+                string.IsNullOrEmpty(options.AuditLogPath) ? "disabled" : options.AuditLogPath,
+                policy.AllowedKinds.Count == 0 ? "none" : string.Join(",", policy.AllowedKinds));
         }
         catch (Exception ex)
         {

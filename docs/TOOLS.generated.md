@@ -1720,7 +1720,7 @@ Offline signer — wallet management and transaction signing (encrypted keystore
 
 <sub>Source: `src/StaticBit.Xrpl.Mcp.Signer/Tools/SignTools.cs`</sub>
 
-Signs a transaction with the named wallet's private key. The transaction can be supplied as a JSON object or as an unsigned hex blob (the same value xrpl_payment_prepare returns as 'txBlobUnsigned'). For HD (mnemonic-kind) wallets, pass 'index' to select which derived account to sign with (default 0). Returns the signed hex blob and its hash — ready to feed to xrpl_tx_submit_signed.
+Signs a transaction with the named wallet's private key. The transaction can be supplied as a JSON object or as an unsigned hex blob (the same value xrpl_payment_prepare returns as 'txBlobUnsigned'). For HD (mnemonic-kind) wallets, pass 'index' to select which derived account to sign with (default 0). Returns the signed hex blob and its hash — ready to feed to xrpl_tx_submit_signed. The transaction's Account must be the wallet's own address. SetRegularKey, SignerListSet, AccountDelete, DelegateSet and AccountSet asfDisableMaster (also inside a Batch) are refused unless the operator allowed them via the XRPL_SIGNER_ALLOW_TX_TYPES environment variable.
 
 | Param | Type | Required | Default | Description |
 |---|---|---|---|---|
@@ -1742,7 +1742,7 @@ Aggregates several multi-signed partial-blobs into one fully-signed transaction 
 
 <sub>Source: `src/StaticBit.Xrpl.Mcp.Signer/Tools/SignTools.cs`</sub>
 
-Produces a single-slot multi-sign for a transaction. Each authorized signer runs this once; the resulting partial-signed transactions are then aggregated with xrpl_sign_combine before submission. Returns the signed hex blob containing this signer's Signers entry.
+Produces a single-slot multi-sign for a transaction. Each authorized signer runs this once; the resulting partial-signed transactions are then aggregated with xrpl_sign_combine before submission. Returns the signed hex blob containing this signer's Signers entry. The same high-risk kinds as xrpl_sign are refused unless allowed via XRPL_SIGNER_ALLOW_TX_TYPES.
 
 | Param | Type | Required | Default | Description |
 |---|---|---|---|---|

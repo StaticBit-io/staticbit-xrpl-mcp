@@ -48,6 +48,23 @@ source ~/.bashrc
 [Environment]::SetEnvironmentVariable("XRPL_SIGNER_KEYSTORE_PATH", "C:\my\keystore.json", "User")
 ```
 
+### Политика подписи (проверяется в коде)
+
+Signer отказывается подписывать, что бы ни было сказано в чате:
+
+- транзакцию, у которой `Account` не совпадает с адресом кошелька, которым она подписывается (`xrpl_sign`);
+- транзакции, которые одной подписью передают контроль над аккаунтом другому ключу или аккаунту: `SetRegularKey`, `SignerListSet`, `AccountDelete`, `DelegateSet` и `AccountSet` с `asfDisableMaster` — в том числе внутри `Batch` (`xrpl_sign`, `xrpl_sign_multi`).
+
+Чтобы разрешить тип, перечисли его в `XRPL_SIGNER_ALLOW_TX_TYPES` (через запятую; токены `SetRegularKey`, `SignerListSet`, `AccountDelete`, `DelegateSet`, `DisableMaster`) и перезапусти Claude Code. Неизвестный токен останавливает signer при старте. Переменная принадлежит процессу signer'а, поэтому из чата её не поменять — расширить политику может только оператор.
+
+```powershell
+[Environment]::SetEnvironmentVariable("XRPL_SIGNER_ALLOW_TX_TYPES", "SetRegularKey", "User")
+```
+
+### Audit log
+
+Каждая подпись, отказ и неудачная расшифровка дописываются в `signer-audit.log` рядом с keystore (JSON lines, mode 0600 на Unix). Задай `XRPL_SIGNER_AUDIT_LOG` другим путём, чтобы перенести его, или `off`, чтобы выключить.
+
 ## Проверка
 
 ```

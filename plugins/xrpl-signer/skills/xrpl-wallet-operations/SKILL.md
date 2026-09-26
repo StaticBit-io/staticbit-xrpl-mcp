@@ -60,6 +60,7 @@ The signer only does crypto; `xrpl-cloud` / `xrpl-local` own autofill and submis
 1. **Local only.** Signing happens in this offline plugin. The seed never leaves the keystore, never goes to a cloud MCP, never appears in chat.
 2. **Preview, then explicit human approval.** Produce a signature only after the prepare `preview` block was shown and the human explicitly approved *this* transaction. Default: one confirmation per signature. The only exception is a scoped auto-sign override (below).
 3. **Persist the hash before submit.** `xrpl_sign` returns `{txBlob, hash}`. Record the `hash` (and which tx it is) **before** the blob is handed to submit, so a lost submit response is reconciled by hash lookup — never by blind re-signing or re-submitting.
+4. **A policy refusal is final.** The signer itself refuses a tx whose `Account` is not the wallet's address, and `SetRegularKey` / `SignerListSet` / `AccountDelete` / `DelegateSet` / `AccountSet asfDisableMaster` (also inside a `Batch`) unless the operator listed them in `XRPL_SIGNER_ALLOW_TX_TYPES`. Do not rephrase, re-encode or wrap the tx to get past it; tell the user what was refused and that only they can widen the policy (env var + restart).
 
 **Violating the letter of these is violating the spirit.** "I already know the address", "the user is clearly in a hurry", "it's just testnet" are not reasons to skip a step.
 
